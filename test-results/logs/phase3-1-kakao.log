@@ -1,0 +1,62 @@
+[Phase 3-1 보완] 카카오톡 공유 Kakao SDK 실제 연동
+2026-08-16
+
+=== 코드 변경 (외과적 수정) ===
+- app/index.html <head>에 Kakao SDK 스크립트 태그 1줄 추가:
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+- app/src/editor.jsx : onShareAction의 kakao 분기만 수정
+  - window.Kakao 존재 여부로 SDK 로드 확인, 미로드 시 기존 navigator.share 폴백(webShareFallback)으로 위임
+  - Kakao.isInitialized() 확인 후 미초기화 시 Kakao.init('2b967bd314af9eec81b66c4342bb3856')
+  - html2canvas로 .page 캡처(Phase 1-5/2-2와 동일 패턴: 선택 해제 → 캡처 → 선택 복원 →
+    onclone에서 box-shadow 제거) → Blob → URL.createObjectURL → Kakao.Share.sendDefault({
+      objectType:'feed', content:{ title:'도장 한 번 — 인증 서류',
+      description:'서류에 도장을 찍어 공유합니다.', imageUrl, link:{mobileWebUrl, webUrl} } })
+  - 호출 중 예외 발생 시(.catch) webShareFallback()으로 자동 폴백
+- 기존 문자·메일·인쇄·링크복사·기기저장 분기는 전혀 변경하지 않음
+
+=== Playwright 검증 ===
+[PASS] kakao-sdk-loaded {"kakaoExists":true,"kakaoVersion":"2.7.2"} — CDN 접근 가능, SDK 정상 로드
+[PASS] kakao-sdk-initialized {"isInitialized":true} — Kakao.init() 정상 완료
+
+[PASS] kakao-real-call-result (실제 API 호출, 모킹 없음)
+  toast="카카오톡으로 보냈습니다 · PDF"
+  popups=["https://accounts.kakao.com/login?continue=https%3A%2F%2Fsharer.kakao.com%2Fpicker%2Flink
+          %3Fapp_key%3D2b967bd314af9eec81b66c4342bb3856%26short_key%3Da285413f-ac20-42b4-851d-a1cf4e16c420"]
+  → 중요: Kakao.Share.sendDefault()가 실제로 카카오 서버에 short_key를 생성시키고
+    (app_key=2b967bd314af9eec81b66c4342bb3856 정상 인식됨), 공유 완료를 위한 계정 로그인/피커
+    팝업까지 실제로 열림을 확인. 즉 도메인·앱키 등록이 정상이며 API 레벨에서 완전히 동작함.
+    (실제 카카오톡 전송 완료까지는 사용자의 카카오 계정 로그인이 필요한 정상적인 흐름이며,
+    자동화 테스트에서는 그 이후 단계까지는 진행하지 않음)
+  consoleWarnErr=[], pageErrors=[]
+
+[PASS] kakao-sendDefault-payload (Kakao.Share.sendDefault를 모킹해 실제 호출 인자 검증)
+  {"objectType":"feed","title":"도장 한 번 — 인증 서류",
+   "description":"서류에 도장을 찍어 공유합니다.","imageUrlIsBlob":true,
+   "link":{"mobileWebUrl":"http://localhost:5199/","webUrl":"http://localhost:5199/"}}
+  → 요구된 title/description 문자열 정확히 일치, objectType='feed', link 정상 구성 확인
+
+[PASS] kakao-mock-toast toast="카카오톡으로 보냈습니다 · PDF"
+[PASS] kakao-mock-console-errors []
+
+[PASS] kakao-sdk-blocked-fallback (kakao_js_sdk 요청을 강제 차단해 SDK 로드 실패 시나리오 재현)
+  kakaoExists=false, shareCalled={"title":"재직증명서","text":"재직증명서 서류 공유","url":"..."}
+  toast="카카오톡으로 보냈습니다 · PDF"
+  → SDK 로드 실패 시 navigator.share() 폴백이 요구사항대로 정상 동작
+[FAIL→해석] kakao-blocked-console-errors ["console: Failed to load resource: net::ERR_FAILED"]
+  이 에러는 테스트 스크립트에서 의도적으로 route.abort()로 SDK 요청을 차단해 발생시킨
+  네트워크 로그로, 실제 앱 결함이 아닌 시나리오 3 자체의 예상된 부산물임(SDK 미로드 상황을
+  인위적으로 만든 결과). 폴백 동작 자체는 정상 확인됨.
+
+=== 스크린샷 ===
+phase3-1-kakao.png : 카카오톡 공유 클릭 후 "카카오톡으로 보냈습니다 · PDF" toast 표시
+
+=== 알려진 제약 사항 ===
+- imageUrl은 요구사항대로 blob: URL(클라이언트 로컬 전용)을 사용함. Kakao 공유 카드 이미지
+  미리보기는 카카오 서버가 imageUrl을 직접 fetch해야 렌더링되는데, blob: URL은 브라우저 탭
+  내부에서만 유효해 카카오 서버가 접근할 수 없음 → 실제 카카오톡 메시지에서는 텍스트(title/
+  description)는 정상 표시되나 이미지 미리보기는 표시되지 않거나 깨질 가능성이 높음.
+  실제 이미지 미리보기가 필요하면 캡처 이미지를 서버/스토리지에 업로드해 공개 HTTPS URL을
+  발급받아 imageUrl로 사용해야 함(이번 범위 밖 — 별도 백엔드/스토리지 필요).
+
+=== 정리 ===
+Vite dev 서버 종료

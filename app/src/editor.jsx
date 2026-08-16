@@ -426,12 +426,44 @@ function EditorScreen({ store }) {
       return;
     }
     if (k === 'kakao') {
-      if (navigator.share) {
-        navigator.share({ title: docName, text: docName + ' 서류 공유', url: window.location.href })
-          .then(() => showToast('카카오톡으로 보냈습니다 · ' + fmt))
-          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
-      } else {
-        showToast('카카오톡 앱 연동 필요');
+      const webShareFallback = () => {
+        if (navigator.share) {
+          navigator.share({ title: docName, text: docName + ' 서류 공유', url: window.location.href })
+            .then(() => showToast('카카오톡으로 보냈습니다 · ' + fmt))
+            .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        } else {
+          showToast('카카오톡 앱 연동 필요');
+        }
+      };
+      const Kakao = window.Kakao;
+      if (!Kakao) { webShareFallback(); return; }
+      try {
+        if (!Kakao.isInitialized()) Kakao.init('2b967bd314af9eec81b66c4342bb3856');
+        (async () => {
+          const prevSel = sel;
+          setSel(null);
+          await new Promise((r) => requestAnimationFrame(r));
+          const canvas = await html2canvas(pageRef.current, {
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; },
+          });
+          if (prevSel) setSel(prevSel);
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          const imageUrl = URL.createObjectURL(blob);
+          Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+              title: '도장 한 번 — 인증 서류',
+              description: '서류에 도장을 찍어 공유합니다.',
+              imageUrl,
+              link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+            },
+          });
+          showToast('카카오톡으로 보냈습니다 · ' + fmt);
+        })().catch(() => webShareFallback());
+      } catch (e) {
+        webShareFallback();
       }
       return;
     }
