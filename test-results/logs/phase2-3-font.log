@@ -1,0 +1,42 @@
+[Phase 2-3 보완] 한글·영문 서명 폰트 로컬 적용
+2026-08-16
+
+=== 코드 변경 (index.css @font-face 추가만, 외과적 수정) ===
+- 기존 index.css에는 Google Fonts @import가 없었음 (Phase 1에서 이미 제거된 상태) → 제거할 대상 없음
+- npm 패키지 설치:
+    pnpm add @fontsource/nanum-pen-script @fontsource/dancing-script @fontsource/nanum-myeongjo
+    pnpm add pretendard   (※ @fontsource/pretendard는 latin 서브셋만 포함해 한글 미지원 → 설치 후 제거,
+                             대신 실제 한글 글립이 포함된 공식 pretendard 패키지의 Variable 폰트 사용)
+- 폰트 파일을 app/public/fonts/ 에 복사 (7개, 총 약 4.4MB):
+    PretendardVariable.woff2 (2,057,688 bytes)
+    nanum-pen-script-korean-400-normal.woff2 (601,344 bytes)
+    nanum-myeongjo-korean-400/700/800-normal.woff2 (502,068 / 575,580 / 694,516 bytes)
+    dancing-script-latin-400/700-normal.woff2 (23,816 / 25,444 bytes)
+- app/src/index.css 최상단에 @font-face 7개 규칙 추가 (기존 CSS 내용·기존 font-family 사용처는
+  전혀 변경하지 않음 — body/SealVisual/StampVisual이 이미 참조하던 폰트 이름과 정확히 일치시킴)
+
+=== Playwright 검증 (pnpm dev 재기동 후) ===
+[PASS] font-face-registered-check
+  document.fonts.size = 7 (선언한 @font-face 7개 전부 등록 확인)
+  families: ["Pretendard Variable 45 920","Nanum Pen Script 400","Nanum Myeongjo 400",
+             "Nanum Myeongjo 700","Nanum Myeongjo 800","Dancing Script 400","Dancing Script 700"]
+  checkPretendard=true, checkNanumMy400=true, checkNanumMy800=true
+    (이미 화면에 렌더링된 상태라 즉시 로드 완료로 확인됨)
+  checkNanumPen=false, checkDancing400/700=false
+    (이 시점까지 서명·사인 스탬프를 화면에 렌더링한 적이 없어 font-display:swap 지연 로딩으로
+     아직 다운로드 트리거 전 상태 — 정상적인 지연 로딩 동작이며 오류 아님. 실제 배치 후 재확인함)
+
+[PASS] font-file-404s [] — 7개 woff2 파일 전부 200 응답, 404 없음
+[PASS] body-font-family "Pretendard Variable", Pretendard, -apple-system, system-ui, sans-serif
+[PASS] signature-computed-fontFamily "Nanum Pen Script", cursive
+[PASS] sign-computed-fontFamily "Dancing Script", cursive
+[PASS] console-errors []
+
+스크린샷 (서명·사인을 실제로 서류에 배치한 뒤 캡처):
+  phase2-3-font-signature.png : "김민수" — Nanum Pen Script 특유의 얇은 붓펜 손글씨체로 렌더링됨
+    (Phase 2-3 검증 시의 일반 cursive 폴백과 육안으로 뚜렷이 구별됨)
+  phase2-3-font-sign.png : "M.Kim" — Dancing Script 특유의 우아한 이탤릭 캘리그래피로 렌더링됨
+  → 서류 제목 "재직증명서" 등 Nanum Myeongjo 적용 본문 텍스트도 명조체 세리프로 정상 렌더링
+
+=== 정리 ===
+Vite dev 서버 종료

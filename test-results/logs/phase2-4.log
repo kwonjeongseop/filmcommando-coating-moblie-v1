@@ -1,0 +1,47 @@
+[Phase 2-4] 도장 이미지 업로드 기능 검증
+2026-08-16
+
+=== 저장소 정리 ===
+git status 확인 결과 이전 세션에서 "init: Phase 0~2-3 완료" 커밋이 이미 존재.
+해당 커밋에 이전 Phase 2-3 폰트 작업 중 잘못된 cp 명령 인자 처리로 생성된
+깨진 파일명 디버그 파일이 잘못 포함되어 있음을 발견:
+  "app/public/fonts\357\200\242\357\200\212ls -la C\357\200\272claudefilmcommando-coating-moblie-v1apppublicfonts\357\200\242"
+디스크에는 존재하지 않는 순수 git 인덱스 잔여물로 확인 → git rm --cached 로 제거,
+정상 폰트 7개 파일은 재확인 후 git add로 유지.
+
+=== 데스크톱 Playwright 검증 ===
+[PASS] 00-enter-editor (1358ms)
+[PASS] 01-generate-test-png (8ms) 11023 bytes — Canvas API로 빨간 원형 "테스트" 도장 PNG 생성
+[PASS] 02-add-stamp-sheet-open (449ms) StampPopup → "새 도장" 카드 → AddStampSheet 열림
+[PASS] 03-upload-image-and-add (446ms)
+  "촬영 · 업로드" 탭 전환 → page.setInputFiles() 로 PNG 업로드 → AddStampSheet 자동 닫힘
+  (기존 onFile 핸들러 로직 그대로 동작, 코드 변경 없음)
+[PASS] 04-library-has-uploaded-image (0ms)
+  localStorage 'docstamp_v2' 확인: {"id":"ddt4egc","kind":"image","label":"업로드 · test-stamp","srcLen":14722}
+[PASS] 05-popup-grid-shows-uploaded (430ms)
+  StampPopup 재오픈 → "업로드" 필터 탭 → 업로드 이미지 카드(img) 정상 표시
+[PASS] 06-placed-on-document (420ms)
+  이미지 도장 선택 → 확인 → 서류 클릭 → placed 배열에 정상 추가, .placed img 렌더링 확인
+[PASS] console-errors (전 구간) []
+
+스크린샷:
+  phase2-4-upload-popup.png : 업로드 후 StampPopup "업로드" 탭 그리드 (1개, "업로드 · test-stamp")
+  phase2-4-upload-placed.png : 서류 위에 배치된 업로드 도장 (반투명 겹침 상태로 정상 표시)
+
+=== Android 에뮬레이터(emulator-5554) 확인 ===
+[BLOCKED] 이전 Phase 2-3 검증 도중 발생한 디스플레이 프리즈가 계속됨을 재확인.
+  - adb devices: emulator-5554 상태는 "device" (연결 자체는 정상)
+  - adb shell pidof com.android.chrome → 빈 결과 (프로세스 없음)
+  - adb exec-out screencap → 응답은 정상(exit 0)이나, 상태바 시계가 이전 Phase와 동일하게
+    "2:49"로 고정된 완전히 동일한 정지 프레임만 반환 (경과 시간과 무관하게 픽셀 단위로 동일)
+  → SurfaceFlinger/컴포지터 레벨의 행(hang) 상태가 자연 복구되지 않고 지속 중으로 판단.
+  에뮬레이터 재부팅이 필요하며, 이는 adb 명령만으로 해결 불가능한 범위로 재시도하지 않음.
+  앱 코드·이번 Phase 4 변경과 무관한 순수 인프라 문제 (Phase 2-3에서 이미 원인 규명됨).
+
+=== 결론 ===
+데스크톱 Playwright 기준 도장 이미지 업로드 → library 추가 → 팝업 그리드 표시 → 서류 배치
+전체 흐름 정상 동작 확인 (기존 로직 변경 없음, 검증만 수행). 에뮬레이터 재검증은 재부팅 후
+별도 요청 시 진행 예정.
+
+=== 정리 ===
+Vite dev 서버 종료
