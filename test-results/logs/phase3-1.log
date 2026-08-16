@@ -1,0 +1,38 @@
+[Phase 3-1] 공유 기능 실제 동작 구현
+2026-08-16
+
+=== 코드 변경 (editor.jsx onShareAction 핸들러 분기만, 외과적 수정) ===
+- save 분기: 기존 PDF 전용 → PDF/PNG/JPG 3개 포맷 모두 실제 html2canvas 캡처 + 다운로드로 확장
+  (Phase 1-5의 ConfirmDialog save 핸들러 로직과 동일 패턴 재사용, 해당 핸들러 자체는 미변경)
+- kakao: navigator.share 존재 시 Web Share API 호출({title, text, url}), 미지원 시
+  toast('카카오톡 앱 연동 필요')
+- message: window.location.href = 'sms:?body=' + encodeURIComponent(...)
+- mail: window.location.href = 'mailto:?subject=...&body=...'
+- print: window.print()
+- link: navigator.clipboard.writeText(window.location.href) → 성공 시 toast('링크를 복사했습니다')
+- via 배열(ShareSheet 버튼 목록) 및 ShareSheet UI는 전혀 변경하지 않음
+
+=== Playwright 검증 (각 항목 독립 브라우저 컨텍스트) ===
+[PASS] share-sheet-open — ShareSheet 정상 표시
+[PASS] kakao-no-webshare-fallback — navigator.share=undefined 환경에서
+  toast="카카오톡 앱 연동 필요" 정상 표시
+[PASS] kakao-webshare-invoked — navigator.share 모킹 후 클릭 시
+  실제 {title:"재직증명서", text:"재직증명서 서류 공유", url:"http://localhost:5199/"} 로 호출됨 확인
+[PASS] message-sms-uri — 클릭 후 toast="문자로 보냈습니다 · PDF", 페이지 정상 유지(크래시 없음)
+[PASS] mail-mailto-uri — 클릭 후 toast="메일로 보냈습니다 · PDF", 페이지 정상 유지
+[PASS] print-window-print-called — window.print()를 테스트 스크립트에서 계측(앱 코드 아님) →
+  실제 호출됨(printCalled=true) 확인, toast 정상 표시
+[PASS] link-clipboard-copy — toast="링크를 복사했습니다", 실제 클립보드 값 읽기 결과
+  "http://localhost:5199/" 로 정확히 복사됨 확인
+[PASS] save-png-via-sharesheet — ShareSheet "기기 저장"(PNG) 신규 지원 확인:
+  file="재직증명서.png" size=40595bytes PNG 시그니처 확인
+[PASS] save-pdf-regression — 기존 PDF 저장 경로 회귀 없음 확인:
+  file="재직증명서.pdf" size=554115bytes PDF 시그니처 확인
+[PASS] 전 구간 콘솔/런타임 에러 0건
+
+=== 스크린샷 ===
+phase3-1-share-sheet.png : ShareSheet 열린 상태 (파일형식 PDF, 자주 보내는 곳, 보내기 6개 버튼)
+phase3-1-share-done.png : 링크복사 후 "링크를 복사했습니다" toast 표시
+
+=== 정리 ===
+Vite dev 서버 종료

@@ -1,0 +1,48 @@
+[Phase 2-5] Undo/Redo 동작 검증 (검증만, 코드 수정 없음)
+2026-08-16
+
+=== 사전 확인: 에뮬레이터 상태 ===
+adb devices: emulator-5554 = "device" (연결 정상)
+adb shell pidof com.android.chrome → 빈 결과 (프로세스 없음)
+adb exec-out screencap → 상태바 시계 "2:49" 고정, Phase 2-3/2-4에서 확인된 것과 픽셀 단위로
+완전히 동일한 정지 프레임. 3개 Phase 연속으로 디스플레이 프리즈 지속 확인.
+→ 항목 8(에뮬레이터 터치 검증)은 이번에도 진행 불가. 재시도하지 않음(원인 이미 Phase 2-3에서 규명됨).
+
+=== 데스크톱 Playwright 검증 (항목 1~7) ===
+[PASS] 1-initial-undo-disabled
+  undoDisabled=true, placed.length=0
+
+[PASS] 2-after-place-undo-enabled
+  도장 1개 배치 → undoDisabled=false, placed.length=0 → 1
+
+[PASS] 3-undo-restores-empty
+  전단계 클릭 → placed.length: before=1, after=0 (빈 배열 복원 확인)
+
+[PASS] 4-after-undo-redo-enabled
+  전단계 후 → redoDisabled=false (다음단계 버튼 활성화)
+
+[PASS] 5-redo-restores-placed
+  다음단계 클릭 → placed.length=0 → 1 (복원 확인)
+
+[PASS] 6-three-undo-empties-canvas
+  도장 2개 추가 배치(총 3개, placed.length=3) → 전단계 3회 연속 클릭
+  undo1: 3→2, undo2: 2→1, undo3: 1→0 → 캔버스 빈 상태 확인
+
+[PASS] 7-undo-disabled-at-empty
+  빈 상태에서 undoDisabled=true (재비활성화 확인)
+
+[PASS] console-errors []
+
+=== 스크린샷 ===
+phase2-5-initial.png : 초기 상태, 전단계 버튼 회색 비활성, "도장 0개"
+phase2-5-placed.png  : 도장 1개 배치 후, 전단계 버튼 파란색 활성, "도장 1개"
+phase2-5-undo.png    : 전단계 클릭 후, 캔버스 빈 상태 복원, "도장 0개", 다음단계 버튼 활성
+phase2-5-redo.png    : 다음단계 클릭 후, 도장 재표시, "도장 1개"
+
+=== 결론 ===
+app.jsx의 pushHistory/undo/redo/past/future 상태 관리와 editor.jsx 툴바 전단계·다음단계 버튼의
+disabled 바인딩(canUndo/canRedo) 모두 placed 배열 기준으로 정확히 동작함을 확인. 1~7번 항목 전부 통과.
+8번 항목은 에뮬레이터 디스플레이 프리즈로 검증 불가 (앱 코드와 무관, 별도 재부팅 필요).
+
+=== 정리 ===
+Vite dev 서버 종료

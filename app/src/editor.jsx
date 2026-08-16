@@ -372,39 +372,89 @@ function EditorScreen({ store }) {
   };
 
   const onShareAction = (k, fmt) => {
-    if (k === 'save' && fmt === 'PDF') {
+    if (k === 'save' && (fmt === 'PDF' || fmt === 'PNG' || fmt === 'JPG')) {
       (async () => {
         const prevSel = sel;
         setSel(null); // hide selection outline/handles while capturing so they aren't baked into the export
         await new Promise((r) => requestAnimationFrame(r));
+        const isJpg = fmt === 'JPG';
         const canvas = await html2canvas(pageRef.current, {
-          backgroundColor: '#ffffff',
+          backgroundColor: fmt === 'PDF' || isJpg ? '#ffffff' : null,
           useCORS: true,
           onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; }, // avoid html2canvas box-shadow+border-radius rendering artifact
         });
         if (prevSel) setSel(prevSel);
-        const imgData = canvas.toDataURL('image/png');
-        const pdfOpts = { unit: 'pt', format: 'a4' };
-        if (settings.pw) {
-          pdfOpts.encryption = { userPassword: '0000', ownerPassword: '0000', userPermissions: ['print'] };
+
+        if (fmt === 'PDF') {
+          const imgData = canvas.toDataURL('image/png');
+          const pdfOpts = { unit: 'pt', format: 'a4' };
+          if (settings.pw) {
+            pdfOpts.encryption = { userPassword: '0000', ownerPassword: '0000', userPermissions: ['print'] };
+          }
+          const doc = new jsPDF(pdfOpts);
+          const pageW = doc.internal.pageSize.getWidth();
+          const pageH = doc.internal.pageSize.getHeight();
+          const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+          const w = canvas.width * ratio;
+          const h = canvas.height * ratio;
+          doc.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+          const url = URL.createObjectURL(doc.output('blob'));
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = docName + '.pdf';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast('기기에 저장했습니다 · PDF' + (settings.pw ? ' (비밀번호 설정됨)' : ''));
+        } else {
+          const mime = isJpg ? 'image/jpeg' : 'image/png';
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = docName + '.' + fmt.toLowerCase();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('기기에 저장했습니다 · ' + fmt);
+          }, mime, isJpg ? 0.92 : undefined);
         }
-        const doc = new jsPDF(pdfOpts);
-        const pageW = doc.internal.pageSize.getWidth();
-        const pageH = doc.internal.pageSize.getHeight();
-        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-        const w = canvas.width * ratio;
-        const h = canvas.height * ratio;
-        doc.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
-        const url = URL.createObjectURL(doc.output('blob'));
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = docName + '.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        showToast('기기에 저장했습니다 · PDF' + (settings.pw ? ' (비밀번호 설정됨)' : ''));
       })();
+      return;
+    }
+    if (k === 'kakao') {
+      if (navigator.share) {
+        navigator.share({ title: docName, text: docName + ' 서류 공유', url: window.location.href })
+          .then(() => showToast('카카오톡으로 보냈습니다 · ' + fmt))
+          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+      } else {
+        showToast('카카오톡 앱 연동 필요');
+      }
+      return;
+    }
+    if (k === 'message') {
+      window.location.href = 'sms:?body=' + encodeURIComponent(docName + ' 서류 공유');
+      showToast('문자로 보냈습니다 · ' + fmt);
+      return;
+    }
+    if (k === 'mail') {
+      window.location.href = 'mailto:?subject=' + encodeURIComponent(docName) +
+        '&body=' + encodeURIComponent(docName + ' 서류를 공유합니다.');
+      showToast('메일로 보냈습니다 · ' + fmt);
+      return;
+    }
+    if (k === 'print') {
+      window.print();
+      showToast('인쇄 대화상자를 열었습니다 · ' + fmt);
+      return;
+    }
+    if (k === 'link') {
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => showToast('링크를 복사했습니다'))
+        .catch(() => showToast('링크 복사에 실패했습니다'));
       return;
     }
     const m = { kakao: '카카오톡으로 보냈습니다', message: '문자로 보냈습니다', mail: '메일로 보냈습니다',
