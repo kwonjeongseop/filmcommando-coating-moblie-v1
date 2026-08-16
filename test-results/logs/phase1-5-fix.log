@@ -1,0 +1,57 @@
+[Phase 1-5 보완] 에뮬레이터 Chrome 저장소 권한 부여 및 재검증
+2026-08-16
+
+=== 적용한 권한 변경 (에뮬레이터 설정만, 앱 코드 변경 없음) ===
+adb shell pm grant com.android.chrome android.permission.WRITE_EXTERNAL_STORAGE
+adb shell pm grant com.android.chrome android.permission.READ_EXTERNAL_STORAGE
+adb shell pm grant com.android.chrome android.permission.POST_NOTIFICATIONS
+adb shell am force-stop com.android.chrome (재적용을 위해 재시작)
+
+권한 부여 확인 (dumpsys package com.android.chrome):
+  WRITE_EXTERNAL_STORAGE: granted=true
+  READ_EXTERNAL_STORAGE: granted=true
+  POST_NOTIFICATIONS: granted=true
+※ adb shell cmd notification set_importance 는 이 Android 빌드에서 미지원 명령(Unknown command)이라 실행 불가.
+  POST_NOTIFICATIONS 권한 부여로 대체.
+
+=== 재검증 (CDP 기반 저장 플로우 재실행) ===
+[PASS] 편집 화면 진입, 도장 배치 (placedCount=2, 이전 세션 잔존 1개 + 신규 1개)
+[PASS] 기본 저장 형식 PNG로 변경
+[PASS] 저장 버튼 → ConfirmDialog → "저장" 클릭 (에러 없이 끝까지 실행)
+[FAIL] /sdcard/Download/ : total 0 (권한 부여 후에도 파일 없음, 동일)
+
+=== 근본 원인 재조사 (logcat) ===
+adb logcat -d | grep -i download 로 저장 시도 시각과 정확히 일치하는 로그 확인:
+
+  01:23:12.312  cr_DownloadUitm: attachNotificationToJob id: 1000000
+  01:23:13.299  cr_DownloadCm: updateDownloadStatus status: 4, id: 1000000   <- 1차 시도(권한 부여 전)
+  01:31:31.485  cr_OPArchivePublisher: ADM threw while trying to remove a download.
+                java.lang.IllegalArgumentException: input param 'ids' can't be null
+  01:32:06.986  cr_DownloadUitm: attachNotificationToJob id: 1000001
+  01:32:07.969  cr_DownloadCm: updateDownloadStatus status: 4, id: 1000001   <- 2차 시도(권한 부여 후, 동일 결과)
+  01:32:39.018  avc: denied { setattr } for name="download_file_types.pb" dev="dm-6" ino=573650
+                scontext=u:r:isolated_app:s0:c512,c768
+                tcontext=u:object_r:app_data_file:s0:c178,c256,c512,c768 tclass=file permissive=0
+
+핵심 발견
+- 권한 부여 전/후 모두 Chrome 내부 다운로드 컨트롤러가 동일하게 "status: 4"로 종료됨
+  → WRITE_EXTERNAL_STORAGE 등 앱 레벨 권한 문제가 아니라는 것이 확정됨(권한 부여로 해결되지 않음).
+- 같은 시점에 SELinux AVC denial 발생: isolated_app 샌드박스 프로세스가
+  Chrome 내부 다운로드 파이프라인 리소스(download_file_types.pb)에 대해 setattr 권한 거부당함.
+  getenforce 결과 이 에뮬레이터는 SELinux Enforcing 모드.
+- 즉 근본 원인은 이 에뮬레이터 이미지(API 37.1 / Chrome 149.0.7827.5 최신/개발 채널 빌드)의
+  SELinux 정책이 Chrome의 격리 프로세스(isolated_app)에게 다운로드 파일 처리에 필요한
+  권한을 허용하지 않는 것으로 판단됨. 이는 pm grant(앱 권한) 범위를 벗어난 OS 보안 정책 문제이며,
+  해결하려면 setenforce 0(SELinux 비활성화) 같은 더 침습적인 조치가 필요함 — 이번 지시 범위
+  ("에뮬레이터 권한 설정만") 밖이라 실행하지 않음.
+
+=== 결론 ===
+- pm grant 권한 부여는 정상 적용됨(READ/WRITE_EXTERNAL_STORAGE, POST_NOTIFICATIONS 모두 granted=true).
+- 그러나 Downloads 폴더 파일 생성은 여전히 실패 — 원인은 앱 권한이 아니라 SELinux 레벨 차단으로 재확인.
+- 앱 코드(html2canvas 캡처 → Blob → 다운로드 트리거)는 이번에도 에러 없이 끝까지 정상 실행됨.
+- 데스크톱 Chromium(Playwright)에서는 동일 코드가 PNG/JPG 파일을 바이트 시그니처까지 정확히
+  생성함을 이미 확인했으므로, 앱 기능 자체는 정상으로 판단.
+
+=== 정리 ===
+adb forward --remove tcp:9222
+Vite dev 서버 종료

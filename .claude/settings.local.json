@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(NODE_PATH=\"C:\\\\Users\\\\kwonh\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--claude-filmcommando-coating-moblie-v1\\\\4867a769-f4e1-41fc-a4ac-878a58d367b4\\\\scratchpad\\\\node_modules\" node \"C:\\\\Users\\\\kwonh\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--claude-filmcommando-coating-moblie-v1\\\\4867a769-f4e1-41fc-a4ac-878a58d367b4\\\\scratchpad\\\\e2e-save.mjs\")",
+      "Bash(tee \"C:\\\\claude\\\\filmcommando-coating-moblie-v1\\\\test-results\\\\logs\\\\phase1-5.log\")"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+[Phase 1-5 최종 보완] SELinux 비활성화 시도 결과
+2026-08-16
+
+=== 시도 ===
+adb shell setenforce 0
+결과: "setenforce: Couldn't set enforcing status to '0': Permission denied"
+getenforce → Enforcing (변경되지 않음)
+
+adb root 시도
+결과: "adbd cannot run as root in production builds"
+
+=== 원인 확인 ===
+adb shell getprop ro.build.type   → user
+adb shell getprop ro.debuggable   → 0
+
+emulator-5554는 "user" 빌드(프로덕션 빌드) 시스템 이미지로 실행 중이며, 이 빌드 타입에서는
+- adbd가 root로 재시작될 수 없음 (adb root 차단)
+- shell 사용자는 SELinux 정책상 setenforce 호출 권한 자체가 없음 (root 전용 syscall)
+→ ADB 명령만으로는 SELinux를 Permissive로 전환하는 것이 근본적으로 불가능한 환경.
+
+=== 결론 ===
+- 요청받은 조치(setenforce 0)는 이 에뮬레이터 이미지에서 실행 불가로 확인됨. 상태 변경 없음
+  (Enforcing 유지) → 별도 복구(setenforce 1) 조치 불필요.
+- Downloads 폴더 파일 생성 재검증은 진행하지 못함 (SELinux 전환이 선행 조건이었으나 차단됨).
+- 이 문제를 해결하려면 userdebug/eng 시스템 이미지로 AVD를 새로 만들어야 하며,
+  이는 "SELinux 설정만" 범위를 크게 벗어나는 환경 재구성 작업이라 임의로 진행하지 않음.

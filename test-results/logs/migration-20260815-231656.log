@@ -1,0 +1,29 @@
+========================================
+ 프로젝트 이전 완료 로그
+ 도장 한 번 (filmcommando-coating-moblie-v1)
+ 일시: Sat Aug 15 23:16:56 UTC 2026
+========================================
+
+[이전 경로]
+출발: /home/claude/project/ + /home/claude/dojang*.html
+도착: /home/claude/filmcommando-coating-moblie-v1/
+
+[이전 파일 목록]
+src/ : android-frame.jsx, app.jsx, editor.jsx, menus.jsx, tweaks-panel.jsx, visuals.jsx
+HTML : dojang-local2.html(메인), dojang-local.html, dojang.html, 도장-한-번-original.html, 화면-구성.html
+screenshots/original/ : 01-capture.png, 02-editor.png, 04-stamped.png, 05-title.png
+local-cdn/ : react@18.3.1, react-dom@18.3.1, @babel/standalone
+test-results/ : logs 2개, screenshots 6개
+scraps/ : sketch napkin 1개
+README.md : 신규 생성
+
+[동작 검증]
+✅ 로컬 서버(port 8800) 기동
+✅ dojang-local2.html React 렌더링 정상
+✅ 캡처 화면 정상 표시
+✅ 스크린샷 저장: migration-verify.png
+
+[실행 방법]
+cd /home/claude/filmcommando-coating-moblie-v1
+python3 -m http.server 8080
+→ http://localhost:8080/dojang-local2.html

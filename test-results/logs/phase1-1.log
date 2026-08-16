@@ -1,0 +1,73 @@
+$ vite "--port" "5199" "--strictPort"
+
+  [32m[1mVITE[22m v8.2.1[39m  [2mready in [0m[1m208[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5199[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[ELIFECYCLE] Command failed with exit code 1.
+ASS] camera-btn-click-to-editor (102ms) sample=true toolbar=true canvas=true
+[PASS] editor-sample-doc-visible (0ms) 재직증명서 텍스트 확인
+[PASS] editor-toolbar-visible (0ms) 도장:true 전단계:true 다음단계:true 돋보기:true 미리보기:true 저장:true 공유:true
+[PASS] editor-canvas-visible (0ms) .canvas .page 존재
+[PASS] scenario-A-console-errors (0ms) []
+[PASS] recent-row-click-to-editor (100ms) .editor 표시 확인
+[PASS] scenario-B-console-errors (0ms) []
+[PASS] gallery-btn-file-input-activation (60ms) accept=multi
+SUMMARY_START
+[
+  {
+    "name": "initial-capture-screen-load",
+    "ok": true,
+    "ms": 664,
+    "detail": ""
+  },
+  {
+    "name": "camera-btn-click-to-editor",
+    "ok": true,
+    "ms": 102,
+    "detail": "sample=true toolbar=true canvas=true"
+  },
+  {
+    "name": "editor-sample-doc-visible",
+    "ok": true,
+    "ms": 0,
+    "detail": "재직증명서 텍스트 확인"
+  },
+  {
+    "name": "editor-toolbar-visible",
+    "ok": true,
+    "ms": 0,
+    "detail": "도장:true 전단계:true 다음단계:true 돋보기:true 미리보기:true 저장:true 공유:true"
+  },
+  {
+    "name": "editor-canvas-visible",
+    "ok": true,
+    "ms": 0,
+    "detail": ".canvas .page 존재"
+  },
+  {
+    "name": "scenario-A-console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  },
+  {
+    "name": "recent-row-click-to-editor",
+    "ok": true,
+    "ms": 100,
+    "detail": ".editor 표시 확인"
+  },
+  {
+    "name": "scenario-B-console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  },
+  {
+    "name": "gallery-btn-file-input-activation",
+    "ok": true,
+    "ms": 60,
+    "detail": "accept=multi"
+  }
+]
+SUMMARY_END

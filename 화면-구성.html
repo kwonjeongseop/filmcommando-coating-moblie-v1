@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="design_doc_mode" content="canvas" />
+<title>화면 구성 — 도장 한 번</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<style>
+body{margin:0;font-family:'Pretendard Variable',Pretendard,system-ui,sans-serif;color:#14233F}
+.frame{position:absolute}
+.cap{font-size:15px;font-weight:800;letter-spacing:-.02em;margin-bottom:2px}
+.sub{font-size:12.5px;color:#5A6B86;font-weight:500;margin-bottom:10px;line-height:1.5}
+.shot{display:block;width:412px;border:1px solid #E2E7F0;border-radius:14px;background:#fff;box-shadow:0 10px 30px -12px rgba(20,35,63,.28)}
+.num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#2B6CE6;color:#fff;font-size:11.5px;font-weight:800;margin-right:7px;vertical-align:2px}
+h1{position:absolute;left:60px;top:44px;font-size:30px;font-weight:800;letter-spacing:-.03em;margin:0}
+.lede{position:absolute;left:60px;top:88px;width:620px;font-size:14px;line-height:1.7;color:#5A6B86;font-weight:500}
+</style>
+</head>
+<body>
+<h1>화면 구성</h1>
+<p class="lede">서류를 불러와 도장을 찍고 공유하기까지의 네 화면입니다. 상단은 아이콘 툴바, 하단은 서류 표출 영역으로 구성했습니다.</p>
+<div class="frame" style="left:60px;top:170px">
+<div class="cap"><span class="num">1</span>서류 불러오기</div>
+<div class="sub">카메라 촬영 · 갤러리 업로드 · 최근 서류</div>
+<img class="shot" src="screenshots/01-capture.png" alt="서류 불러오기 화면" />
+</div>
+<div class="frame" style="left:552px;top:170px">
+<div class="cap"><span class="num">2</span>메인 편집 화면</div>
+<div class="sub">상단 아이콘 툴바(도장·전단계·다음단계·돋보기·미리보기·저장·공유)</div>
+<img class="shot" src="screenshots/02-editor.png" alt="메인 편집 화면" />
+</div>
+<div class="frame" style="left:1044px;top:170px">
+<div class="cap"><span class="num">3</span>도장 찍기</div>
+<div class="sub">팝업에서 도장 선택 → 서류를 탭한 지점에 날인</div>
+<img class="shot" src="screenshots/04-stamped.png" alt="도장이 찍힌 화면" />
+</div>
+<div class="frame" style="left:1536px;top:170px">
+<div class="cap"><span class="num">4</span>도장 편집</div>
+<div class="sub">찍은 도장 선택 → 이동 · 크기 · 회전 · 삭제</div>
+<img class="shot" src="screenshots/05-title.png" alt="도장 편집 상태" />
+</div>
+</body>
+</html>

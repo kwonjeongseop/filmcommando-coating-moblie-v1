@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>도장 한 번 — 서류 도장 앱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif;
+    background: #e8eaef;
+    background-image: radial-gradient(circle at 50% 0%, #eef0f5, #dee1e8);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 24px; color: #14233F;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { display: flex; }
+  .stage { display: flex; }
+  .app-root { position: relative; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input { font-family: inherit; }
+
+  .device-fill { position: relative; height: 100%; overflow: hidden; background: var(--surface); }
+
+  /* ───────── shared buttons ───────── */
+  .btn { border-radius: 12px; font-size: 15px; font-weight: 700; padding: 12px 18px; letter-spacing: -0.01em; transition: .15s; }
+  .btn.solid { background: var(--primary); color: #fff; }
+  .btn.solid:hover { background: var(--primary-dark); }
+  .btn.solid:disabled { background: #c7cfdd; cursor: default; }
+  .btn.ghost { background: #eef1f6; color: var(--navy); }
+  .btn.ghost:hover { background: #e4e8f0; }
+  .btn.wide { width: 100%; }
+  .btn.sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+  .iconbtn { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--navy); transition: .15s; }
+  .iconbtn:hover { background: rgba(20,35,63,.06); }
+  .iconbtn.sm { width: 34px; height: 34px; }
+
+  /* ───────── capture screen ───────── */
+  .capture { height: 100%; overflow-y: auto; padding: 14px 22px 30px; display: flex; flex-direction: column; }
+  .cap-brand { display: flex; align-items: center; gap: 12px; margin: 6px 0 22px; }
+  .cap-logo { width: 46px; height: 46px; border-radius: 14px; background: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px -4px var(--primary); }
+  .cap-app { font-size: 20px; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+  .cap-tag { font-size: 12.5px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+
+  .cap-hero { display: flex; justify-content: center; padding: 6px 0 10px; }
+  .cap-hero-doc { position: relative; width: 168px; height: 214px; background: #fff; border-radius: 10px; box-shadow: 0 18px 40px -14px rgba(20,35,63,.32), 0 2px 0 #fff; padding: 26px 20px; display: flex; flex-direction: column; gap: 11px; transform: rotate(-3deg); border: 1px solid #eef1f6; }
+  .chd-line { height: 7px; border-radius: 4px; background: #e7ebf2; }
+  .chd-line.w40 { width: 40%; } .chd-line.w50 { width: 50%; } .chd-line.w70 { width: 70%; } .chd-line.w80 { width: 80%; } .chd-line.w90 { width: 90%; }
+  .chd-seal { position: absolute; right: 14px; bottom: 14px; transform: rotate(8deg); opacity: .92; }
+
+  .cap-headline { font-size: 23px; font-weight: 800; color: var(--navy); letter-spacing: -0.03em; margin-top: 14px; text-align: center; }
+  .cap-desc { font-size: 13.5px; line-height: 1.6; color: var(--muted); text-align: center; margin: 8px 0 22px; font-weight: 500; }
+
+  .cap-actions { display: flex; flex-direction: column; gap: 10px; }
+  .cap-btn { display: flex; align-items: center; justify-content: center; gap: 10px; height: 56px; border-radius: 16px; font-size: 16px; font-weight: 700; background: #fff; color: var(--navy); border: 1.5px solid var(--line); transition: .15s; }
+  .cap-btn:hover { border-color: #cfd6e3; }
+  .cap-btn.primary { background: var(--primary); color: #fff; border: none; box-shadow: 0 10px 22px -8px var(--primary); }
+  .cap-btn.primary:hover { background: var(--primary-dark); }
+
+  .cap-recent { margin-top: 26px; }
+  .cap-recent-h { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; letter-spacing: -0.01em; }
+  .recent-row { width: 100%; display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; transition: .15s; }
+  .recent-row:hover { border-color: #cfd6e3; }
+  .recent-thumb { width: 38px; height: 38px; border-radius: 9px; background: color-mix(in srgb, var(--primary) 10%, #fff); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .recent-meta { flex: 1; text-align: left; }
+  .recent-meta b { display: block; font-size: 14.5px; color: var(--navy); font-weight: 700; }
+  .recent-meta i { font-size: 12px; color: var(--muted); font-style: normal; }
+
+  /* ───────── editor chrome ───────── */
+  .editor { height: 100%; display: flex; flex-direction: column; background: var(--surface); }
+  .appbar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; background: #fff; border-bottom: 1px solid var(--line); }
+  .appbar-title { flex: 1; min-width: 0; }
+  .apptitle { display: block; font-size: 16.5px; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .appsub { display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+
+  .toolstrip { display: flex; align-items: stretch; gap: 2px; padding: 7px 8px; background: #fff; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+  .toolstrip::-webkit-scrollbar { display: none; }
+  .tool-div { width: 1px; background: var(--line); margin: 6px 4px; flex-shrink: 0; }
+  .toolbtn { flex: 1 0 auto; min-width: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 4px; border-radius: 11px; color: var(--navy); transition: .15s; }
+  .toolbtn:hover { background: rgba(20,35,63,.05); }
+  .toolbtn.active { background: color-mix(in srgb, var(--primary) 12%, #fff); color: var(--primary-dark); }
+  .toolbtn:disabled { color: #b9c1d0; cursor: default; }
+  .toolbtn:disabled:hover { background: none; }
+  .toolbtn-label { font-size: 10.5px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; }
+  .toolbtn.primary { background: var(--primary); color: #fff; box-shadow: 0 5px 12px -5px var(--primary); }
+  .toolbtn.primary:hover { background: var(--primary-dark); }
+  .toolbtn.primary .toolbtn-label { font-weight: 700; }
+
+  .zoombar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--line); }
+  .zoombar input[type=range] { flex: 1; accent-color: var(--primary); }
+  .zoombar .iconbtn { color: var(--navy); }
+  .zoom-val { font-size: 12.5px; font-weight: 700; color: var(--muted); min-width: 40px; text-align: center; }
+
+  .place-banner { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--navy); color: #fff; }
+  .pb-art { width: 30px; height: 30px; border-radius: 7px; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+  .pb-text { flex: 1; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+  .place-banner .btn.solid { background: #fff; color: var(--navy); }
+
+  /* ───────── canvas + page ───────── */
+  .canvas { flex: 1; overflow: auto; background: #dfe3ea; background-image: radial-gradient(circle, #d2d7e0 1px, transparent 1px); background-size: 18px 18px; }
+  .page-wrap { min-width: 100%; min-height: 100%; box-sizing: border-box; padding: 18px; display: flex; align-items: flex-start; justify-content: center; }
+  .page-wrap.placing .page { cursor: none; }
+  .page { position: relative; background: #fff; box-shadow: 0 12px 34px -10px rgba(20,35,63,.34); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+  .doc-img { width: 100%; height: 100%; object-fit: contain; display: block; background: #fff; }
+
+  .placed { position: absolute; transform-origin: center; touch-action: none; }
+  .placed.sel { outline: 1.6px dashed var(--primary); outline-offset: 5px; cursor: move; border-radius: 2px; }
+  .placed > * { pointer-events: none; }
+  .placed.sel { z-index: 5; }
+  .h-del, .h-rot, .h-res { position: absolute; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; color: var(--navy); box-shadow: 0 2px 6px rgba(20,35,63,.3); cursor: pointer; z-index: 6; }
+  .placed > .h-del, .placed > .h-rot, .placed > .h-res { pointer-events: auto; }
+  .h-del { top: -14px; right: -14px; color: #E2453C; }
+  .h-rot { top: -14px; left: -14px; cursor: grab; }
+  .h-res { bottom: -14px; right: -14px; cursor: nwse-resize; }
+  .stamp-ghost { position: absolute; transform: translate(-50%,-50%); opacity: .55; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
+
+  /* ───────── sheets / dialogs ───────── */
+  .sheet-scrim { position: absolute; inset: 0; background: rgba(15,22,38,.42); display: flex; align-items: flex-end; justify-content: center; z-index: 40; animation: fade .18s ease; }
+  @keyframes fade { from { opacity: 0; } }
+  .sheet { width: 100%; background: #fff; border-radius: 22px 22px 0 0; padding: 6px 18px 22px; max-height: 84%; display: flex; flex-direction: column; animation: slideup .26s cubic-bezier(.2,.9,.3,1); }
+  .dialog { width: calc(100% - 40px); background: #fff; border-radius: 20px; padding: 6px 18px 20px; margin: auto; align-self: center; animation: pop .22s cubic-bezier(.2,.9,.3,1); }
+  .sheet-scrim:has(.dialog) { align-items: center; }
+  @keyframes slideup { from { transform: translateY(100%); } }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 8px; }
+  .sheet-title { font-size: 17px; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+  .sheet-body { overflow-y: auto; }
+  .sheet-foot { padding-top: 12px; }
+  .sheet-hint { font-size: 13px; color: var(--muted); margin-bottom: 14px; font-weight: 500; line-height: 1.5; }
+  .sheet-hint b { color: var(--navy); }
+  .sheet-actions { display: flex; gap: 10px; }
+  .sheet-actions .btn { flex: 1; }
+
+  .stamp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stamp-card { position: relative; aspect-ratio: 1 / 1.1; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; transition: .15s; }
+  .stamp-card:hover { border-color: #cfd6e3; }
+  .stamp-card.sel { border-color: var(--primary); border-width: 2px; background: color-mix(in srgb, var(--primary) 5%, #fff); }
+  .stamp-card-art { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; overflow: hidden; }
+  .stamp-card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .stamp-card-tick { position: absolute; top: 7px; right: 7px; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .stamp-card.add { border-style: dashed; color: var(--primary); }
+  .stamp-card.add .stamp-card-label { color: var(--primary); }
+
+  .seg { display: flex; background: #eef1f6; border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+  .seg button { flex: 1; padding: 9px; border-radius: 9px; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+  .seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 4px rgba(20,35,63,.12); }
+
+  .tf { width: 100%; height: 50px; border: 1.5px solid var(--line); border-radius: 13px; padding: 0 16px; font-size: 16px; font-weight: 600; color: var(--navy); background: #fff; outline: none; transition: .15s; }
+  .tf:focus { border-color: var(--primary); }
+  .add-make { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+  .add-make .tf { width: 100%; }
+  .seal-preview { height: 116px; display: flex; align-items: center; justify-content: center; }
+  .muted { color: #b9c1d0; font-size: 13px; }
+  .add-up { display: flex; flex-direction: column; gap: 12px; }
+  .upload-tile { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 16px; border: 1.6px dashed var(--line); border-radius: 16px; background: #fafbfd; color: var(--navy); font-size: 13.5px; font-weight: 600; text-align: center; transition: .15s; }
+  .upload-tile:hover { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 4%, #fff); }
+
+  .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 8px; padding: 6px 0; }
+  .share-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .share-ic { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 14px -6px rgba(20,35,63,.3); transition: .15s; }
+  .share-item:hover .share-ic { transform: translateY(-2px); }
+  .share-label { font-size: 12px; font-weight: 600; color: var(--navy); }
+
+  .menu-scrim { position: absolute; inset: 0; z-index: 45; }
+  .menu { position: absolute; top: 54px; right: 10px; background: #fff; border-radius: 14px; box-shadow: 0 12px 34px -8px rgba(20,35,63,.34); padding: 6px; min-width: 200px; animation: pop .16s ease; }
+  .menu button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 10px; font-size: 14.5px; font-weight: 600; color: var(--navy); text-align: left; }
+  .menu button:hover { background: #f3f5f9; }
+
+  /* ───────── preview modal ───────── */
+  .preview-modal { position: absolute; inset: 0; z-index: 50; background: #20283a; display: flex; flex-direction: column; animation: fade .2s ease; }
+  .preview-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 10px 10px 16px; color: #fff; }
+  .preview-name { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .preview-top .iconbtn { color: #fff; }
+  .preview-top .iconbtn:hover { background: rgba(255,255,255,.12); }
+  .preview-scroll { flex: 1; overflow: auto; display: flex; align-items: flex-start; justify-content: center; padding: 12px 16px; }
+  .preview-page { box-shadow: 0 18px 50px -10px rgba(0,0,0,.5); }
+  .preview-foot { text-align: center; color: #aab3c6; font-size: 12px; padding: 12px; font-weight: 500; }
+
+  /* ───────── toast ───────── */
+  .toast { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 12px 30px -8px rgba(0,0,0,.4); z-index: 60; white-space: nowrap; animation: toastin .26s cubic-bezier(.2,.9,.3,1); }
+  @keyframes toastin { from { opacity: 0; transform: translate(-50%, 14px); } }
+
+  /* ───────── capture header ───────── */
+  .cap-top { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
+  .cap-brand { display: flex; align-items: center; gap: 12px; margin: 0; }
+
+  /* ───────── sheet detail ───────── */
+  .sheet-scrim.center { align-items: center; }
+  .sheet-grip { display: block; width: 38px; height: 4px; border-radius: 3px; background: #dde2ea; margin: 8px auto 0; }
+  .sheet-sub { display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+  .dialog.sm { padding: 22px 20px 18px; }
+  .cf-title { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .cf-body { font-size: 13.5px; line-height: 1.6; color: var(--muted); font-weight: 500; margin-bottom: 18px; }
+  .btn.danger { background: #E2453C; color: #fff; }
+  .btn.danger:hover { background: #c8362e; }
+
+  .pop-search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; background: #f2f4f8; border-radius: 12px; margin-bottom: 12px; }
+  .pop-search input { flex: 1; border: none; background: none; outline: none; font-size: 14.5px; font-weight: 600; color: var(--navy); }
+  .pop-search input::placeholder { color: #9aa5b8; font-weight: 500; }
+
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 16px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; padding: 8px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: #f2f4f8; color: var(--muted); transition: .15s; }
+  .chip.on { background: var(--navy); color: #fff; }
+
+  .pop-block { margin-bottom: 20px; }
+  .pop-block-h { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: 0.02em; margin-bottom: 9px; }
+  .pop-block-h em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, #fff); padding: 1px 7px; border-radius: 999px; }
+  .stamp-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .stamp-row::-webkit-scrollbar { display: none; }
+  .stamp-card.small { flex: 0 0 84px; aspect-ratio: 1 / 1.15; }
+  .empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 0; border: 1.4px dashed var(--line); border-radius: 14px; font-size: 13px; color: var(--muted); font-weight: 600; }
+
+  .opt-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+  .opt-l { font-size: 13.5px; font-weight: 600; color: var(--navy); width: 48px; }
+  .opt-v { font-size: 12.5px; font-weight: 700; color: var(--muted); width: 42px; text-align: right; }
+  .rng { flex: 1; accent-color: var(--primary); height: 4px; }
+
+  .pop-foot { display: flex; align-items: center; gap: 12px; }
+  .pop-preview { width: 54px; height: 54px; border-radius: 13px; border: 1.4px solid var(--line); background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .pop-preview .muted { font-size: 10.5px; }
+
+  .fmt-row { display: flex; gap: 8px; }
+  .fmt { flex: 1; border: 1.5px solid var(--line); border-radius: 13px; padding: 11px 8px; display: flex; flex-direction: column; gap: 3px; transition: .15s; }
+  .fmt b { font-size: 14px; font-weight: 800; color: var(--navy); }
+  .fmt i { font-size: 10.5px; font-style: normal; color: var(--muted); font-weight: 600; }
+  .fmt.on { border-color: var(--primary); border-width: 2px; background: color-mix(in srgb, var(--primary) 5%, #fff); }
+  .fmt.on b { color: var(--primary-dark); }
+
+  .tog-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--navy); }
+  .switch { width: 44px; height: 26px; border-radius: 999px; background: #d6dbe4; padding: 3px; display: flex; transition: .18s; }
+  .switch span { width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); transition: .18s; }
+  .switch.on { background: var(--primary); }
+  .switch.on span { transform: translateX(18px); }
+  .switch:disabled { opacity: .45; cursor: default; }
+  .tf.sm { height: 44px; font-size: 14.5px; margin-top: 8px; }
+
+  .ct-row { display: flex; gap: 14px; }
+  .ct { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .ct-av { width: 46px; height: 46px; border-radius: 50%; color: #fff; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .ct i { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--navy); }
+
+  .tips { margin: 4px 0 0 16px; padding: 0; }
+  .tips li { font-size: 12.5px; line-height: 1.7; color: var(--muted); font-weight: 500; }
+
+  /* ───────── drawer ───────── */
+  .dr-scrim { position: absolute; inset: 0; background: rgba(15,22,38,.42); z-index: 48; animation: fade .18s ease; }
+  .drawer { width: 282px; height: 100%; background: #fff; display: flex; flex-direction: column; box-shadow: 6px 0 30px -6px rgba(20,35,63,.34); animation: slidein .24s cubic-bezier(.2,.9,.3,1); }
+  @keyframes slidein { from { transform: translateX(-100%); } }
+  .dr-head { display: flex; align-items: center; gap: 11px; padding: 22px 18px 16px; }
+  .dr-logo { width: 42px; height: 42px; border-radius: 13px; background: var(--primary); display: flex; align-items: center; justify-content: center; }
+  .dr-app { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+  .dr-sub { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+  .dr-now { display: flex; align-items: center; gap: 10px; margin: 0 14px 14px; padding: 11px 12px; background: var(--surface); border-radius: 13px; color: var(--primary-dark); }
+  .dr-now-t b { display: block; font-size: 13.5px; font-weight: 700; color: var(--navy); }
+  .dr-now-t i { font-size: 11px; font-style: normal; color: var(--muted); font-weight: 500; }
+  .dr-scroll { flex: 1; overflow-y: auto; padding: 0 10px; }
+  .dr-group { margin-bottom: 14px; }
+  .dr-group-label { font-size: 10.5px; font-weight: 800; color: #9aa5b8; letter-spacing: .06em; padding: 6px 12px; }
+  .dr-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border-radius: 11px; color: var(--navy); transition: .14s; }
+  .dr-item:hover { background: #f3f5f9; }
+  .dr-item-t { flex: 1; text-align: left; font-size: 14.5px; font-weight: 600; }
+  .dr-item-m { font-size: 11.5px; font-weight: 700; color: var(--muted); background: #eef1f6; padding: 2px 8px; border-radius: 999px; }
+  .dr-foot { padding: 14px 20px; font-size: 11px; color: #9aa5b8; border-top: 1px solid var(--line); font-weight: 500; }
+
+  /* ───────── overflow menu / context menu ───────── */
+  .menu.wide { min-width: 232px; top: 50px; padding: 8px 6px; }
+  .mn-label { font-size: 10.5px; font-weight: 800; color: #9aa5b8; letter-spacing: .06em; padding: 6px 12px 4px; }
+  .mn-item { display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--navy); text-align: left; }
+  .mn-item span { flex: 1; }
+  .mn-item em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--muted); }
+  .mn-item:hover { background: #f3f5f9; }
+  .mn-item.danger { color: #E2453C; }
+  .mn-item:disabled { opacity: .4; cursor: default; }
+  .mn-item:disabled:hover { background: none; }
+  .mn-div { height: 1px; background: var(--line); margin: 6px 8px; }
+
+  .ctx { position: absolute; background: #fff; border-radius: 13px; box-shadow: 0 14px 34px -8px rgba(20,35,63,.4); padding: 6px; min-width: 168px; animation: pop .14s ease; }
+  .ctx button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 9px; font-size: 13.5px; font-weight: 600; color: var(--navy); text-align: left; }
+  .ctx button:hover { background: #f3f5f9; }
+  .ctx button.danger { color: #E2453C; }
+  .ctx-div { height: 1px; background: var(--line); margin: 5px 8px; }
+
+  /* ───────── sub screens ───────── */
+  .sub-screen { height: 100%; display: flex; flex-direction: column; background: var(--surface); }
+  .st-scroll { flex: 1; overflow-y: auto; padding: 14px 16px 28px; }
+  .st-group { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 6px 14px; margin-bottom: 14px; }
+  .st-glabel { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; color: #9aa5b8; letter-spacing: .05em; padding: 12px 0 6px; }
+  .st-glabel em { font-style: normal; color: var(--primary); }
+  .st-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid #f1f3f7; }
+  .st-group .st-row:first-of-type { border-top: none; }
+  .st-rt { flex: 1; min-width: 0; }
+  .st-rt b { display: block; font-size: 14px; font-weight: 600; color: var(--navy); }
+  .st-rt i { font-size: 11.5px; font-style: normal; color: var(--muted); font-weight: 500; }
+  .st-rc { display: flex; align-items: center; min-width: 112px; justify-content: flex-end; }
+  .st-rc .rng { width: 108px; }
+  .ink-row { display: flex; gap: 8px; }
+  .ink { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+  .ink.on { border-color: var(--navy); }
+  .mini-seg { display: flex; background: #eef1f6; border-radius: 10px; padding: 3px; }
+  .mini-seg button { padding: 6px 11px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .mini-seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 3px rgba(20,35,63,.14); }
+
+  .mg-group { margin-bottom: 18px; }
+  .mg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .mg-card { position: relative; aspect-ratio: 1 / 1.15; background: #fff; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px; }
+  .mg-more { position: absolute; top: 4px; right: 2px; width: 26px; height: 26px; border-radius: 50%; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+  .mg-more:hover { background: #f3f5f9; }
+  .mg-fav { position: absolute; top: 7px; left: 7px; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .mg-art { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; width: 100%; }
+  .mg-label { font-size: 10.5px; font-weight: 600; color: var(--muted); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .mg-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 15px; border: 1.5px dashed #cbd3e0; border-radius: 14px; color: var(--primary); font-size: 14px; font-weight: 700; background: #fff; }
+  .mg-add:hover { border-color: var(--primary); }
+  .list-menu { display: flex; flex-direction: column; padding-bottom: 8px; }
+  .list-menu button { display: flex; align-items: center; gap: 12px; padding: 15px 4px; font-size: 15px; font-weight: 600; color: var(--navy); border-bottom: 1px solid #f1f3f7; text-align: left; }
+  .list-menu button.danger { color: #E2453C; border-bottom: none; }
+
+  .doc-list { display: flex; flex-direction: column; gap: 8px; }
+  .doc-row { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; }
+  .doc-row:hover { border-color: #cfd6e3; }
+  .doc-thumb { width: 38px; height: 38px; border-radius: 10px; background: var(--surface); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .doc-meta { flex: 1; text-align: left; min-width: 0; }
+  .doc-meta b { display: block; font-size: 14px; font-weight: 700; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .doc-meta i { font-size: 11.5px; font-style: normal; color: var(--muted); font-weight: 500; }
+  .doc-tag { font-size: 10.5px; font-weight: 700; color: var(--muted); background: #eef1f6; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .doc-tag.on { background: color-mix(in srgb, var(--primary) 12%, #fff); color: var(--primary-dark); }
+
+  .help-list { display: flex; flex-direction: column; gap: 8px; }
+  .help-row { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .help-n { width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .help-t { flex: 1; }
+  .help-t b { display: block; font-size: 14.5px; font-weight: 700; }
+  .help-t i { font-size: 12px; font-style: normal; color: var(--muted); font-weight: 500; line-height: 1.5; }
+  .help-note { font-size: 12px; color: var(--muted); font-weight: 500; line-height: 1.6; padding: 14px 4px; }
+
+  /* ───────── selection bar ───────── */
+  .selbar { display: flex; align-items: center; gap: 4px; padding: 8px 10px; background: var(--navy); color: #fff; }
+  .sb-t { flex: 1; font-size: 12.5px; font-weight: 700; padding-left: 4px; }
+  .selbar button { display: flex; align-items: center; gap: 5px; padding: 8px 10px; border-radius: 9px; font-size: 12.5px; font-weight: 600; color: #fff; }
+  .selbar button:hover { background: rgba(255,255,255,.14); }
+  .selbar button.danger { color: #FF9A93; }
+  .tb-ic { position: relative; display: flex; }
+  .tb-badge { position: absolute; top: -4px; right: -6px; font-style: normal; font-size: 9.5px; font-weight: 800; background: #E2453C; color: #fff; border-radius: 999px; padding: 1px 5px; }
+  .h-mn { position: absolute; bottom: -14px; left: -14px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; color: var(--navy); box-shadow: 0 2px 6px rgba(20,35,63,.3); cursor: pointer; z-index: 6; }
+  .placed > .h-mn { pointer-events: auto; }
+  .preview-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px 16px; background: #1a2233; }
+  .pv-meta { flex: 1; min-width: 0; }
+  .pv-meta b { display: block; font-size: 13.5px; color: #fff; font-weight: 700; }
+  .pv-meta i { font-size: 11.5px; font-style: normal; color: #9aa5b8; font-weight: 500; }
+  .rbtn { width: 32px; height: 32px; border-radius: 9px; background: #eef1f6; color: var(--navy); font-size: 17px; font-weight: 700; line-height: 1; }
+  .rbtn:hover { background: #e4e8f0; }
+  .page { transition: rotate .3s ease; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="/local-cdn/node_modules/react/umd/react.development.js" crossorigin></script>
+<script src="/local-cdn/node_modules/react-dom/umd/react-dom.development.js" crossorigin></script>
+<script src="/local-cdn/node_modules/@babel/standalone/babel.min.js" crossorigin></script>
+<script type="text/babel">
+// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
+
+/* BEGIN USAGE */
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+// Exports (to window): useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider,
+//   TweakToggle, TweakRadio, TweakSelect, TweakText, TweakNumber, TweakColor, TweakButton.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "palette": ["#D97757", "#29261b", "#f6f4ef"],
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        options={['#D97757', '#2A6FDB', '#1F8A5B', '#7A5AE0']}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakColor  label="Palette" value={t.palette}
+//                        options={[['#D97757', '#29261b', '#f6f4ef'],
+//                                  ['#475569', '#0f172a', '#f1f5f9']]}
+//                        onChange={(v) => setTweak('palette', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// TweakRadio is the segmented control for 2–3 short options (auto-falls-back to
+// TweakSelect past ~16/~10 chars per label); reach for TweakSelect directly when
+// options are many or long. For color tweaks always curate 3-4 options rather than
+// a free picker; an option can also be a whole 2–5 color palette (the stored value
+// is the array). The Tweak* controls are a floor, not a ceiling — build custom
+// controls inside the panel if a tweak calls for UI they don't cover.
+/* END USAGE */
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+
+  .twk-num{display:flex;align-items:center;box-sizing:border-box;min-width:0;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    // Same-window signal so in-page listeners (deck-stage rail thumbnails)
+    // can react — the parent message only reaches the host, not peers.
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-omelette-chrome=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">
+          {children}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  // Segments wrap mid-word once per-segment width runs out. The track is
+  // ~248px (280 panel − 28 body pad − 4 seg pad), each button loses 12px
+  // to its own padding, and 11.5px system-ui averages ~6.3px/char — so 2
+  // options fit ~16 chars each, 3 fit ~10. Past that (or >3 options), fall
+  // back to a dropdown rather than wrap.
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    // <select> emits strings — map back to the original option value so the
+    // fallback stays type-preserving (numbers, booleans) like the segment path.
+    const resolve = (s) => {
+      const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s);
+      return m === undefined ? s : typeof m === 'object' ? m.value : m;
+    };
+    return <TweakSelect label={label} value={value} options={options}
+                        onChange={(s) => onChange(resolve(s))} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+// Relative-luminance contrast pick — checkmarks drawn over a swatch need to
+// read on both #111 and #fafafa without per-option configuration. Hex input
+// only (#rgb / #rrggbb); named or rgb()/hsl() colors fall through to "light".
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+
+// TweakColor — curated color/palette picker. Each option is either a single
+// hex string or an array of 1-5 hex strings; the card adapts — a lone color
+// renders solid, a palette renders colors[0] as the hero (left ~2/3) with the
+// rest stacked in a sharp column on the right. onChange emits the
+// option in the shape it was passed (string stays string, array stays array).
+// Without options it falls back to the native color input for back-compat.
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value}
+               onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // Native <input type=color> emits lowercase hex per the HTML spec, so
+  // compare case-insensitively. String() guards JSON.stringify(undefined),
+  // which returns the primitive undefined (no .toLowerCase).
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+                    aria-checked={on} data-on={on ? '1' : '0'}
+                    aria-label={colors.join(', ')} title={colors.join(' · ')}
+                    style={{ background: hero }}
+                    onClick={() => onChange(o)}>
+              {sup.length > 0 && (
+                <span>
+                  {sup.map((c, j) => <i key={j} style={{ background: c }} />)}
+                </span>
+              )}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});
+
+// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
+
+/* BEGIN USAGE */
+// Android.jsx — Simplified Android (Material 3) device frame
+// Status bar + top app bar + content + gesture nav + keyboard.
+// Based on Figma M3 spec. No dependencies, no image assets.
+// Exports (to window): AndroidDevice, AndroidStatusBar, AndroidAppBar, AndroidListItem, AndroidNavBar, AndroidKeyboard
+//
+// Usage — wrap your screen content in <AndroidDevice> to get the bezel, status
+// bar and gesture nav (props: title, large, keyboard, dark):
+//
+//   <AndroidDevice title="Inbox" large>
+//     ...your screen content...
+//   </AndroidDevice>
+//   <AndroidDevice title="Compose" keyboard>…</AndroidDevice>
+/* END USAGE */
+
+const MD_C = {
+  surface: '#f4fbf8',
+  surfaceVariant: '#dae5e1',
+  inverseOnSurface: '#ecf2ef',
+  secondaryContainer: '#cde8e1',
+  primaryFixedDim: '#83d5c6',
+  onSurface: '#171d1b',
+  onSurfaceVar: '#49454f',
+  onPrimaryContainer: '#00201c',
+  primary: '#006a60',
+  frameBorder: 'rgba(116,119,117,0.5)',
+};
+
+// ─────────────────────────────────────────────────────────────
+// Status bar (time left, wifi/cell/battery right)
+// ─────────────────────────────────────────────────────────────
+function AndroidStatusBar({ dark = false }) {
+  const c = dark ? '#fff' : MD_C.onSurface;
+  return (
+    <div style={{
+      height: 40, display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', padding: '0 16px',
+      position: 'relative',
+      fontFamily: 'Roboto, system-ui, sans-serif',
+    }}>
+      {/* time left */}
+      <div style={{ width: 128, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 14, fontWeight: 400, letterSpacing: 0.25, lineHeight: '20px', color: c }}>9:30</span>
+      </div>
+      {/* camera punch-hole (center) */}
+      <div style={{
+        position: 'absolute', left: '50%', top: 8, transform: 'translateX(-50%)',
+        width: 24, height: 24, borderRadius: 100, background: '#2e2e2e',
+      }} />
+      {/* status icons right */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', paddingRight: 2 }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" style={{ marginRight: -2 }}>
+            <path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill={c}/>
+          </svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" style={{ marginRight: -2 }}>
+            <path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill={c}/>
+          </svg>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <rect x="3.75" y="2" width="8.5" height="13" rx="1.5" fill={c}/>
+          <rect x="5.5" y="0.9" width="5" height="2" rx="0.5" fill={c}/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Top app bar (Material 3 small/medium)
+// ─────────────────────────────────────────────────────────────
+function AndroidAppBar({ title = 'Title', large = false }) {
+  const iconDot = (
+    <div style={{
+      width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{ width: 22, height: 22, borderRadius: '50%', background: MD_C.onSurfaceVar, opacity: 0.3 }} />
+    </div>
+  );
+  return (
+    <div style={{ background: MD_C.surface, padding: '4px 4px 0' }}>
+      <div style={{ height: 56, display: 'flex', alignItems: 'center', gap: 4 }}>
+        {iconDot}
+        {!large && (
+          <span style={{
+            flex: 1, fontSize: 22, fontWeight: 400, color: MD_C.onSurface,
+            fontFamily: 'Roboto, system-ui, sans-serif',
+          }}>{title}</span>
+        )}
+        {large && <div style={{ flex: 1 }} />}
+        {iconDot}
+      </div>
+      {large && (
+        <div style={{
+          padding: '16px 16px 20px',
+          fontSize: 28, fontWeight: 400, color: MD_C.onSurface,
+          fontFamily: 'Roboto, system-ui, sans-serif',
+        }}>{title}</div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// List item (Material 3)
+// ─────────────────────────────────────────────────────────────
+function AndroidListItem({ headline, supporting, leading }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 16,
+      padding: '12px 16px', minHeight: 56, boxSizing: 'border-box',
+      fontFamily: 'Roboto, system-ui, sans-serif',
+    }}>
+      {leading && (
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: MD_C.primary, color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, fontWeight: 500, flexShrink: 0,
+        }}>{leading}</div>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 16, color: MD_C.onSurface, lineHeight: '24px' }}>{headline}</div>
+        {supporting && (
+          <div style={{ fontSize: 14, color: MD_C.onSurfaceVar, lineHeight: '20px' }}>{supporting}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Gesture nav bar (pill)
+// ─────────────────────────────────────────────────────────────
+function AndroidNavBar({ dark = false }) {
+  return (
+    <div style={{
+      height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        width: 108, height: 4, borderRadius: 2,
+        background: dark ? '#fff' : MD_C.onSurface, opacity: 0.4,
+      }} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Device frame — wraps everything
+// ─────────────────────────────────────────────────────────────
+function AndroidDevice({
+  children, width = 412, height = 892, dark = false,
+  title, large = false, keyboard = false,
+}) {
+  return (
+    <div style={{
+      width, height, borderRadius: 18, overflow: 'hidden',
+      background: dark ? '#1d1b20' : MD_C.surface,
+      border: `8px solid ${MD_C.frameBorder}`,
+      boxShadow: '0 30px 80px rgba(0,0,0,0.25)',
+      display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
+    }}>
+      <AndroidStatusBar dark={dark} />
+      {title !== undefined && <AndroidAppBar title={title} large={large} />}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {children}
+      </div>
+      {keyboard && <AndroidKeyboard />}
+      <AndroidNavBar dark={dark} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Keyboard — Gboard (Material 3)
+// ─────────────────────────────────────────────────────────────
+function AndroidKeyboard() {
+  let _k = 0;
+  const key = (l, { flex = 1, bg = MD_C.surface, r = 6, minW, fs = 21 } = {}) => (
+    <div key={_k++} style={{
+      height: 46, borderRadius: r, flex, minWidth: minW,
+      background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: 'Roboto, system-ui', fontSize: fs,
+      color: MD_C.onPrimaryContainer,
+    }}>{l}</div>
+  );
+  const row = (keys, style = {}) => (
+    <div style={{ display: 'flex', gap: 6, justifyContent: 'center', ...style }}>
+      {keys.map(l => key(l))}
+    </div>
+  );
+  return (
+    <div style={{
+      background: MD_C.inverseOnSurface, padding: '0 8px 8px',
+      display: 'flex', flexDirection: 'column', gap: 4,
+    }}>
+      {/* navbar spacer (icons omitted) */}
+      <div style={{ height: 44 }} />
+      {/* key rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {row(['q','w','e','r','t','y','u','i','o','p'])}
+        {row(['a','s','d','f','g','h','j','k','l'], { padding: '0 20px' })}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {key('', { bg: MD_C.surfaceVariant })}
+          <div style={{ display: 'flex', gap: 6, flex: 7, minWidth: 274 }}>
+            {['z','x','c','v','b','n','m'].map(l => key(l))}
+          </div>
+          {key('', { bg: MD_C.surfaceVariant })}
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {key('?123', { bg: MD_C.secondaryContainer, r: 100, minW: 58, fs: 14 })}
+          {key(',', { bg: MD_C.surfaceVariant })}
+          {key('', { flex: 3, minW: 154 })}
+          {key('.', { bg: MD_C.surfaceVariant })}
+          {key('', { bg: MD_C.primaryFixedDim, r: 100, minW: 58 })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  AndroidDevice, AndroidStatusBar, AndroidAppBar, AndroidListItem, AndroidNavBar, AndroidKeyboard,
+});
+
+/* visuals.jsx — icons, stamp renderers, sample document, library presets */
+
+const makeId = () => Math.random().toString(36).slice(2, 9);
+
+/* ───────────────────────── Icons (simple stroke) ───────────────────────── */
+const ICON_PATHS = {
+  back:    <path d="M15 5l-7 7 7 7" />,
+  more:    <g><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></g>,
+  stamp:   <g><circle cx="12" cy="10.5" r="4.6" /><path d="M12 5.9V3.2" /><path d="M9.6 3.2h4.8" /><path d="M4 19.6h16" /></g>,
+  zoom:    <g><circle cx="11" cy="11" r="6.6" /><path d="M20.5 20.5l-4.7-4.7" /><path d="M11 8.2v5.6M8.2 11h5.6" /></g>,
+  undo:    <g><path d="M4 12h12a4 4 0 0 1 0 8h-3" /><path d="M8 8l-4 4 4 4" /></g>,
+  redo:    <g><path d="M20 12H8a4 4 0 0 0 0 8h3" /><path d="M16 8l4 4-4 4" /></g>,
+  preview: <g><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /></g>,
+  save:    <g><path d="M12 3.5v9.5" /><path d="M8 9.5l4 4 4-4" /><path d="M4.5 16.5v2a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-2" /></g>,
+  saveas:  <g><path d="M14 3.5H7A1.8 1.8 0 0 0 5.2 5.3v13.4A1.8 1.8 0 0 0 7 20.5h10a1.8 1.8 0 0 0 1.8-1.8V8.3z" /><path d="M14 3.5V8h4.8" /><path d="M12 11.5v4M10 13.5h4" /></g>,
+  share:   <g><circle cx="6" cy="12" r="2.4" /><circle cx="18" cy="6" r="2.4" /><circle cx="18" cy="18" r="2.4" /><path d="M8.1 10.9l7.8-3.8M8.1 13.1l7.8 3.8" /></g>,
+  camera:  <g><path d="M4 8.5h2.7L8 6.5h8l1.3 2H20a1.3 1.3 0 0 1 1.3 1.3v8.4A1.3 1.3 0 0 1 20 19.5H4a1.3 1.3 0 0 1-1.3-1.3V9.8A1.3 1.3 0 0 1 4 8.5z" /><circle cx="12" cy="13" r="3.3" /></g>,
+  upload:  <g><path d="M12 16V4.5" /><path d="M8 8.5l4-4 4 4" /><path d="M4.5 15.5v3A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-3" /></g>,
+  plus:    <path d="M12 5v14M5 12h14" />,
+  check:   <path d="M5 12.5l4.5 4.5L19 6.5" />,
+  close:   <g><path d="M6 6l12 12M18 6L6 18" /></g>,
+  trash:   <g><path d="M4.5 7h15" /><path d="M9.5 7V4.3h5V7" /><path d="M6.5 7l1 13h9l1-13" /></g>,
+  rotate:  <g><path d="M19 12a7 7 0 1 1-2.05-4.95" /><path d="M17 3v4.2h-4.2" /></g>,
+  resize:  <g><path d="M9 21H3v-6" /><path d="M3 21l7-7" /><path d="M21 9V3h-6" /><path d="M21 3l-7 7" /></g>,
+  mail:    <g><rect x="3" y="5.5" width="18" height="13" rx="1.6" /><path d="M3.5 6.5l8.5 6.5 8.5-6.5" /></g>,
+  message: <path d="M4 5.5h16v10H8.5l-4.5 4z" />,
+  kakao:   <path d="M12 4.3c-4.6 0-8.3 2.9-8.3 6.5 0 2.3 1.5 4.3 3.8 5.5L6.4 20l3.6-2.2c.6.1 1.3.2 2 .2 4.6 0 8.3-2.9 8.3-6.5S16.6 4.3 12 4.3z" />,
+  file:    <g><path d="M7 3.5h7l5 5v12H7z" /><path d="M14 3.5V8.5h5" /></g>,
+  image:   <g><rect x="4" y="5" width="16" height="14" rx="1.6" /><circle cx="9" cy="10" r="1.5" /><path d="M5 17.5l4.5-4.5 3.5 3.5 2.5-2.5 3.5 3.5" /></g>,
+  link:    <g><path d="M9.5 14.5l5-5" /><path d="M10.5 8l1.2-1.2a3.2 3.2 0 0 1 4.5 4.5L15 12.5" /><path d="M13.5 16l-1.2 1.2a3.2 3.2 0 0 1-4.5-4.5L9 11.5" /></g>,
+  home:    <g><path d="M4 11l8-6.5 8 6.5" /><path d="M6 9.7V20h12V9.7" /></g>,
+  layers:  <g><path d="M12 4l8 4-8 4-8-4 8-4z" /><path d="M4 12l8 4 8-4" /></g>,
+  pen:     <g><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" /><path d="M14 7l3 3" /></g>,
+  menu:    <g><path d="M4 7h16M4 12h16M4 17h16" /></g>,
+};
+
+function Icon({ name, size = 22, sw = 1.8, color = 'currentColor', style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
+      style={style}>
+      {ICON_PATHS[name] || null}
+    </svg>
+  );
+}
+
+/* ───────────────────────── Stamp visuals ───────────────────────── */
+function SealVisual({ text, color, size }) {
+  const chars = [...(text || '')].slice(0, 4);
+  const n = chars.length;
+  const cols = n <= 2 ? 1 : 2;
+  const rows = Math.ceil(n / cols);
+  const ring = Math.max(2.5, size * 0.045);
+  const fs = (size * 0.9) / rows * (cols === 1 ? 0.78 : 0.92);
+  // traditional right-to-left, top-to-bottom column fill
+  const cell = (ch, i) => {
+    const col = cols - Math.floor(i / rows);
+    const row = (i % rows) + 1;
+    return (
+      <span key={i} style={{
+        gridColumn: col, gridRow: row,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: fs, lineHeight: 1,
+      }}>{ch}</span>
+    );
+  };
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      border: `${ring}px solid ${color}`, boxSizing: 'border-box',
+      position: 'relative', color,
+      fontFamily: "'Nanum Myeongjo', serif", fontWeight: 800,
+      display: 'grid', placeItems: 'center', userSelect: 'none',
+      background: 'transparent',
+    }}>
+      <div style={{
+        position: 'absolute', inset: size * 0.085, borderRadius: '50%',
+        border: `1.4px solid ${color}`, opacity: 0.85,
+      }} />
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        width: size * 0.66, height: size * 0.66,
+      }}>
+        {chars.map(cell)}
+      </div>
+    </div>
+  );
+}
+
+function StampVisual({ stamp, scale = 1 }) {
+  if (!stamp) return null;
+  if (stamp.kind === 'image') {
+    return <img src={stamp.src} alt="" draggable={false}
+      style={{ width: (stamp.w || 120) * scale, height: 'auto', display: 'block', pointerEvents: 'none' }} />;
+  }
+  if (stamp.kind === 'seal') {
+    return <SealVisual text={stamp.text} color={stamp.color} size={94 * scale} />;
+  }
+  if (stamp.kind === 'signature') {
+    return <div style={{
+      fontFamily: "'Nanum Pen Script', cursive", fontSize: 60 * scale,
+      color: stamp.color, lineHeight: 1, whiteSpace: 'nowrap',
+      transform: 'rotate(-4deg)', userSelect: 'none',
+    }}>{stamp.text}</div>;
+  }
+  if (stamp.kind === 'sign') {
+    return <div style={{
+      fontFamily: "'Dancing Script', cursive", fontWeight: 700, fontSize: 50 * scale,
+      color: stamp.color, lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none',
+    }}>{stamp.text}</div>;
+  }
+  return null;
+}
+
+const SAMPLE_LIBRARY = [
+  { id: 'lib_seal1', kind: 'seal', label: '인감 · 김민수', text: '金民洙', color: '#D7402B' },
+  { id: 'lib_seal2', kind: 'seal', label: '막도장 · 이영희', text: '이영희', color: '#D7402B' },
+  { id: 'lib_seal3', kind: 'seal', label: '법인 직인', text: '대한법인', color: '#C0182B' },
+  { id: 'lib_sign1', kind: 'signature', label: '서명 · 김민수', text: '김민수', color: '#16203A' },
+  { id: 'lib_sign2', kind: 'sign', label: '사인 · M.Kim', text: 'M.Kim', color: '#16203A' },
+];
+
+/* ───────────────────────── Sample certificate ───────────────────────── */
+function SampleCertificate() {
+  const row = (label, value) => (
+    <tr>
+      <th style={{
+        border: '1px solid #2b2b2b', background: '#f3f4f6', fontWeight: 600,
+        padding: '10px 8px', width: '28%', fontSize: 13, letterSpacing: 4,
+      }}>{label}</th>
+      <td style={{ border: '1px solid #2b2b2b', padding: '10px 12px', fontSize: 14, textAlign: 'left' }}>{value}</td>
+    </tr>
+  );
+  return (
+    <div style={{
+      fontFamily: "'Nanum Myeongjo', serif", color: '#1a1a1a',
+      padding: '46px 38px 54px', boxSizing: 'border-box', height: '100%',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ textAlign: 'center', fontSize: 26, fontWeight: 800, letterSpacing: 10, marginBottom: 6, whiteSpace: 'nowrap' }}>
+        재직증명서
+      </div>
+      <div style={{ textAlign: 'center', fontSize: 12, color: '#666', letterSpacing: 2, marginBottom: 30 }}>
+        제 2026-0428 호
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 26 }}>
+        <tbody>
+          {row('성    명', '김 민 수 (金 民 洙)')}
+          {row('생 년 월 일', '1989. 03. 14.')}
+          {row('소    속', '경영지원본부 총무팀')}
+          {row('직    위', '책임 / 과장')}
+          {row('재 직 기 간', '2017. 02. 01. ~ 현재')}
+        </tbody>
+      </table>
+      <p style={{ fontSize: 15, lineHeight: 2.1, textAlign: 'left', margin: '0 0 8px' }}>
+        위 사람은 본 기관에 위와 같이 재직하고 있음을 증명합니다.
+      </p>
+      <p style={{ fontSize: 12.5, lineHeight: 1.9, color: '#555', margin: 0 }}>
+        본 증명서는 제출용으로 발급되었으며, 기재 사항에 허위가 없음을 확인합니다.
+      </p>
+      <div style={{ flex: 1 }} />
+      <div style={{ textAlign: 'center', fontSize: 17, letterSpacing: 6, margin: '20px 0 26px' }}>
+        2026 년 6 월 8 일
+      </div>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 10, fontSize: 19, fontWeight: 700, letterSpacing: 5,
+      }}>
+        <span>대 한 법 률 구 조 공 단</span>
+        <span style={{ position: 'relative', display: 'inline-block', width: 56, height: 56 }} />
+      </div>
+      <div style={{ textAlign: 'center', fontSize: 12, color: '#888', marginTop: 14, letterSpacing: 1 }}>
+        ( 직인 날인란 — 우측에 도장을 찍어 주세요 )
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  makeId, Icon, StampVisual, SealVisual, SampleCertificate, SAMPLE_LIBRARY,
+});
+
+/* menus.jsx — drawer, overflow menu, context menu, dialogs, settings & stamp manager screens */
+const { useState: uS, useEffect: uE, useRef: uR } = React;
+
+/* ───────────── 전체 메뉴 (좌측 드로어) ───────────── */
+function Drawer({ open, onClose, onNav, docName, stampCount, placedCount }) {
+  if (!open) return null;
+  const group = (label, items) => (
+    <div className="dr-group" key={label}>
+      <div className="dr-group-label">{label}</div>
+      {items.map((it) => (
+        <button key={it.k} className="dr-item" onClick={() => { onNav(it.k); onClose(); }}>
+          <Icon name={it.ic} size={19} />
+          <span className="dr-item-t">{it.t}</span>
+          {it.meta && <span className="dr-item-m">{it.meta}</span>}
+        </button>
+      ))}
+    </div>
+  );
+  return (
+    <div className="dr-scrim" onClick={onClose}>
+      <nav className="drawer" onClick={(e) => e.stopPropagation()}>
+        <div className="dr-head">
+          <span className="dr-logo"><Icon name="stamp" size={22} color="#fff" /></span>
+          <div>
+            <div className="dr-app">도장 한 번</div>
+            <div className="dr-sub">개인 · 무료 플랜</div>
+          </div>
+        </div>
+        <div className="dr-now">
+          <Icon name="file" size={17} />
+          <div className="dr-now-t">
+            <b>{docName}</b>
+            <i>도장 {placedCount}개 적용 · 자동 저장됨</i>
+          </div>
+        </div>
+        <div className="dr-scroll">
+          {group('작업', [
+            { k: 'editor', ic: 'pen', t: '현재 서류 편집' },
+            { k: 'capture', ic: 'camera', t: '새 서류 불러오기' },
+          ])}
+          {group('보관', [
+            { k: 'docs', ic: 'layers', t: '내 서류함', meta: '3' },
+            { k: 'manager', ic: 'stamp', t: '도장 보관함', meta: String(stampCount) },
+          ])}
+          {group('기타', [
+            { k: 'settings', ic: 'more', t: '설정' },
+            { k: 'help', ic: 'preview', t: '이용 안내' },
+          ])}
+        </div>
+        <div className="dr-foot">버전 1.0.4</div>
+      </nav>
+    </div>
+  );
+}
+
+/* ───────────── 더보기(⋮) 메뉴 — 그룹형 ───────────── */
+function OverflowMenu({ open, onClose, on, placedCount }) {
+  if (!open) return null;
+  const S = ({ label }) => <div className="mn-label">{label}</div>;
+  const I = ({ k, ic, t, meta, danger, disabled }) => (
+    <button className={'mn-item' + (danger ? ' danger' : '')} disabled={disabled}
+      onClick={() => { on(k); onClose(); }}>
+      <Icon name={ic} size={17} /><span>{t}</span>{meta && <em>{meta}</em>}
+    </button>
+  );
+  return (
+    <div className="menu-scrim" onClick={onClose}>
+      <div className="menu wide" onClick={(e) => e.stopPropagation()}>
+        <S label="파일" />
+        <I k="rename" ic="pen" t="이름 변경" />
+        <I k="saveas" ic="saveas" t="다른 이름으로 저장" />
+        <I k="pdf" ic="file" t="PDF로 내보내기" />
+        <div className="mn-div" />
+        <S label="서류" />
+        <I k="addpage" ic="plus" t="페이지 추가" />
+        <I k="rotate" ic="rotate" t="서류 회전" meta="90°" />
+        <I k="replace" ic="image" t="서류 이미지 교체" />
+        <div className="mn-div" />
+        <S label="도장" />
+        <I k="manager" ic="layers" t="도장 보관함" />
+        <I k="clear" ic="trash" t="찍은 도장 모두 지우기" meta={String(placedCount)} danger disabled={!placedCount} />
+        <div className="mn-div" />
+        <I k="settings" ic="more" t="설정" />
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── 찍은 도장 컨텍스트 메뉴 ───────────── */
+function StampContextMenu({ at, onClose, on }) {
+  if (!at) return null;
+  return (
+    <div className="menu-scrim" onClick={onClose}>
+      <div className="ctx" style={{ left: at.x, top: at.y }} onClick={(e) => e.stopPropagation()}>
+        <button onClick={() => { on('dup'); onClose(); }}><Icon name="layers" size={16} />복제</button>
+        <button onClick={() => { on('front'); onClose(); }}><Icon name="upload" size={16} />맨 앞으로</button>
+        <button onClick={() => { on('reset'); onClose(); }}><Icon name="rotate" size={16} />회전 초기화</button>
+        <div className="ctx-div" />
+        <button className="danger" onClick={() => { on('del'); onClose(); }}><Icon name="trash" size={16} />삭제</button>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── 확인 다이얼로그 ───────────── */
+function ConfirmDialog({ open, title, body, confirmLabel = '확인', danger, onConfirm, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="sheet-scrim center" onClick={onClose}>
+      <div className="dialog sm" onClick={(e) => e.stopPropagation()}>
+        <div className="cf-title">{title}</div>
+        {body && <p className="cf-body">{body}</p>}
+        <div className="sheet-actions">
+          <button className="btn ghost" onClick={onClose}>취소</button>
+          <button className={'btn ' + (danger ? 'danger' : 'solid')} onClick={() => { onConfirm(); onClose(); }}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── 이름 입력 다이얼로그 ───────────── */
+function PromptDialog({ open, title, hint, initial, confirmLabel = '저장', onConfirm, onClose }) {
+  const [v, setV] = uS('');
+  uE(() => { if (open) setV(initial || ''); }, [open, initial]);
+  if (!open) return null;
+  return (
+    <div className="sheet-scrim center" onClick={onClose}>
+      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-head"><span className="sheet-title">{title}</span>
+          <button className="iconbtn" onClick={onClose} aria-label="닫기"><Icon name="close" size={20} /></button></div>
+        {hint && <p className="sheet-hint">{hint}</p>}
+        <input className="tf" value={v} onChange={(e) => setV(e.target.value)} placeholder="파일 이름" />
+        <div className="sheet-actions" style={{ marginTop: 14 }}>
+          <button className="btn ghost" onClick={onClose}>취소</button>
+          <button className="btn solid" disabled={!v.trim()} onClick={() => { onConfirm(v.trim()); onClose(); }}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── 설정 화면 ───────────── */
+function SettingsScreen({ settings, setSetting, onBack }) {
+  const Row = ({ t, d, children }) => (
+    <div className="st-row"><div className="st-rt"><b>{t}</b>{d && <i>{d}</i>}</div><div className="st-rc">{children}</div></div>
+  );
+  const Sw = ({ on, k }) => (
+    <button className={'switch' + (on ? ' on' : '')} onClick={() => setSetting(k, !on)} aria-label={k}><span /></button>
+  );
+  const inks = { '주홍': '#D7402B', '진홍': '#C0182B', '남색': '#1A357A' };
+  return (
+    <div className="sub-screen">
+      <div className="appbar">
+        <button className="iconbtn" onClick={onBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
+        <div className="appbar-title"><span className="apptitle">설정</span></div>
+      </div>
+      <div className="st-scroll">
+        <div className="st-group">
+          <div className="st-glabel">도장 기본값</div>
+          <Row t="기본 인주 색" d="새로 만드는 도장에 적용">
+            <div className="ink-row">
+              {Object.keys(inks).map((n) => (
+                <button key={n} className={'ink' + (settings.ink === n ? ' on' : '')} style={{ background: inks[n] }}
+                  onClick={() => setSetting('ink', n)} aria-label={n} />
+              ))}
+            </div>
+          </Row>
+          <Row t="기본 크기" d={Math.round(settings.size * 100) + '%'}>
+            <input className="rng" type="range" min="0.6" max="1.8" step="0.1" value={settings.size}
+              onChange={(e) => setSetting('size', +e.target.value)} />
+          </Row>
+          <Row t="투명도" d={Math.round(settings.opacity * 100) + '%'}>
+            <input className="rng" type="range" min="0.4" max="1" step="0.05" value={settings.opacity}
+              onChange={(e) => setSetting('opacity', +e.target.value)} />
+          </Row>
+          <Row t="찍은 뒤 바로 선택" d="위치·크기를 이어서 조절"><Sw on={settings.autoSelect} k="autoSelect" /></Row>
+        </div>
+        <div className="st-group">
+          <div className="st-glabel">저장 · 내보내기</div>
+          <Row t="기본 저장 형식">
+            <div className="mini-seg">
+              {['PDF', 'PNG', 'JPG'].map((f) => (
+                <button key={f} className={settings.format === f ? 'on' : ''} onClick={() => setSetting('format', f)}>{f}</button>
+              ))}
+            </div>
+          </Row>
+          <Row t="원본 화질 유지" d="파일 용량이 커집니다"><Sw on={settings.hq} k="hq" /></Row>
+          <Row t="자동 저장" d="편집 중 30초마다"><Sw on={settings.autosave} k="autosave" /></Row>
+        </div>
+        <div className="st-group">
+          <div className="st-glabel">보안</div>
+          <Row t="공유 시 비밀번호" d="PDF에 암호를 설정"><Sw on={settings.pw} k="pw" /></Row>
+          <Row t="도장 이미지 기기에만 보관" d="서버로 전송하지 않음"><Sw on={settings.localOnly} k="localOnly" /></Row>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── 도장 보관함 화면 ───────────── */
+function StampManagerScreen({ library, onBack, onAdd, onRemove, onRename, favId, onFav }) {
+  const [menuFor, setMenuFor] = uS(null);
+  const [renameFor, setRenameFor] = uS(null);
+  const [delFor, setDelFor] = uS(null);
+  const groups = [
+    { k: 'seal', t: '인감 · 막도장' },
+    { k: 'signature', t: '서명' },
+    { k: 'sign', t: '사인 · 이니셜' },
+    { k: 'image', t: '업로드 이미지' },
+  ];
+  const target = library.find((s) => s.id === (renameFor || delFor || menuFor));
+  return (
+    <div className="sub-screen">
+      <div className="appbar">
+        <button className="iconbtn" onClick={onBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
+        <div className="appbar-title"><span className="apptitle">도장 보관함</span>
+          <span className="appsub">{library.length}개 보관 중 · 기기에만 저장</span></div>
+        <button className="iconbtn" onClick={onAdd} aria-label="추가"><Icon name="plus" size={22} /></button>
+      </div>
+      <div className="st-scroll">
+        {groups.map((g) => {
+          const items = library.filter((s) => s.kind === g.k);
+          if (!items.length) return null;
+          return (
+            <div className="mg-group" key={g.k}>
+              <div className="st-glabel">{g.t} <em>{items.length}</em></div>
+              <div className="mg-grid">
+                {items.map((s) => (
+                  <div key={s.id} className="mg-card">
+                    <button className="mg-more" onClick={() => setMenuFor(s.id)} aria-label="관리"><Icon name="more" size={16} /></button>
+                    {favId === s.id && <span className="mg-fav"><Icon name="check" size={12} sw={3} /></span>}
+                    <div className="mg-art"><StampVisual stamp={s} scale={s.kind === 'image' ? 0.8 : 0.55} /></div>
+                    <span className="mg-label">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <button className="mg-add" onClick={onAdd}><Icon name="plus" size={20} />새 도장 · 서명 등록</button>
+      </div>
+
+      {menuFor && (
+        <div className="sheet-scrim" onClick={() => setMenuFor(null)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-head"><span className="sheet-title">{target && target.label}</span>
+              <button className="iconbtn" onClick={() => setMenuFor(null)}><Icon name="close" size={20} /></button></div>
+            <div className="list-menu">
+              <button onClick={() => { onFav(menuFor); setMenuFor(null); }}><Icon name="check" size={18} />기본 도장으로 지정</button>
+              <button onClick={() => { setRenameFor(menuFor); setMenuFor(null); }}><Icon name="pen" size={18} />이름 변경</button>
+              <button className="danger" onClick={() => { setDelFor(menuFor); setMenuFor(null); }}><Icon name="trash" size={18} />삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <PromptDialog open={!!renameFor} title="이름 변경" initial={target ? target.label : ''}
+        onClose={() => setRenameFor(null)} onConfirm={(v) => onRename(renameFor, v)} />
+      <ConfirmDialog open={!!delFor} title="이 도장을 삭제할까요?" danger confirmLabel="삭제"
+        body="보관함에서 지워집니다. 이미 찍은 도장은 그대로 남습니다."
+        onClose={() => setDelFor(null)} onConfirm={() => onRemove(delFor)} />
+    </div>
+  );
+}
+
+/* ───────────── 내 서류함 화면 ───────────── */
+function DocsScreen({ onBack, onOpen, docName }) {
+  const rows = [
+    { n: docName, d: '방금 · 편집 중', s: '도장 적용', on: true },
+    { n: '위임장_2026.pdf', d: '어제 · 2페이지', s: '완료' },
+    { n: '사업자등록증_스캔.jpg', d: '6월 4일', s: '도장 없음' },
+  ];
+  return (
+    <div className="sub-screen">
+      <div className="appbar">
+        <button className="iconbtn" onClick={onBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
+        <div className="appbar-title"><span className="apptitle">내 서류함</span><span className="appsub">{rows.length}건</span></div>
+      </div>
+      <div className="st-scroll">
+        <div className="doc-list">
+          {rows.map((r, i) => (
+            <button key={i} className="doc-row" onClick={onOpen}>
+              <span className="doc-thumb"><Icon name="file" size={20} /></span>
+              <span className="doc-meta"><b>{r.n}</b><i>{r.d}</i></span>
+              <span className={'doc-tag' + (r.on ? ' on' : '')}>{r.s}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  Drawer, OverflowMenu, StampContextMenu, ConfirmDialog, PromptDialog,
+  SettingsScreen, StampManagerScreen, DocsScreen,
+});
+
+/* editor.jsx — document editor: toolbar, stamp placement/manipulation, popups */
+const { useState, useRef, useEffect } = React;
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+function ToolBtn({ name, label, onClick, active, primary, disabled, showLabel, badge }) {
+  return (
+    <button className={'toolbtn' + (active ? ' active' : '') + (primary ? ' primary' : '')}
+      onClick={onClick} disabled={disabled} aria-label={label}>
+      <span className="tb-ic"><Icon name={name} size={primary ? 23 : 21} sw={1.85} />
+        {badge ? <em className="tb-badge">{badge}</em> : null}</span>
+      {showLabel && <span className="toolbtn-label">{label}</span>}
+    </button>
+  );
+}
+
+function Sheet({ open, onClose, title, sub, children, footer, dialog }) {
+  if (!open) return null;
+  return (
+    <div className={'sheet-scrim' + (dialog ? ' center' : '')} onClick={onClose}>
+      <div className={dialog ? 'dialog' : 'sheet'} onClick={(e) => e.stopPropagation()}>
+        {!dialog && <span className="sheet-grip" />}
+        <div className="sheet-head">
+          <div>
+            <span className="sheet-title">{title}</span>
+            {sub && <span className="sheet-sub">{sub}</span>}
+          </div>
+          <button className="iconbtn" onClick={onClose} aria-label="닫기"><Icon name="close" size={20} /></button>
+        </div>
+        <div className="sheet-body">{children}</div>
+        {footer && <div className="sheet-foot">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ───────── 도장 선택 팝업 (탭 · 검색 · 최근 · 크기/투명도) ───────── */
+const KIND_TABS = [
+  { k: 'all', t: '전체' }, { k: 'seal', t: '인감·도장' },
+  { k: 'signature', t: '서명' }, { k: 'sign', t: '사인' }, { k: 'image', t: '업로드' },
+];
+
+function StampPopup({ open, onClose, library, recent, sealInk, defaults, onConfirm, onAddNew, popupStyle }) {
+  const [sel, setSel] = useState(null);
+  const [tab, setTab] = useState('all');
+  const [q, setQ] = useState('');
+  const [size, setSize] = useState(defaults.size);
+  const [opacity, setOpacity] = useState(defaults.opacity);
+  useEffect(() => {
+    if (open) { setSel(null); setTab('all'); setQ(''); setSize(defaults.size); setOpacity(defaults.opacity); }
+  }, [open]);
+  if (!open) return null;
+
+  const norm = (s) => (s || '').toLowerCase();
+  const list = library.filter((s) => (tab === 'all' || s.kind === tab) && (!q || norm(s.label).includes(norm(q)) || norm(s.text).includes(norm(q))));
+  const recentItems = recent.map((id) => library.find((s) => s.id === id)).filter(Boolean).slice(0, 4);
+  const ink = (s) => ({ ...s, color: s.kind === 'seal' ? (s.color || sealInk) : s.color });
+  const selStamp = library.find((s) => s.id === sel);
+
+  const Card = ({ s, small }) => (
+    <button className={'stamp-card' + (sel === s.id ? ' sel' : '') + (small ? ' small' : '')} onClick={() => setSel(s.id)}>
+      <div className="stamp-card-art"><StampVisual stamp={ink(s)} scale={(s.kind === 'image' ? 0.85 : 0.58) * (small ? 0.8 : 1)} /></div>
+      <span className="stamp-card-label">{s.label}</span>
+      {sel === s.id && <span className="stamp-card-tick"><Icon name="check" size={13} sw={2.8} /></span>}
+    </button>
+  );
+
+  return (
+    <Sheet open={open} onClose={onClose} title="도장 · 서명 선택" sub={library.length + '개 보관 중'}
+      dialog={popupStyle === 'dialog'}
+      footer={
+        <div className="pop-foot">
+          <div className="pop-preview">
+            {selStamp
+              ? <span style={{ opacity }}><StampVisual stamp={ink(selStamp)} scale={0.34 * size} /></span>
+              : <span className="muted">미선택</span>}
+          </div>
+          <div className="sheet-actions" style={{ flex: 1 }}>
+            <button className="btn ghost" onClick={onClose}>취소</button>
+            <button className="btn solid" disabled={!sel}
+              onClick={() => { onConfirm(sel, { size, opacity }); onClose(); }}>확인</button>
+          </div>
+        </div>
+      }>
+      <div className="pop-search">
+        <Icon name="zoom" size={17} color="var(--muted)" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="도장 이름 검색" />
+        {q && <button className="iconbtn sm" onClick={() => setQ('')}><Icon name="close" size={15} /></button>}
+      </div>
+
+      <div className="chips">
+        {KIND_TABS.map((t) => (
+          <button key={t.k} className={'chip' + (tab === t.k ? ' on' : '')} onClick={() => setTab(t.k)}>{t.t}</button>
+        ))}
+      </div>
+
+      {tab === 'all' && !q && recentItems.length > 0 && (
+        <div className="pop-block">
+          <div className="pop-block-h">최근 사용</div>
+          <div className="stamp-row">{recentItems.map((s) => <Card key={'r' + s.id} s={s} small />)}</div>
+        </div>
+      )}
+
+      <div className="pop-block">
+        <div className="pop-block-h">{tab === 'all' ? '전체 도장' : KIND_TABS.find((t) => t.k === tab).t}<em>{list.length}</em></div>
+        {list.length ? (
+          <div className="stamp-grid">
+            {list.map((s) => <Card key={s.id} s={s} />)}
+            <button className="stamp-card add" onClick={onAddNew}>
+              <div className="stamp-card-art"><Icon name="plus" size={24} sw={2} /></div>
+              <span className="stamp-card-label">새 도장</span>
+            </button>
+          </div>
+        ) : (
+          <div className="empty">
+            <Icon name="stamp" size={26} color="#b9c1d0" />
+            <span>해당하는 도장이 없습니다</span>
+            <button className="btn ghost sm" onClick={onAddNew}>새로 등록</button>
+          </div>
+        )}
+      </div>
+
+      <div className="pop-block">
+        <div className="pop-block-h">찍기 옵션</div>
+        <div className="opt-row">
+          <span className="opt-l">크기</span>
+          <input className="rng" type="range" min="0.6" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
+          <span className="opt-v">{Math.round(size * 100)}%</span>
+        </div>
+        <div className="opt-row">
+          <span className="opt-l">투명도</span>
+          <input className="rng" type="range" min="0.4" max="1" step="0.05" value={opacity} onChange={(e) => setOpacity(+e.target.value)} />
+          <span className="opt-v">{Math.round(opacity * 100)}%</span>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/* ───────── 새 도장 등록 ───────── */
+function AddStampSheet({ open, onClose, sealInk, onAdd }) {
+  const [tab, setTab] = useState('make');
+  const [text, setText] = useState('');
+  const fileRef = useRef(null);
+  useEffect(() => { if (open) { setTab('make'); setText(''); } }, [open]);
+
+  const addSeal = () => {
+    const t = text.trim(); if (!t) return;
+    onAdd({ id: makeId(), kind: 'seal', text: t.slice(0, 4), color: sealInk, label: '도장 · ' + t });
+    onClose();
+  };
+  const onFile = (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { onAdd({ id: makeId(), kind: 'image', src: r.result, w: 120, label: '업로드 · ' + f.name.slice(0, 10) }); onClose(); };
+    r.readAsDataURL(f);
+  };
+  return (
+    <Sheet open={open} onClose={onClose} title="새 도장 등록" sub="기기에만 저장됩니다">
+      <div className="seg">
+        <button className={tab === 'make' ? 'on' : ''} onClick={() => setTab('make')}>이름으로 만들기</button>
+        <button className={tab === 'up' ? 'on' : ''} onClick={() => setTab('up')}>촬영 · 업로드</button>
+      </div>
+      {tab === 'make' ? (
+        <div className="add-make">
+          <input className="tf" value={text} maxLength={4} placeholder="예) 김민수 (최대 4자)"
+            onChange={(e) => setText(e.target.value)} />
+          <div className="seal-preview">
+            {text.trim() ? <SealVisual text={text.trim()} color={sealInk} size={92} /> : <span className="muted">미리보기</span>}
+          </div>
+          <button className="btn solid wide" disabled={!text.trim()} onClick={addSeal}>보관함에 등록</button>
+        </div>
+      ) : (
+        <div className="add-up">
+          <button className="upload-tile" onClick={() => fileRef.current && fileRef.current.click()}>
+            <Icon name="camera" size={26} /><span>도장·서명을 촬영하거나<br />갤러리에서 가져오기</span>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+          <ul className="tips">
+            <li>흰 종이에 찍은 도장을 밝은 곳에서 촬영하세요.</li>
+            <li>배경이 깨끗할수록 서류에 자연스럽게 겹쳐집니다.</li>
+          </ul>
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+/* ───────── 공유 · 내보내기 (형식 · 화질 · 파일명 · 보안) ───────── */
+const CONTACTS = [
+  { n: '김대리', s: '#2B6CE6' }, { n: '총무팀', s: '#0E8C86' }, { n: '엄마', s: '#D7402B' },
+];
+
+function ShareSheet({ open, onClose, docName, defaults, onAction }) {
+  const [fmt, setFmt] = useState(defaults.format);
+  const [hq, setHq] = useState(defaults.hq);
+  const [pw, setPw] = useState(defaults.pw);
+  const [name, setName] = useState(docName);
+  useEffect(() => { if (open) { setFmt(defaults.format); setHq(defaults.hq); setPw(defaults.pw); setName(docName); } }, [open]);
+  if (!open) return null;
+
+  const via = [
+    { k: 'kakao', label: '카카오톡', tone: '#FAE100', fg: '#3C1E1E', ic: 'kakao' },
+    { k: 'message', label: '문자', tone: '#34C759', fg: '#fff', ic: 'message' },
+    { k: 'mail', label: '메일', tone: '#2B6CE6', fg: '#fff', ic: 'mail' },
+    { k: 'save', label: '기기 저장', tone: '#14233F', fg: '#fff', ic: 'save' },
+    { k: 'print', label: '인쇄', tone: '#7A5AE0', fg: '#fff', ic: 'file' },
+    { k: 'link', label: '링크 복사', tone: '#64748b', fg: '#fff', ic: 'link' },
+  ];
+  const est = fmt === 'PDF' ? (hq ? '1.8MB' : '620KB') : (hq ? '2.4MB' : '840KB');
+
+  return (
+    <Sheet open={open} onClose={onClose} title="공유 · 내보내기" sub={name + '.' + fmt.toLowerCase()}>
+      <div className="pop-block">
+        <div className="pop-block-h">파일 형식</div>
+        <div className="fmt-row">
+          {['PDF', 'PNG', 'JPG'].map((f) => (
+            <button key={f} className={'fmt' + (fmt === f ? ' on' : '')} onClick={() => setFmt(f)}>
+              <b>{f}</b><i>{f === 'PDF' ? '인쇄·제출용' : f === 'PNG' ? '고화질 이미지' : '용량 작게'}</i>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pop-block">
+        <div className="pop-block-h">옵션 <em>{est}</em></div>
+        <div className="tog-row"><span>원본 화질 유지</span>
+          <button className={'switch' + (hq ? ' on' : '')} onClick={() => setHq(!hq)}><span /></button></div>
+        <div className="tog-row"><span>PDF 비밀번호 설정</span>
+          <button className={'switch' + (pw ? ' on' : '')} onClick={() => setPw(!pw)} disabled={fmt !== 'PDF'}><span /></button></div>
+        {pw && fmt === 'PDF' && <input className="tf sm" type="password" placeholder="비밀번호 4자 이상" />}
+        <input className="tf sm" value={name} onChange={(e) => setName(e.target.value)} placeholder="파일 이름" />
+      </div>
+
+      <div className="pop-block">
+        <div className="pop-block-h">자주 보내는 곳</div>
+        <div className="ct-row">
+          {CONTACTS.map((c) => (
+            <button key={c.n} className="ct" onClick={() => onAction('kakao', fmt) || onClose()}>
+              <span className="ct-av" style={{ background: c.s }}>{c.n[0]}</span><i>{c.n}</i>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pop-block">
+        <div className="pop-block-h">보내기</div>
+        <div className="share-grid">
+          {via.map((it) => (
+            <button key={it.k} className="share-item" onClick={() => { onAction(it.k, fmt); onClose(); }}>
+              <span className="share-ic" style={{ background: it.tone, color: it.fg }}><Icon name={it.ic} size={23} /></span>
+              <span className="share-label">{it.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/* ───────────────────────── Editor ───────────────────────── */
+function EditorScreen({ store }) {
+  const { docMode, docImage, docName, setDocName, library, addStamp, recent, pushRecent,
+    placed, setPlacedLive, pushHistory, undo, redo, canUndo, canRedo,
+    goBack, openDrawer, nav, showToast, settings, t } = store;
+  const sealInk = t.sealInk;
+
+  const pageRef = useRef(null);
+  const [zoom, setZoom] = useState(1);
+  const [zoomBar, setZoomBar] = useState(false);
+  const [popup, setPopup] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [share, setShare] = useState(false);
+  const [preview, setPreview] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [prompt, setPrompt] = useState(null);       // 'rename' | 'saveas'
+  const [confirm, setConfirm] = useState(null);      // {key,...}
+  const [placing, setPlacing] = useState(null);
+  const [ghost, setGhost] = useState(null);
+  const [sel, setSel] = useState(null);
+  const [ctx, setCtx] = useState(null);
+  const [docRot, setDocRot] = useState(0);
+  const dragRef = useRef(null);
+  const lpRef = useRef(null);
+
+  const stampById = (id) => library.find((s) => s.id === id);
+  const pctFromEvent = (e) => {
+    const r = pageRef.current.getBoundingClientRect();
+    return { x: clamp(((e.clientX - r.left) / r.width) * 100, 0, 100), y: clamp(((e.clientY - r.top) / r.height) * 100, 0, 100) };
+  };
+
+  const beginPlacement = (stampId, opts) => {
+    setPlacing({ ...stampById(stampId), _opts: opts }); setSel(null); pushRecent(stampId);
+  };
+  const endPlacement = () => { setPlacing(null); setGhost(null); };
+  const onPageMove = (e) => { if (placing) setGhost(pctFromEvent(e)); };
+  const onPageClick = (e) => {
+    if (placing) {
+      const p = pctFromEvent(e);
+      pushHistory();
+      const id = makeId();
+      setPlacedLive((arr) => [...arr, { id, stampId: placing.id, x: p.x, y: p.y, scale: placing._opts.size, opacity: placing._opts.opacity, rot: 0 }]);
+      if (settings.autoSelect) { setPlacing(null); setGhost(null); setSel(id); }
+      return;
+    }
+    setSel(null);
+  };
+
+  const onHandleDown = (e, id, mode) => {
+    e.stopPropagation(); e.preventDefault();
+    const inst = placed.find((p) => p.id === id); if (!inst) return;
+    const r = pageRef.current.getBoundingClientRect();
+    const center = { x: r.left + (inst.x / 100) * r.width, y: r.top + (inst.y / 100) * r.height };
+    pushHistory();
+    dragRef.current = { id, mode, rect: r, center, startScale: inst.scale, startRot: inst.rot,
+      startAngle: Math.atan2(e.clientY - center.y, e.clientX - center.x),
+      startDist: Math.hypot(e.clientX - center.x, e.clientY - center.y) || 1 };
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', onDragUp);
+  };
+  const onDragMove = (e) => {
+    const d = dragRef.current; if (!d) return;
+    const set = (fn) => setPlacedLive((arr) => arr.map((p) => p.id === d.id ? fn(p) : p));
+    if (d.mode === 'move') {
+      const x = clamp(((e.clientX - d.rect.left) / d.rect.width) * 100, 0, 100);
+      const y = clamp(((e.clientY - d.rect.top) / d.rect.height) * 100, 0, 100);
+      set((p) => ({ ...p, x, y }));
+    } else if (d.mode === 'resize') {
+      const dist = Math.hypot(e.clientX - d.center.x, e.clientY - d.center.y);
+      set((p) => ({ ...p, scale: clamp(d.startScale * (dist / d.startDist), 0.4, 3.2) }));
+    } else if (d.mode === 'rotate') {
+      const ang = Math.atan2(e.clientY - d.center.y, e.clientX - d.center.x);
+      set((p) => ({ ...p, rot: d.startRot + (ang - d.startAngle) * 180 / Math.PI }));
+    }
+  };
+  const onDragUp = () => {
+    dragRef.current = null;
+    window.removeEventListener('pointermove', onDragMove);
+    window.removeEventListener('pointerup', onDragUp);
+  };
+
+  const ctxAction = (k) => {
+    if (!sel) return;
+    pushHistory();
+    if (k === 'del') { setPlacedLive((a) => a.filter((p) => p.id !== sel)); setSel(null); }
+    if (k === 'dup') {
+      const src = placed.find((p) => p.id === sel); if (!src) return;
+      const id = makeId();
+      setPlacedLive((a) => [...a, { ...src, id, x: clamp(src.x + 6, 0, 100), y: clamp(src.y + 6, 0, 100) }]);
+      setSel(id);
+    }
+    if (k === 'front') {
+      setPlacedLive((a) => { const i = a.findIndex((p) => p.id === sel); if (i < 0) return a; const c = [...a]; c.push(c.splice(i, 1)[0]); return c; });
+    }
+    if (k === 'reset') setPlacedLive((a) => a.map((p) => p.id === sel ? { ...p, rot: 0 } : p));
+  };
+
+  const onMenu = (k) => {
+    if (k === 'rename') return setPrompt('rename');
+    if (k === 'saveas') return setPrompt('saveas');
+    if (k === 'pdf') return showToast('PDF로 변환하여 저장했습니다.');
+    if (k === 'addpage') return showToast('페이지를 추가했습니다. (2/2)');
+    if (k === 'rotate') { setDocRot((r) => (r + 90) % 360); return showToast('서류를 90° 회전했습니다.'); }
+    if (k === 'replace') return showToast('서류 이미지를 다시 선택하세요.');
+    if (k === 'manager') return nav('manager');
+    if (k === 'settings') return nav('settings');
+    if (k === 'clear') return setConfirm({ key: 'clear' });
+  };
+
+  const onShareAction = (k, fmt) => {
+    const m = { kakao: '카카오톡으로 보냈습니다', message: '문자로 보냈습니다', mail: '메일로 보냈습니다',
+      save: '기기에 저장했습니다', print: '인쇄 대화상자를 열었습니다', link: '공유 링크를 복사했습니다' };
+    showToast((m[k] || '완료') + ' · ' + fmt);
+  };
+
+  const PAGE_W = 360;
+  const renderPlaced = (p) => {
+    const s = stampById(p.stampId); if (!s) return null;
+    const stamp = { ...s, color: s.kind === 'seal' ? (s.color || sealInk) : s.color };
+    const isSel = sel === p.id && !placing;
+    const startLP = (e) => {
+      if (placing) return;
+      clearTimeout(lpRef.current);
+      lpRef.current = setTimeout(() => { setSel(p.id); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }, 520);
+      if (isSel) onHandleDown(e, p.id, 'move');
+    };
+    return (
+      <div key={p.id} className={'placed' + (isSel ? ' sel' : '')}
+        style={{ left: p.x + '%', top: p.y + '%', opacity: p.opacity == null ? 1 : p.opacity,
+          transform: `translate(-50%,-50%) rotate(${p.rot}deg)` }}
+        onClick={(e) => { if (!placing) { e.stopPropagation(); setSel(p.id); } }}
+        onContextMenu={(e) => { e.preventDefault(); setSel(p.id); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }}
+        onPointerDown={startLP}
+        onPointerUp={() => clearTimeout(lpRef.current)}
+        onPointerLeave={() => clearTimeout(lpRef.current)}>
+        <StampVisual stamp={stamp} scale={p.scale} />
+        {isSel && (
+          <React.Fragment>
+            <span className="h-del" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); ctxAction('del'); }}><Icon name="close" size={13} sw={2.6} /></span>
+            <span className="h-rot" onPointerDown={(e) => onHandleDown(e, p.id, 'rotate')}><Icon name="rotate" size={13} sw={2.2} /></span>
+            <span className="h-res" onPointerDown={(e) => onHandleDown(e, p.id, 'resize')}><Icon name="resize" size={13} sw={2.2} /></span>
+            <span className="h-mn" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }}><Icon name="more" size={13} sw={2.4} /></span>
+          </React.Fragment>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="editor">
+      <div className="appbar">
+        <button className="iconbtn" onClick={goBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
+        <div className="appbar-title">
+          <span className="apptitle">{docName}</span>
+          <span className="appsub">1 / 1 페이지 · 도장 {placed.length}개</span>
+        </div>
+        <button className="iconbtn" onClick={openDrawer} aria-label="전체 메뉴"><Icon name="menu" size={22} /></button>
+        <button className="iconbtn" onClick={() => setMenu(true)} aria-label="더보기"><Icon name="more" size={22} /></button>
+      </div>
+
+      <div className="toolstrip">
+        <ToolBtn name="stamp" label="도장" primary showLabel={t.toolLabels} onClick={() => setPopup(true)} />
+        <span className="tool-div" />
+        <ToolBtn name="undo" label="전단계" showLabel={t.toolLabels} disabled={!canUndo} onClick={undo} />
+        <ToolBtn name="redo" label="다음단계" showLabel={t.toolLabels} disabled={!canRedo} onClick={redo} />
+        <ToolBtn name="zoom" label="돋보기" showLabel={t.toolLabels} active={zoomBar} onClick={() => setZoomBar((v) => !v)} />
+        <ToolBtn name="preview" label="미리보기" showLabel={t.toolLabels} onClick={() => setPreview(true)} />
+        <ToolBtn name="save" label="저장" showLabel={t.toolLabels} onClick={() => setConfirm({ key: 'save' })} />
+        <ToolBtn name="share" label="공유" showLabel={t.toolLabels} onClick={() => setShare(true)} />
+      </div>
+
+      {zoomBar && (
+        <div className="zoombar">
+          <button className="rbtn" onClick={() => setZoom((z) => clamp(+(z - 0.2).toFixed(2), 0.6, 2.6))}>−</button>
+          <input className="rng" type="range" min="0.6" max="2.6" step="0.1" value={zoom} onChange={(e) => setZoom(+e.target.value)} />
+          <button className="rbtn" onClick={() => setZoom((z) => clamp(+(z + 0.2).toFixed(2), 0.6, 2.6))}>+</button>
+          <span className="zoom-val">{Math.round(zoom * 100)}%</span>
+          <button className="btn ghost sm" onClick={() => setZoom(1)}>맞춤</button>
+        </div>
+      )}
+
+      {placing && (
+        <div className="place-banner">
+          <span className="pb-art"><StampVisual stamp={{ ...placing, color: placing.kind === 'seal' ? (placing.color || sealInk) : placing.color }} scale={0.3} /></span>
+          <span className="pb-text">원하는 위치를 탭하면 도장이 찍힙니다</span>
+          <button className="btn solid sm" onClick={endPlacement}>완료</button>
+        </div>
+      )}
+
+      <div className="canvas">
+        <div className={'page-wrap' + (placing ? ' placing' : '')}>
+          <div className="page" ref={pageRef} onMouseMove={onPageMove} onClick={onPageClick}
+            style={{ width: PAGE_W * zoom, height: PAGE_W * 1.414 * zoom, rotate: docRot + 'deg' }}>
+            {docMode === 'image' && docImage
+              ? <img className="doc-img" src={docImage} alt="" draggable={false} />
+              : <SampleCertificate />}
+            {placed.map(renderPlaced)}
+            {placing && ghost && (
+              <div className="stamp-ghost" style={{ left: ghost.x + '%', top: ghost.y + '%', opacity: placing._opts.opacity * 0.75 }}>
+                <StampVisual stamp={{ ...placing, color: placing.kind === 'seal' ? (placing.color || sealInk) : placing.color }} scale={placing._opts.size} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {sel && !placing && (
+        <div className="selbar">
+          <span className="sb-t">도장 선택됨</span>
+          <button onClick={() => ctxAction('dup')}><Icon name="layers" size={17} />복제</button>
+          <button onClick={() => ctxAction('reset')}><Icon name="rotate" size={17} />회전 초기화</button>
+          <button className="danger" onClick={() => ctxAction('del')}><Icon name="trash" size={17} />삭제</button>
+        </div>
+      )}
+
+      <StampPopup open={popup} onClose={() => setPopup(false)} library={library} recent={recent} sealInk={sealInk}
+        defaults={settings} popupStyle={t.popupStyle} onAddNew={() => { setPopup(false); setAddOpen(true); }}
+        onConfirm={beginPlacement} />
+      <AddStampSheet open={addOpen} onClose={() => setAddOpen(false)} sealInk={sealInk}
+        onAdd={(s) => { addStamp(s); showToast('도장이 보관함에 저장되었습니다.'); }} />
+      <ShareSheet open={share} onClose={() => setShare(false)} docName={docName} defaults={settings} onAction={onShareAction} />
+      <OverflowMenu open={menu} onClose={() => setMenu(false)} on={onMenu} placedCount={placed.length} />
+      <StampContextMenu at={ctx} onClose={() => setCtx(null)} on={ctxAction} />
+      <PromptDialog open={prompt === 'rename'} title="이름 변경" hint="서류 이름을 입력하세요." initial={docName}
+        onClose={() => setPrompt(null)} onConfirm={(v) => { setDocName(v); showToast('이름을 변경했습니다.'); }} />
+      <PromptDialog open={prompt === 'saveas'} title="다른 이름으로 저장" hint="사본으로 저장할 이름을 입력하세요."
+        initial={docName + ' 사본'} onClose={() => setPrompt(null)}
+        onConfirm={(v) => { setDocName(v); showToast('「' + v + '」(으)로 저장했습니다.'); }} />
+      <ConfirmDialog open={confirm && confirm.key === 'save'} title="이 서류를 저장할까요?"
+        body={'도장 ' + placed.length + '개가 합쳐져 ' + settings.format + '로 저장됩니다.'} confirmLabel="저장"
+        onClose={() => setConfirm(null)} onConfirm={() => showToast('저장했습니다 · ' + settings.format)} />
+      <ConfirmDialog open={confirm && confirm.key === 'clear'} title="찍은 도장을 모두 지울까요?" danger confirmLabel="모두 지우기"
+        body="되돌리기(전단계)로 복구할 수 있습니다."
+        onClose={() => setConfirm(null)} onConfirm={() => { pushHistory(); setPlacedLive([]); setSel(null); showToast('도장을 모두 지웠습니다.'); }} />
+      <PreviewModal open={preview} onClose={() => setPreview(false)} docName={docName} fmt={settings.format}
+        docMode={docMode} docImage={docImage} placed={placed} library={library} sealInk={sealInk}
+        onShare={() => { setPreview(false); setShare(true); }} />
+    </div>
+  );
+}
+
+function PreviewModal({ open, onClose, docName, docMode, docImage, placed, library, sealInk, fmt, onShare }) {
+  if (!open) return null;
+  const PAGE_W = 340;
+  return (
+    <div className="preview-modal">
+      <div className="preview-top">
+        <span className="preview-name"><Icon name="preview" size={18} /> 미리보기</span>
+        <button className="iconbtn" onClick={onClose} aria-label="닫기"><Icon name="close" size={22} /></button>
+      </div>
+      <div className="preview-scroll">
+        <div className="page preview-page" style={{ width: PAGE_W, height: PAGE_W * 1.414 }}>
+          {docMode === 'image' && docImage ? <img className="doc-img" src={docImage} alt="" /> : <SampleCertificate />}
+          {placed.map((p) => {
+            const s = library.find((x) => x.id === p.stampId); if (!s) return null;
+            const stamp = { ...s, color: s.kind === 'seal' ? (s.color || sealInk) : s.color };
+            return (
+              <div key={p.id} className="placed" style={{ left: p.x + '%', top: p.y + '%', opacity: p.opacity == null ? 1 : p.opacity, transform: `translate(-50%,-50%) rotate(${p.rot}deg)` }}>
+                <StampVisual stamp={stamp} scale={p.scale} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="preview-bar">
+        <div className="pv-meta"><b>{docName}.{fmt.toLowerCase()}</b><i>1 / 1 페이지 · 도장 {placed.length}개</i></div>
+        <button className="btn solid" onClick={onShare}>공유</button>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { EditorScreen, Sheet, AddStampSheet });
+
+/* app.jsx — root: routing, shared state, settings, tweaks, mount */
+const { useState: useS, useEffect: useE, useRef: useR } = React;
+
+const THEMES = {
+  navy:   { primary: '#2B6CE6', primaryDark: '#1E4FB0', navy: '#14233F', surface: '#F4F6FB', card: '#FFFFFF', line: '#E2E7F0', muted: '#5A6B86' },
+  indigo: { primary: '#5046E5', primaryDark: '#3A32B5', navy: '#1B1740', surface: '#F5F4FC', card: '#FFFFFF', line: '#E6E4F4', muted: '#615C82' },
+  teal:   { primary: '#0E8C86', primaryDark: '#0A6B66', navy: '#0C2E2C', surface: '#F1F8F6', card: '#FFFFFF', line: '#DCEAE6', muted: '#4E726C' },
+};
+const SEAL_INKS = { '주홍': '#D7402B', '진홍': '#C0182B', '남색': '#1A357A' };
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "navy",
+  "popupStyle": "sheet",
+  "toolLabels": true
+}/*EDITMODE-END*/;
+
+const DEFAULT_SETTINGS = {
+  ink: '주홍', size: 1, opacity: 1, autoSelect: true,
+  format: 'PDF', hq: false, autosave: true, pw: false, localOnly: true,
+};
+
+const LS_KEY = 'docstamp_v2';
+const loadState = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch (e) { return {}; } };
+const saveState = (s) => { try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (e) {} };
+
+function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
+  const fileRef = useR(null);
+  const onFile = (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => onLoadImage(r.result, f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '업로드 서류');
+    r.readAsDataURL(f);
+  };
+  return (
+    <div className="capture">
+      <div className="cap-top">
+        <div className="cap-brand">
+          <span className="cap-logo"><Icon name="stamp" size={24} color="#fff" /></span>
+          <div>
+            <div className="cap-app">도장 한 번</div>
+            <div className="cap-tag">서류에 도장 찍어 바로 공유</div>
+          </div>
+        </div>
+        <button className="iconbtn" onClick={openDrawer} aria-label="전체 메뉴"><Icon name="menu" size={22} /></button>
+      </div>
+
+      <div className="cap-hero">
+        <div className="cap-hero-doc">
+          <span className="chd-line w70" /><span className="chd-line w90" /><span className="chd-line w50" />
+          <span className="chd-line w80" /><span className="chd-line w40" />
+          <span className="chd-seal"><SealVisual text="확인" color="#D7402B" size={62} /></span>
+        </div>
+      </div>
+
+      <div className="cap-headline">서류를 불러와 시작하세요</div>
+      <p className="cap-desc">촬영하거나 갤러리에서 가져온 서류 위에<br />도장·서명을 찍어 인증서류를 만듭니다.</p>
+
+      <div className="cap-actions">
+        <button className="cap-btn primary" onClick={() => onLoadSample()}>
+          <Icon name="camera" size={24} color="#fff" /><span>카메라로 촬영</span>
+        </button>
+        <button className="cap-btn" onClick={() => fileRef.current && fileRef.current.click()}>
+          <Icon name="upload" size={24} /><span>갤러리에서 업로드</span>
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+      </div>
+
+      <div className="cap-recent">
+        <div className="cap-recent-h">최근 서류</div>
+        <button className="recent-row" onClick={() => onLoadSample()}>
+          <span className="recent-thumb"><Icon name="file" size={20} color={theme.primary} /></span>
+          <span className="recent-meta"><b>재직증명서.jpg</b><i>오늘 · 도장 미적용</i></span>
+          <Icon name="back" size={18} color={theme.muted} style={{ transform: 'scaleX(-1)' }} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HelpScreen({ onBack }) {
+  const steps = [
+    { ic: 'camera', t: '서류 불러오기', d: '카메라로 촬영하거나 갤러리에서 업로드합니다.' },
+    { ic: 'stamp', t: '도장 선택', d: '상단 도장 버튼을 누르면 보관함이 팝업으로 열립니다.' },
+    { ic: 'pen', t: '위치 지정', d: '확인을 누른 뒤 서류에서 원하는 지점을 탭하면 날인됩니다.' },
+    { ic: 'share', t: '저장 · 공유', d: 'PDF·이미지로 저장하거나 카톡·문자·메일로 보냅니다.' },
+  ];
+  return (
+    <div className="sub-screen">
+      <div className="appbar">
+        <button className="iconbtn" onClick={onBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
+        <div className="appbar-title"><span className="apptitle">이용 안내</span></div>
+      </div>
+      <div className="st-scroll">
+        <div className="help-list">
+          {steps.map((s, i) => (
+            <div className="help-row" key={s.t}>
+              <span className="help-n">{i + 1}</span>
+              <div className="help-t"><b>{s.t}</b><i>{s.d}</i></div>
+              <Icon name={s.ic} size={20} color="var(--primary)" />
+            </div>
+          ))}
+        </div>
+        <p className="help-note">도장·서명 이미지는 기기에만 저장되며 서버로 전송되지 않습니다.</p>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const theme = THEMES[t.theme] || THEMES.navy;
+
+  const init = loadState();
+  const [screen, setScreen] = useS(init.screen || 'capture');
+  const [docMode, setDocMode] = useS(init.docMode || 'sample');
+  const [docImage, setDocImage] = useS(init.docImage || null);
+  const [docName, setDocName] = useS(init.docName || '재직증명서');
+  const [library, setLibrary] = useS(init.library || SAMPLE_LIBRARY);
+  const [placed, setPlaced] = useS(init.placed || []);
+  const [recent, setRecent] = useS(init.recent || []);
+  const [favId, setFavId] = useS(init.favId || null);
+  const [settings, setSettings] = useS({ ...DEFAULT_SETTINGS, ...(init.settings || {}) });
+  const [drawer, setDrawer] = useS(false);
+  const [addFromMenu, setAddFromMenu] = useS(false);
+  const [past, setPast] = useS([]);
+  const [future, setFuture] = useS([]);
+  const [toast, setToast] = useS(null);
+  const toastT = useR(null);
+
+  const sealInk = SEAL_INKS[settings.ink] || SEAL_INKS['주홍'];
+
+  useE(() => { saveState({ screen, docMode, docImage, docName, library, placed, recent, favId, settings }); },
+    [screen, docMode, docImage, docName, library, placed, recent, favId, settings]);
+
+  const showToast = (msg) => {
+    setToast(msg); clearTimeout(toastT.current);
+    toastT.current = setTimeout(() => setToast(null), 2200);
+  };
+  const setSetting = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
+  const pushHistory = () => { setPast((p) => [...p, placed]); setFuture([]); };
+  const undo = () => { if (!past.length) return; const prev = past[past.length - 1]; setPast((p) => p.slice(0, -1)); setFuture((f) => [placed, ...f]); setPlaced(prev); };
+  const redo = () => { if (!future.length) return; const nxt = future[0]; setFuture((f) => f.slice(1)); setPast((p) => [...p, placed]); setPlaced(nxt); };
+
+  const loadSample = () => { setDocMode('sample'); setDocImage(null); setDocName('재직증명서'); setScreen('editor'); };
+  const loadImage = (src, name) => { setDocMode('image'); setDocImage(src); setDocName(name); setScreen('editor'); };
+
+  const store = {
+    docMode, docImage, docName, setDocName,
+    library, addStamp: (s) => setLibrary((l) => [...l, s]),
+    recent, pushRecent: (id) => setRecent((r) => [id, ...r.filter((x) => x !== id)].slice(0, 6)),
+    placed, setPlacedLive: setPlaced, pushHistory, undo, redo,
+    canUndo: past.length > 0, canRedo: future.length > 0,
+    goBack: () => setScreen('capture'),
+    openDrawer: () => setDrawer(true),
+    nav: (k) => setScreen(k),
+    showToast, settings, t: { ...t, sealInk },
+  };
+
+  const vars = {
+    '--primary': theme.primary, '--primary-dark': theme.primaryDark, '--navy': theme.navy,
+    '--surface': theme.surface, '--card': theme.card, '--line': theme.line, '--muted': theme.muted,
+    '--seal-ink': sealInk,
+  };
+
+  const body = () => {
+    if (screen === 'capture') return <CaptureScreen onLoadSample={loadSample} onLoadImage={loadImage} openDrawer={() => setDrawer(true)} theme={theme} />;
+    if (screen === 'settings') return <SettingsScreen settings={settings} setSetting={setSetting} onBack={() => setScreen('editor')} />;
+    if (screen === 'manager') return (
+      <StampManagerScreen library={library} favId={favId} onBack={() => setScreen('editor')}
+        onAdd={() => setAddFromMenu(true)}
+        onRemove={(id) => { setLibrary((l) => l.filter((s) => s.id !== id)); showToast('도장을 삭제했습니다.'); }}
+        onRename={(id, label) => { setLibrary((l) => l.map((s) => s.id === id ? { ...s, label } : s)); showToast('이름을 변경했습니다.'); }}
+        onFav={(id) => { setFavId(id); showToast('기본 도장으로 지정했습니다.'); }} />
+    );
+    if (screen === 'docs') return <DocsScreen onBack={() => setScreen('capture')} onOpen={() => setScreen('editor')} docName={docName} />;
+    if (screen === 'help') return <HelpScreen onBack={() => setScreen('capture')} />;
+    return <EditorScreen store={store} />;
+  };
+
+  return (
+    <div className="stage">
+      <div className="app-root" style={vars}>
+        <AndroidDevice>
+          <div className="device-fill">
+            {body()}
+            <Drawer open={drawer} onClose={() => setDrawer(false)} docName={docName}
+              stampCount={library.length} placedCount={placed.length}
+              onNav={(k) => setScreen(k)} />
+            <AddStampSheet open={addFromMenu} onClose={() => setAddFromMenu(false)} sealInk={sealInk}
+              onAdd={(s) => { setLibrary((l) => [...l, s]); showToast('도장이 보관함에 저장되었습니다.'); }} />
+            {toast && <div className="toast"><Icon name="check" size={16} sw={2.6} color="#fff" />{toast}</div>}
+          </div>
+        </AndroidDevice>
+      </div>
+
+      <TweaksPanel>
+        <TweakSection label="색상 테마" />
+        <TweakColor label="UI 톤" value={theme.primary}
+          options={[THEMES.navy.primary, THEMES.indigo.primary, THEMES.teal.primary]}
+          onChange={(v) => setTweak('theme', v === THEMES.indigo.primary ? 'indigo' : v === THEMES.teal.primary ? 'teal' : 'navy')} />
+        <TweakSection label="레이아웃" />
+        <TweakRadio label="도장 팝업" value={t.popupStyle} options={['sheet', 'dialog']}
+          onChange={(v) => setTweak('popupStyle', v)} />
+        <TweakToggle label="툴바 라벨 표시" value={t.toolLabels} onChange={(v) => setTweak('toolLabels', v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

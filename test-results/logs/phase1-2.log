@@ -1,0 +1,60 @@
+[PASS] 01-enter-editor (1273ms) 
+[PASS] 02-stamp-popup-open (58ms) StampPopup 열림 확인
+[PASS] 03-add-stamp-sheet-open (396ms) AddStampSheet 열림 확인
+[PASS] 04-seal-live-preview (28ms) preview text="홍길동"
+[PASS] 05-register-seal (262ms) 버튼활성=true, 시트닫힘 �[ELIFECYCLE] Command failed with exit code 1.
+ "도장 · 홍길동" 카드 확인
+[PASS] 07-localstorage-persisted (2ms) library item found: {"id":"us041bm","kind":"seal","text":"홍길동","color":"#D7402B","label":"도장 · 홍길동"}
+[PASS] scenario-console-errors (0ms) []
+SUMMARY_START
+[
+  {
+    "name": "01-enter-editor",
+    "ok": true,
+    "ms": 1273,
+    "detail": ""
+  },
+  {
+    "name": "02-stamp-popup-open",
+    "ok": true,
+    "ms": 58,
+    "detail": "StampPopup 열림 확인"
+  },
+  {
+    "name": "03-add-stamp-sheet-open",
+    "ok": true,
+    "ms": 396,
+    "detail": "AddStampSheet 열림 확인"
+  },
+  {
+    "name": "04-seal-live-preview",
+    "ok": true,
+    "ms": 28,
+    "detail": "preview text=\"홍길동\""
+  },
+  {
+    "name": "05-register-seal",
+    "ok": true,
+    "ms": 262,
+    "detail": "버튼활성=true, 시트닫힘 확인"
+  },
+  {
+    "name": "06-popup-reopen-shows-seal",
+    "ok": true,
+    "ms": 58,
+    "detail": "\"도장 · 홍길동\" 카드 확인"
+  },
+  {
+    "name": "07-localstorage-persisted",
+    "ok": true,
+    "ms": 2,
+    "detail": "library item found: {\"id\":\"us041bm\",\"kind\":\"seal\",\"text\":\"홍길동\",\"color\":\"#D7402B\",\"label\":\"도장 · 홍길동\"}"
+  },
+  {
+    "name": "scenario-console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  }
+]
+SUMMARY_END

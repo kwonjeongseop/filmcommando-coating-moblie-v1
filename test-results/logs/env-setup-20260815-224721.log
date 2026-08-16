@@ -1,0 +1,48 @@
+========================================
+ 개발 환경 설치 완료 로그
+ 도장 한 번 프로젝트
+========================================
+[OS]
+Linux vm 6.18.5-fc-v20 #1 SMP PREEMPT_DYNAMIC @0 x86_64 x86_64 x86_64 GNU/Linux
+
+[Node.js]
+v22.22.2
+[npm]
+10.9.7
+[pnpm]
+11.22.0
+[TypeScript]
+Version 6.0.3
+[Python]
+Python 3.12.3
+[Java]
+openjdk 21.0.10 2026-01-20
+OpenJDK Runtime Environment (build 21.0.10+7-Ubuntu-124.04)
+OpenJDK 64-Bit Server VM (build 21.0.10+7-Ubuntu-124.04, mixed mode, sharing)
+[Git]
+git version 2.43.0
+[jq]
+jq-1.7
+[Vite]
+vite/8.2.1 linux-x64 node-v22.22.2
+[ESLint]
+v10.8.1
+[Prettier]
+3.9.6
+[Playwright]
+Version 1.56.0
+[Expo CLI]
+57.0.15
+[React Native CLI]
+20.2.0
+
+[Chromium]
+/opt/pw-browsers/chromium-1194/chrome-linux/chrome
+설치됨
+
+[디스크]
+/dev/vda        252G   10G  8.6G  54% /
+[메모리]
+Mem:           3.9Gi       439Mi       967Mi       4.8Mi       2.8Gi       3.5Gi
+[설치완료시각]
+Sat Aug 15 22:47:28 UTC 2026

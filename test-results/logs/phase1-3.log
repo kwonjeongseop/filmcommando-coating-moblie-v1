@@ -1,0 +1,53 @@
+[PASS] 01-enter-editor (1322ms) 
+[PASS] 02-stamp-select-confirm-banner (402ms) 확인버튼활성=true, 배치배너 표시 확인
+[PASS] 03-canvas-click-places-stamp (40ms) before=0 after=1 appsub="1 / 1 페이지 · 도장 1개"
+[PASS] 04-placed-stamp-rendered (1ms) .placed visible[ELIFECYCLE] Command failed with exit code 1.
+) {"del":true,"rot":true,"res":true,"mn":true}
+[PASS] 06-selbar-visible (6ms) 복제=true 회전초기화=true 삭제=true
+[PASS] scenario-console-errors (0ms) []
+SUMMARY_START
+[
+  {
+    "name": "01-enter-editor",
+    "ok": true,
+    "ms": 1322,
+    "detail": ""
+  },
+  {
+    "name": "02-stamp-select-confirm-banner",
+    "ok": true,
+    "ms": 402,
+    "detail": "확인버튼활성=true, 배치배너 표시 확인"
+  },
+  {
+    "name": "03-canvas-click-places-stamp",
+    "ok": true,
+    "ms": 40,
+    "detail": "before=0 after=1 appsub=\"1 / 1 페이지 · 도장 1개\""
+  },
+  {
+    "name": "04-placed-stamp-rendered",
+    "ok": true,
+    "ms": 1,
+    "detail": ".placed visible=true"
+  },
+  {
+    "name": "05-selection-handles-visible",
+    "ok": true,
+    "ms": 3,
+    "detail": "{\"del\":true,\"rot\":true,\"res\":true,\"mn\":true}"
+  },
+  {
+    "name": "06-selbar-visible",
+    "ok": true,
+    "ms": 6,
+    "detail": "복제=true 회전초기화=true 삭제=true"
+  },
+  {
+    "name": "scenario-console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  }
+]
+SUMMARY_END

@@ -1,0 +1,69 @@
+[Phase 2-3] 서명·사인 렌더링 검증 로그 (검증만, 코드 수정 없음)
+2026-08-16
+
+=== 1~2. 코드 확인 (app/src/visuals.jsx) ===
+grep 결과 (StampVisual 함수, 100~113행):
+  signature 분기 (101~106행):
+    fontFamily: "'Nanum Pen Script', cursive"
+    transform: 'rotate(-4deg)'
+  sign 분기 (108~112행):
+    fontFamily: "'Dancing Script', cursive"
+SAMPLE_LIBRARY (118~123행):
+  lib_sign1 { kind: 'signature', label: '서명 · 김민수', text: '김민수' }
+  lib_sign2 { kind: 'sign', label: '사인 · M.Kim', text: 'M.Kim' }
+index.css / index.html grep 결과: Nanum, Dancing, @font-face, fonts.googleapis 매칭 0건
+  → Google Fonts <link>·@font-face 선언이 프로젝트 어디에도 없음 (Phase 1에서 CDN 차단으로 의도적으로 제외됨)
+
+=== 3~6. 데스크톱 Playwright 검증 ===
+[PASS] font-availability-check
+  {"totalLoadedFonts":0,"families":[],"checkNanumPen":true,"checkDancing":true}
+  document.fonts.size=0 → 등록된 커스텀 @font-face가 전혀 없음(실제 폰트 파일 로드 안 됨).
+  document.fonts.check()가 true를 반환하는 것은 "다운로드가 필요 없어 즉시 사용 가능"이라는 의미일 뿐,
+  실제 Nanum Pen Script/Dancing Script 글립이 존재함을 보장하지 않음(폴백 판정 근거).
+
+[PASS] signature-card-computed-style
+  {"fontFamily":"\"Nanum Pen Script\", cursive","transform":"matrix(0.997564,-0.0697565,...)","text":"김민수"}
+  → matrix 값은 rotate(-4deg)와 수학적으로 일치 (cos(-4°)=0.9976, sin(-4°)=-0.0698)
+
+[PASS] sign-card-computed-style
+  {"fontFamily":"\"Dancing Script\", cursive","text":"M.Kim"}
+
+[PASS] signature-placed-computed-style / sign-placed-computed-style
+  서류 배치 후에도 동일 fontFamily/transform 유지 확인
+
+[PASS] console-errors (전 구간) []
+
+스크린샷:
+  phase2-3-signature.png : "서명 · 김민수" 스탬프를 서류에 배치한 상태
+  phase2-3-sign.png      : "사인 · M.Kim" 스탬프를 서류에 배치한 상태
+  → 육안 확인 결과 두 텍스트 모두 지정된 손글씨체 특유의 개성 있는 형태가 아니라
+    브라우저 기본 cursive 폴백 폰트(Windows 환경 기준 일반 필기체 계열)로 렌더링됨.
+    "김민수"는 회전은 정확히 -4도 적용됐으나 서체는 Nanum Pen Script 특유의 얇고 손글씨 느낌이 아님.
+    "M.Kim"도 Dancing Script 특유의 우아한 이탤릭 스크립트가 아닌 일반 이탤릭 필기체로 표시됨.
+
+=== 7. Android 에뮬레이터(emulator-5554) 확인 ===
+[BLOCKED] 검증 진행 중 에뮬레이터 디스플레이가 프리즈되어 완료하지 못함.
+
+증상 (순서대로 발견):
+  1. adb shell screencap -p (일반 방식) → 무한 대기 (15~40초 타임아웃까지 응답 없음)
+  2. adb exec-out screencap -p → 정상 응답하나, 상태바 시계가 "2:49"로 고정된 채 수 분간 전혀
+     변하지 않는 정지 프레임만 반환 (여러 차례 재캡처해도 픽셀 단위로 완전 동일한 이미지)
+  3. adb shell pidof com.android.chrome → 매번 빈 결과(프로세스 없음)로 반환되나 화면에는
+     Chrome UI가 계속 표시됨 → 마지막 프레임이 컴포지터에 고착된 상태로 판단
+  4. adb shell uiautomator dump → "ERROR: null root node returned by UiTestAutomationBridge"
+     (접근성 서비스 응답 없음)
+  5. adb shell am force-stop + am start로 Chrome을 완전히 재시작해도 화면 픽셀 변화 없음
+  6. adb kill-server 후 재연결 시 emulator-5554가 일시적으로 "offline" 상태로 표시됨
+     (수 초 후 "device"로 복구되었으나 화면 프리즈는 해소되지 않음)
+
+원인 판단: SurfaceFlinger/디스플레이 컴포지터 수준의 행(hang) 상태로 판단됨. 다수의 화면 밀도 변경,
+SELinux 토글, root 재시작, 반복적인 Chrome force-stop/재실행 등 이전 Phase들에서 누적된 조작으로
+에뮬레이터 렌더링 파이프라인이 불안정해진 것으로 추정. 앱 코드·이번 Phase 변경과는 무관한
+순수 에뮬레이터 인프라 문제.
+
+phase2-3-emulator.png: 생성하지 못함 (유효한 최신 프레임을 얻을 수 없어 스크린샷 저장 보류.
+저장 시 오해를 유발할 수 있는 stale 이미지를 결과물로 제출하지 않음)
+
+=== 정리 ===
+adb reverse/forward 제거 시도 (이미 해제된 상태였음)
+Vite dev 서버 종료

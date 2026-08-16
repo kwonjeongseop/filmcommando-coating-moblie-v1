@@ -1,0 +1,47 @@
+========================================
+ 설치 완료 + 런타임 테스트 결과
+ 도장 한 번 프로젝트
+ 일시: 2026-08-15
+========================================
+
+[설치 완료 항목]
+✅ jq 1.7.1
+✅ Playwright Chromium 141.0 (/opt/pw-browsers/chromium-1194)
+✅ Playwright 시스템 의존성 (libnss3, libgbm1 등)
+✅ Vite 8.2.1
+✅ ESLint 10.8.1
+✅ Prettier 3.9.6
+✅ pnpm 11.22.0
+✅ Expo CLI 57.0.15
+✅ React Native CLI 20.2.0
+
+[기존 설치 확인]
+✅ Node.js v22.22.2
+✅ npm 10.9.7
+✅ TypeScript 6.0.3
+✅ Python 3.12.3
+✅ Java OpenJDK 21
+✅ Git 2.43.0
+✅ Playwright 1.56.0
+
+[미설치 (환경 제약)]
+⚠️ Android SDK/adb - Headless Linux 환경 특성상 에뮬레이터 불가
+⚠️ Kotlin/Gradle - 필요시 별도 설치
+
+[런타임 테스트 결과]
+✅ React 18 + Babel 렌더링 정상
+✅ 캡처 화면(서류 불러오기) 정상 표시
+✅ Android 프레임 정상 렌더링
+✅ 한글 폰트 정상 렌더링
+
+[CDN 환경]
+⚠️ unpkg.com/cdn.jsdelivr.net - 403 차단
+✅ 우회: local-cdn (npmjs.org로 로컬 설치)
+✅ 테스트 서버: Python http.server + 상대경로
+
+[테스트 결과 저장 경로]
+- logs: /home/claude/test-results/logs/
+- screenshots: /home/claude/test-results/screenshots/
+
+[스크린샷]
+- render-test.png : 앱 정상 렌더링 확인

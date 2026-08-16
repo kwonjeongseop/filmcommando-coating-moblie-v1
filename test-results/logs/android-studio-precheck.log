@@ -1,0 +1,49 @@
+[Android Studio 설치 전 환경 사전 조사] 2026-08-16
+프로젝트: C:\claude\filmcommando-coating-moblie-v1
+OS: Windows 11 Home (10.0.26200), 64-bit
+
+=== 1. 디스크 여유 공간 ===
+C:\ 드라이브: 사용 281.9GB / 여유 639.55GB (Get-PSDrive C)
+C:\Program Files\Android\ 경로: 존재하지 않음 (Test-Path=False, 설치 이력 없음, 충돌 없음)
+결론: 여유 639GB >> 필요 용량(본체 1GB + SDK 3~4GB + AVD 이미지 2GB 이상, 권장 총 16~25GB) 충분
+
+=== 2. Java 환경 ===
+java -version:
+  openjdk version "25.0.4" 2026-07-21 LTS
+  OpenJDK Runtime Environment Temurin-25.0.4+7 (build 25.0.4+7-LTS)
+  OpenJDK 64-Bit Server VM Temurin-25.0.4+7 (build 25.0.4+7-LTS, mixed mode, sharing)
+JAVA_HOME (User): C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot
+JAVA_HOME (Machine): 미설정
+Android Studio 자체 JDK(JBR, JetBrains Runtime) 내장 -> 기본값으로 JBR을 사용하므로 기존 JDK 25(Temurin)와 충돌하지 않음.
+단, Gradle 빌드 시 JAVA_HOME을 참조하는 경우 JDK 25가 사용될 수 있어 최소 요구 버전(JDK 17+) 충족 여부만 확인하면 됨 -> JDK 25는 요구사항 상회, 문제 없음.
+
+=== 3. 기존 개발 환경 충돌 요소 ===
+ANDROID_HOME (Machine/User): 미설정
+ANDROID_SDK_ROOT (Machine/User): 미설정
+PATH 내 android/adb 관련 경로: 없음
+결론: 충돌 요소 없음, 클린 상태
+
+=== 4. Android Studio 최신 버전 (웹 조사, 2026-08-16 기준) ===
+최신 stable: Android Studio Quail 3 | 2026.1.3 Patch 1 (2026-07-31 빌드 2026.1.3.8)
+Windows(.exe) 다운로드 URL(조사 시점 기준, CDN 빌드 해시 포함 URL로 변경될 수 있음):
+  https://edgedl.me.gvt1.com/android/studio/install/2026.1.3.8/android-studio-quail3-patch1-windows.exe
+  파일 크기: 약 1.5GB
+공식 페이지: https://developer.android.com/studio (설치 시 최신 링크 재확인 권장)
+
+=== 5. 설치 후 필요한 SDK 구성 ===
+본 프로젝트(Vite+React 웹앱)는 네이티브 Android 빌드 대상이 아님 -> API 34 SDK가 "빌드"에 필수는 아님.
+단, AVD 에뮬레이터로 모바일 브라우저 렌더링을 검증하려면 시스템 이미지가 필요:
+  - 권장 이미지: API 34 (Android 14) Google Play 포함, 최신 Pixel 기기 매칭
+  - AVD 이미지 디스크: 시스템 이미지당 4~8GB
+  - 에뮬레이터 실행 RAM: 인스턴스당 2GB 이상 할당 권장, 호스트 전체 8GB 이상(16GB 권장)
+가속(HAXM/WHPX/Hyper-V):
+  - HAXM(Intel) / AEHD(Android Emulator Hypervisor Driver)는 2026-12-31 지원 종료(sunset) 예정
+  - 현재 권장 가속 경로는 Windows Hypervisor Platform(WHPX) 우선, 미지원 시 AEHD 대체
+  - Windows 11 요구사항: VT-x/AMD-V + EPT/UG(또는 SVM) BIOS 활성화, Windows 10 2004+ / Windows 11 지원(Home 포함 가능 - WHPX 자체는 Home 에디션에서도 활성화 가능한 옵션 기능)
+  - 본 PC 자체 확인 결과: HyperVisorPresent=True (이미 하이퍼바이저 활성 상태, 추정 원인: WSL2 또는 Docker Desktop 실행 이력)
+    -> Windows Hypervisor Platform 개별 기능 On/Off 상태는 PowerShell 질의 결과가 불명확하여 이번 조사에서 확정하지 못함
+    -> 설치 시 "Windows 기능 켜기/끄기" > "Windows Hypervisor Platform" 체크박스 상태를 직접 확인 필요
+
+=== 종합 판단 ===
+디스크/Java/환경변수 충돌 3개 항목 모두 문제 없음 -> 설치 진행 가능한 상태.
+유일한 불확실 요소: Windows Hypervisor Platform 개별 활성화 여부 (하이퍼바이저 자체는 이미 구동 중이라 가능성 높음, 설치 마법사에서 자동 안내됨).

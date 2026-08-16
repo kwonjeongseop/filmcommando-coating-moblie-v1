@@ -1,0 +1,196 @@
+[desktop-1280x800] [PASS] 00-setup-place-selected (1834ms) 배치 + 자동선택 완료
+[desktop-1280x800] [PASS] 01-selection-handles-visible (6ms) {"del":true,"rot":true,"res":true,"mn":true}
+[desktop-1280x800] [PASS] 02-move-drag (407ms) before(50%,33.2003%) -> after(66.6667%,42.0[ELIFECYCLE] Command failed with exit code 1.
+ (391ms) width 94.0px -> 228.3px
+[desktop-1280x800] [PASS] 04-rotate-drag (373ms) rot 0.0deg -> 270.0deg
+[desktop-1280x800] [PASS] 05-delete-via-h-del (31ms) count 1 -> 0
+[desktop-1280x800] [PASS] 06-delete-via-selbar (518ms) count 1 -> 0
+[desktop-1280x800] [PASS] console-errors (0ms) []
+[android-412x915] [PASS] 00-setup-place-selected (1192ms) 배치 + 자동선택 완료
+[android-412x915] [PASS] 01-selection-handles-visible (3ms) {"del":true,"rot":true,"res":true,"mn":true}
+[android-412x915] [PASS] 02-move-drag (390ms) before(50%,33.2985%) -> after(66.6667%,42.1389%)
+[android-412x915] [PASS] 03-resize-drag (380ms) width 94.0px -> 228.3px
+[android-412x915] [PASS] 04-rotate-drag (369ms) rot 0.0deg -> 270.0deg
+[android-412x915] [PASS] 05-delete-via-h-del (41ms) count 1 -> 0
+[android-412x915] [PASS] 06-delete-via-selbar (532ms) count 1 -> 0
+[android-412x915] [PASS] console-errors (0ms) []
+[ios-390x844] [PASS] 00-setup-place-selected (1244ms) 배치 + 자동선택 완료
+[ios-390x844] [PASS] 01-selection-handles-visible (4ms) {"del":true,"rot":true,"res":true,"mn":true}
+[ios-390x844] [PASS] 02-move-drag (380ms) before(50%,33.2003%) -> after(66.6667%,42.0406%)
+[ios-390x844] [PASS] 03-resize-drag (373ms) width 94.0px -> 228.3px
+[ios-390x844] [PASS] 04-rotate-drag (371ms) rot 0.0deg -> 270.0deg
+[ios-390x844] [PASS] 05-delete-via-h-del (32ms) count 1 -> 0
+[ios-390x844] [PASS] 06-delete-via-selbar (540ms) count 1 -> 0
+[ios-390x844] [PASS] console-errors (0ms) []
+SUMMARY_START
+[
+  {
+    "device": "desktop-1280x800",
+    "name": "00-setup-place-selected",
+    "ok": true,
+    "ms": 1834,
+    "detail": "배치 + 자동선택 완료"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "01-selection-handles-visible",
+    "ok": true,
+    "ms": 6,
+    "detail": "{\"del\":true,\"rot\":true,\"res\":true,\"mn\":true}"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "02-move-drag",
+    "ok": true,
+    "ms": 407,
+    "detail": "before(50%,33.2003%) -> after(66.6667%,42.0406%)"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "03-resize-drag",
+    "ok": true,
+    "ms": 391,
+    "detail": "width 94.0px -> 228.3px"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "04-rotate-drag",
+    "ok": true,
+    "ms": 373,
+    "detail": "rot 0.0deg -> 270.0deg"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "05-delete-via-h-del",
+    "ok": true,
+    "ms": 31,
+    "detail": "count 1 -> 0"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "06-delete-via-selbar",
+    "ok": true,
+    "ms": 518,
+    "detail": "count 1 -> 0"
+  },
+  {
+    "device": "desktop-1280x800",
+    "name": "console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  },
+  {
+    "device": "android-412x915",
+    "name": "00-setup-place-selected",
+    "ok": true,
+    "ms": 1192,
+    "detail": "배치 + 자동선택 완료"
+  },
+  {
+    "device": "android-412x915",
+    "name": "01-selection-handles-visible",
+    "ok": true,
+    "ms": 3,
+    "detail": "{\"del\":true,\"rot\":true,\"res\":true,\"mn\":true}"
+  },
+  {
+    "device": "android-412x915",
+    "name": "02-move-drag",
+    "ok": true,
+    "ms": 390,
+    "detail": "before(50%,33.2985%) -> after(66.6667%,42.1389%)"
+  },
+  {
+    "device": "android-412x915",
+    "name": "03-resize-drag",
+    "ok": true,
+    "ms": 380,
+    "detail": "width 94.0px -> 228.3px"
+  },
+  {
+    "device": "android-412x915",
+    "name": "04-rotate-drag",
+    "ok": true,
+    "ms": 369,
+    "detail": "rot 0.0deg -> 270.0deg"
+  },
+  {
+    "device": "android-412x915",
+    "name": "05-delete-via-h-del",
+    "ok": true,
+    "ms": 41,
+    "detail": "count 1 -> 0"
+  },
+  {
+    "device": "android-412x915",
+    "name": "06-delete-via-selbar",
+    "ok": true,
+    "ms": 532,
+    "detail": "count 1 -> 0"
+  },
+  {
+    "device": "android-412x915",
+    "name": "console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "00-setup-place-selected",
+    "ok": true,
+    "ms": 1244,
+    "detail": "배치 + 자동선택 완료"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "01-selection-handles-visible",
+    "ok": true,
+    "ms": 4,
+    "detail": "{\"del\":true,\"rot\":true,\"res\":true,\"mn\":true}"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "02-move-drag",
+    "ok": true,
+    "ms": 380,
+    "detail": "before(50%,33.2003%) -> after(66.6667%,42.0406%)"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "03-resize-drag",
+    "ok": true,
+    "ms": 373,
+    "detail": "width 94.0px -> 228.3px"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "04-rotate-drag",
+    "ok": true,
+    "ms": 371,
+    "detail": "rot 0.0deg -> 270.0deg"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "05-delete-via-h-del",
+    "ok": true,
+    "ms": 32,
+    "detail": "count 1 -> 0"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "06-delete-via-selbar",
+    "ok": true,
+    "ms": 540,
+    "detail": "count 1 -> 0"
+  },
+  {
+    "device": "ios-390x844",
+    "name": "console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  }
+]
+SUMMARY_END

@@ -1,0 +1,56 @@
+[Phase 2-1] 카메라 촬영 연동 검증 로그
+2026-08-16
+
+=== 코드 변경 ===
+app/src/app.jsx — CaptureScreen의 "카메라로 촬영" 버튼 핸들러만 외과적 수정
+  - state/ref 추가: videoRef, streamRef, cameraOpen
+  - openCamera(): navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    성공 시 cameraOpen=true. 실패(미지원/거부) 시 catch에서 기존 fileRef.current.click()으로 폴백
+    (갤러리 파일 선택 로직은 전혀 변경하지 않음)
+  - closeCamera(): 스트림 트랙 정지 + 모달 닫기
+  - capturePhoto(): video 프레임을 canvas에 drawImage → toDataURL('image/jpeg') →
+    closeCamera() → onLoadImage(dataUrl, '촬영 서류')로 기존 EditorScreen 전환 경로 재사용
+  - 프리뷰 모달 UI: 기존 .preview-modal/.preview-top/.preview-bar/.btn.solid CSS 클래스 재사용
+    (신규 CSS 추가 없음), video 태그만 인라인 스타일로 최소 추가
+  - 카메라 버튼 onClick만 onLoadSample → openCamera로 교체. 최근서류 행의 onLoadSample 호출은
+    요청 범위 밖이라 유지
+
+=== 데스크톱 Playwright 검증 ===
+[PASS] A-no-permission-fallback-to-filepicker (1390ms)
+  카메라 권한/디바이스 없는 기본 컨텍스트에서 getUserMedia 실패 → fileRef.click()으로
+  파일선택창(filechooser 이벤트) 정상 활성화 확인
+[PASS] A-console-errors (0ms) []
+[PASS] B-camera-preview-open (1058ms)
+  --use-fake-device-for-media-stream 로 가짜 카메라 스트림 부여 후 카메라 권한 허용 컨텍스트에서
+  .preview-modal video 정상 표시, videoWidth>0 확인
+[PASS] B-capture-to-editor (84ms)
+  촬영 버튼 클릭 → EditorScreen 전환, .doc-img(캡처 이미지) 표시 확인
+[PASS] B-console-errors (0ms) []
+
+=== Android 에뮬레이터(emulator-5554) 실제 카메라 검증 ===
+사전 조치:
+  adb shell pm grant com.android.chrome android.permission.CAMERA → granted=true
+
+핵심 발견 (원인 조사):
+  최초 http://10.0.2.2:5199/ 로 접속 시 카메라 프리뷰가 전혀 뜨지 않음.
+  page.evaluate로 직접 확인한 결과:
+    navigator.mediaDevices === undefined → TypeError: Cannot read properties of undefined (reading 'enumerateDevices')
+  원인: getUserMedia는 브라우저 보안 정책상 "secure context"(https 또는 정확히 localhost)에서만
+  navigator.mediaDevices 자체가 존재함. 10.0.2.2는 호스트 루프백 별칭일 뿐 "localhost"로 취급되지
+  않아 insecure context로 판정되어 mediaDevices API 자체가 undefined였음(권한 문제 아님).
+
+  조치: adb reverse tcp:5199 tcp:5199 로 에뮬레이터에서 호스트 5199 포트를 그대로 매핑하고,
+  http://localhost:5199/ 로 접속(리터럴 "localhost"는 Chrome이 secure context 예외로 취급).
+  → navigator.mediaDevices 정상 존재 확인, getUserMedia 사이트 권한 프롬프트 정상 표시.
+
+재검증 결과 (localhost 경유, CDP 기반):
+[PASS] preview-open
+  카메라 권한 프롬프트("http://localhost:5199 wants to use your camera") → "Allow while visiting
+  the site" 탭 → .preview-modal video 정상 표시 (에뮬레이터 기본 가상 씬 카메라 영상: 책장·고양이·TV)
+[PASS] capture-to-editor
+  촬영 버튼 → EditorScreen 전환, docName="촬영 서류", .doc-img에 실제 촬영 프레임 반영 확인
+
+=== 정리 ===
+adb reverse --remove tcp:5199
+adb forward --remove tcp:9222
+Vite dev 서버 종료

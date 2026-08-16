@@ -1,0 +1,80 @@
+[PASS] setup-editor-with-stamp (1831ms) 도장 배치 완료
+[PASS] share-sheet-pdf-selected (48ms) ShareSheet에서 PDF 형식 선택 확인
+[PASS] pdf-download (481ms) file="재직증명서.pdf" size=554115bytes signature="%PDF-" pdfSignature=true
+[PASS] toast-shown (0ms) 기기에 저장했습니다 · PDF
+[PASS] console-errors (0ms) []
+[PASS] setup-editor-with-stamp-pw (1675ms) 도장 배치 완료
+[PASS] enable-pdf-password-setting (410ms) settings.pw = true 로 전환
+[PASS] share-sheet-pdf-selected-pw (61ms) ShareSheet에서 PDF 형식 선택 확인
+[PASS] pdf-download-pw (523ms) file="재직증명서.pdf" size=554348bytes signature="%PDF-" pdfSignature=true /Encrypt dict present=true
+[PASS] toast-shown-pw (0ms) 기기에 저장했습니다 · PDF (비밀번호 설정됨)
+[PASS] console-errors-pw (0ms) []
+SUMMARY_START
+[
+  {
+    "name": "setup-editor-with-stamp",
+    "ok": true,
+    "ms": 1831,
+    "detail": "도장 배치 완료"
+  },
+[ELIFECYCLE] Command failed with exit code 1.
+  "ok": true,
+    "ms": 48,
+    "detail": "ShareSheet에서 PDF 형식 선택 확인"
+  },
+  {
+    "name": "pdf-download",
+    "ok": true,
+    "ms": 481,
+    "detail": "file=\"재직증명서.pdf\" size=554115bytes signature=\"%PDF-\" pdfSignature=true"
+  },
+  {
+    "name": "toast-shown",
+    "ok": true,
+    "ms": 0,
+    "detail": "기기에 저장했습니다 · PDF"
+  },
+  {
+    "name": "console-errors",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  },
+  {
+    "name": "setup-editor-with-stamp-pw",
+    "ok": true,
+    "ms": 1675,
+    "detail": "도장 배치 완료"
+  },
+  {
+    "name": "enable-pdf-password-setting",
+    "ok": true,
+    "ms": 410,
+    "detail": "settings.pw = true 로 전환"
+  },
+  {
+    "name": "share-sheet-pdf-selected-pw",
+    "ok": true,
+    "ms": 61,
+    "detail": "ShareSheet에서 PDF 형식 선택 확인"
+  },
+  {
+    "name": "pdf-download-pw",
+    "ok": true,
+    "ms": 523,
+    "detail": "file=\"재직증명서.pdf\" size=554348bytes signature=\"%PDF-\" pdfSignature=true /Encrypt dict present=true"
+  },
+  {
+    "name": "toast-shown-pw",
+    "ok": true,
+    "ms": 0,
+    "detail": "기기에 저장했습니다 · PDF (비밀번호 설정됨)"
+  },
+  {
+    "name": "console-errors-pw",
+    "ok": true,
+    "ms": 0,
+    "detail": "[]"
+  }
+]
+SUMMARY_END
