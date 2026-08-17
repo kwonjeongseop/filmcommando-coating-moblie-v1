@@ -1,0 +1,80 @@
+Phase 3-4 보완: 자동저장 localStorage 임시저장 구현
+작업 일시: 2026-08-17
+수정 파일: app/src/app.jsx (자동저장 interval 로직 + 초기 로드 복원 다이얼로그)
+검증 방식: vite build, oxlint, Playwright(chromium) 자동 시나리오
+
+--------------------------------------------------------------------------
+사전 확인 (현재 상태 재검증)
+Phase 3-4 검증(phase3-4.log 항목 8)에서 이미 확인했듯, 기존 코드베이스에는
+setInterval 호출이 전혀 존재하지 않았습니다. "파일 다운로드가 브라우저 보안 정책으로
+차단된다"는 추정과 달리, 자동저장 기능 자체가 구현되어 있지 않았던 것이 실제 원인입니다.
+따라서 기존 interval 로직을 "수정"한 것이 아니라 신규로 구현했습니다.
+
+--------------------------------------------------------------------------
+구현 내용
+1. AUTOSAVE_KEY = 'docstamp_autosave' 상수 및 loadAutosave() 헬퍼 추가 (app.jsx)
+2. settings.autosave 의존 useEffect: true일 때 30초 setInterval 등록,
+   매 tick마다 { docImage, placed, docName, savedAt } 을 AUTOSAVE_KEY에 저장 후
+   showToast('작업이 자동 저장되었습니다 💾') 호출. settings.autosave가 false로
+   바뀌면 즉시 localStorage.removeItem(AUTOSAVE_KEY) 실행 + interval 해제(cleanup)
+3. 최신 docImage/placed/docName은 매 렌더마다 갱신되는 ref(autosaveDataRef)를 통해
+   tick 시점에 항상 최신 값을 저장하도록 처리(클로저 stale 값 방지)
+4. 앱 부팅 시(useState 지연 초기화) AUTOSAVE_KEY 존재 여부를 확인해 restorePrompt 상태로 로드,
+   존재하면 기존 ConfirmDialog(menus.jsx, 신규 컴포넌트 추가 없음)를 재사용해
+   "이전 작업을 복원하시겠습니까?" 다이얼로그 표시
+   - 확인(복원): docMode/docImage/docName/placed 복원 후 screen='editor' 이동
+     (autosave 항목은 유지 — 다음 tick에서 최신 상태로 자연 갱신됨)
+   - 취소: AUTOSAVE_KEY 삭제, 화면 이동 없이 기존 화면(기본 CaptureScreen) 유지
+   - ConfirmDialog는 확인 클릭 시 onConfirm 이후 onClose도 항상 호출되는 기존 구조라,
+     ref 플래그(restoreConfirmedRef)로 확인/취소 경로를 구분해 확인 시에는
+     삭제 로직이 실행되지 않도록 처리
+
+수정 원칙 관련 특이사항: 사용자 요청은 "editor.jsx 앱 초기 로드 복원 다이얼로그만 외과적 추가"였으나,
+복원 여부 확인은 EditorScreen이 마운트되기 이전(기본 화면은 CaptureScreen)에 개입해야 하는 로직이라
+editor.jsx(=screen==='editor'일 때만 렌더링)에는 구조적으로 넣을 수 없습니다. 화면 라우팅을 소유한
+app.jsx의 App() 컴포넌트에 구현했습니다. editor.jsx는 이번 작업에서 변경하지 않았습니다.
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (222 modules) — 신규 에러 없음
+- npx oxlint src/app.jsx: 신규 warning 없음 (catch(e){} 미사용 경고만 기존 스타일 그대로 잔존)
+
+--------------------------------------------------------------------------
+Playwright 자동 시나리오 (chromium, viewport 420x900, localhost:5173)
+스크립트: test-results/scripts/phase3-4-autosave-playwright-test.mjs (주 시나리오)
+          test-results/scripts/phase3-4-autosave-cancel-test.mjs (취소 경로 단독 검증)
+
+1. 샘플 서류 로드 → 도장 1개 배치 (settings.autosave 기본값 true로 별도 조작 없이 활성)
+   결과: ✅ PASS (appsub="1 / 1 페이지 · 도장 1개")
+
+2. 30초 대기 → 자동저장 interval 최초 tick
+   결과: ✅ PASS
+   토스트 텍스트: "작업이 자동 저장되었습니다 💾" (요청 문구와 정확히 일치)
+   localStorage 저장 키: docstamp_autosave
+   저장 크기: 176 bytes
+   저장 내용: docImage 존재(sample 모드라 null이지만 키 자체는 존재), placed.length=1,
+              docName="재직증명서", savedAt(timestamp) 존재
+   스크린샷: phase3-4-autosave-toast.png
+
+3. 새로고침 → 초기 로드 시 복원 다이얼로그 표시
+   결과: ✅ PASS
+   다이얼로그 제목: "이전 작업을 복원하시겠습니까?" / 본문: "자동 저장된 작업 내용이 있습니다."
+   스크린샷: phase3-4-autosave-dialog.png
+
+4. "복원" 확인 → EditorScreen 복원
+   결과: ✅ PASS
+   복원된 apptitle: "재직증명서" (자동저장 시점 docName과 일치)
+   복원된 appsub: "1 / 1 페이지 · 도장 1개" (placed 배열 복원 확인, 도장 위치까지 시각적으로 동일)
+   스크린샷: phase3-4-autosave-restored.png
+
+5. (별도 스크립트, 신규 세션) 취소 경로 검증
+   결과: ✅ PASS
+   취소 클릭 후: localStorage.docstamp_autosave === null (삭제 확인)
+   docstamp_v2.screen === "capture" 유지, .capture 화면 실제 렌더링 확인(요소 visible),
+   다이얼로그 닫힘 확인 — "취소 → autosave 삭제 후 CaptureScreen 유지" 요건 정확히 충족
+
+콘솔 로그: pageerror 0건 (전 시나리오)
+
+--------------------------------------------------------------------------
+종합 결과: 전 항목 PASS. localStorage 키 'docstamp_autosave', 저장 크기 176 bytes(테스트 시나리오 기준,
+실제 크기는 docImage 유무·placed 개수에 따라 가변).

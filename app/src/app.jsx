@@ -3,7 +3,7 @@ import { useState as useS, useEffect as useE, useRef as useR } from 'react';
 import { Icon, SealVisual, SAMPLE_LIBRARY, makeId } from './visuals.jsx';
 import { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio, TweakToggle } from './tweaks-panel.jsx';
 import { AndroidDevice } from './android-frame.jsx';
-import { Drawer, SettingsScreen, StampManagerScreen, DocsScreen } from './menus.jsx';
+import { Drawer, SettingsScreen, StampManagerScreen, DocsScreen, ConfirmDialog } from './menus.jsx';
 import { EditorScreen, AddStampSheet } from './editor.jsx';
 
 const THEMES = {
@@ -27,6 +27,9 @@ const DEFAULT_SETTINGS = {
 const LS_KEY = 'docstamp_v2';
 const loadState = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch (e) { return {}; } };
 const saveState = (s) => { try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch (e) {} };
+
+const AUTOSAVE_KEY = 'docstamp_autosave';
+const loadAutosave = () => { try { return JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (e) { return null; } };
 
 function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const fileRef = useR(null);
@@ -177,6 +180,8 @@ function App() {
   const [future, setFuture] = useS([]);
   const [toast, setToast] = useS(null);
   const toastT = useR(null);
+  const [restorePrompt, setRestorePrompt] = useS(() => loadAutosave());
+  const restoreConfirmedRef = useR(false);
 
   const sealInk = SEAL_INKS[settings.ink] || SEAL_INKS['주홍'];
 
@@ -187,6 +192,20 @@ function App() {
     setToast(msg); clearTimeout(toastT.current);
     toastT.current = setTimeout(() => setToast(null), 2200);
   };
+
+  const autosaveDataRef = useR({ docImage, placed, docName });
+  useE(() => { autosaveDataRef.current = { docImage, placed, docName }; });
+  useE(() => {
+    if (!settings.autosave) { try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) {} return; }
+    const id = setInterval(() => {
+      const snap = autosaveDataRef.current;
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ ...snap, savedAt: Date.now() }));
+        showToast('작업이 자동 저장되었습니다 💾');
+      } catch (e) {}
+    }, 30000);
+    return () => clearInterval(id);
+  }, [settings.autosave]);
   const setSetting = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
   const pushHistory = () => { setPast((p) => [...p, placed]); setFuture([]); };
   const undo = () => { if (!past.length) return; const prev = past[past.length - 1]; setPast((p) => p.slice(0, -1)); setFuture((f) => [placed, ...f]); setPlaced(prev); };
@@ -250,6 +269,21 @@ function App() {
               onNav={(k) => setScreen(k)} />
             <AddStampSheet open={addFromMenu} onClose={() => setAddFromMenu(false)} sealInk={sealInk}
               onAdd={(s) => { setLibrary((l) => [...l, s]); showToast('도장이 보관함에 저장되었습니다.'); }} />
+            <ConfirmDialog open={!!restorePrompt} title="이전 작업을 복원하시겠습니까?"
+              body="자동 저장된 작업 내용이 있습니다." confirmLabel="복원"
+              onConfirm={() => {
+                restoreConfirmedRef.current = true;
+                setDocMode(restorePrompt.docImage ? 'image' : 'sample');
+                setDocImage(restorePrompt.docImage || null);
+                setDocName(restorePrompt.docName || docName);
+                setPlaced(restorePrompt.placed || []);
+                setScreen('editor');
+              }}
+              onClose={() => {
+                if (!restoreConfirmedRef.current) { try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) {} }
+                restoreConfirmedRef.current = false;
+                setRestorePrompt(null);
+              }} />
             {toast && <div className="toast"><Icon name="check" size={16} sw={2.6} color="#fff" />{toast}</div>}
           </div>
         </AndroidDevice>
