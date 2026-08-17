@@ -1,5 +1,7 @@
 /* app.jsx — root: routing, shared state, settings, tweaks, mount */
 import { useState as useS, useEffect as useE, useRef as useR } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Icon, SealVisual, SAMPLE_LIBRARY, makeId } from './visuals.jsx';
 import { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio, TweakToggle } from './tweaks-panel.jsx';
 import { AndroidDevice } from './android-frame.jsx';
@@ -239,6 +241,26 @@ function equalizeHistogram(canvas) {
   ctx.putImageData(imgData, 0, 0);
 }
 
+// PDF 각 페이지를 canvas에 렌더링해 PNG dataURL 배열로 변환한다 (scale 2.0 고해상도)
+async function pdfToImages(file) {
+  const pdfjsLib = await import('pdfjs-dist');
+  const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs?url');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+  const images = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const viewport = page.getViewport({ scale: 2.0 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    images.push(canvas.toDataURL('image/png'));
+  }
+  return images;
+}
+
 function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const fileRef = useR(null);
   const videoRef = useR(null);
@@ -248,10 +270,16 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const cvRef = useR(null);
   const cvFailedRef = useR(false);
   const [cameraOpen, setCameraOpen] = useS(false);
-  const onFile = (e) => {
+  const onFile = async (e) => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
+    const name = f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '업로드 서류';
+    if (f.type === 'application/pdf') {
+      const images = await pdfToImages(f);
+      onLoadImage(images, name);
+      return;
+    }
     const r = new FileReader();
-    r.onload = () => onLoadImage(r.result, f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '업로드 서류');
+    r.onload = () => onLoadImage(r.result, name);
     r.readAsDataURL(f);
   };
 
@@ -260,6 +288,13 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     setCameraOpen(false);
   };
   const openCamera = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const photo = await Camera.getPhoto({ resultType: CameraResultType.DataUrl, source: CameraSource.Camera, quality: 90 });
+        onLoadImage(photo.dataUrl, '촬영 서류');
+      } catch (e) {} // 사용자가 네이티브 카메라 촬영을 취소한 경우
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       streamRef.current = stream;
@@ -399,7 +434,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
         <button className="cap-btn" onClick={() => fileRef.current && fileRef.current.click()}>
           <Icon name="upload" size={24} /><span>갤러리에서 업로드</span>
         </button>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+        <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden onChange={onFile} />
       </div>
 
       <div className="cap-recent">
@@ -522,7 +557,11 @@ function App() {
   const redo = () => { if (!future.length) return; const nxt = future[0]; setFuture((f) => f.slice(1)); setPast((p) => [...p, placed]); setPlaced(nxt); };
 
   const loadSample = () => { setPages([{ docMode: 'sample', docImage: null, placed: [] }]); setCurrentPage(0); setDocName('재직증명서'); setScreen('editor'); };
-  const loadImage = (src, name) => { setPages([{ docMode: 'image', docImage: src, placed: [] }]); setCurrentPage(0); setDocName(name); setScreen('editor'); };
+  const loadImage = (src, name) => {
+    const imgs = Array.isArray(src) ? src : [src];
+    setPages(imgs.map((s) => ({ docMode: 'image', docImage: s, placed: [] })));
+    setCurrentPage(0); setDocName(name); setScreen('editor');
+  };
   const saveDoc = (thumbnail) => {
     setDocs((d) => {
       const idx = d.findIndex((x) => x.name === docName);

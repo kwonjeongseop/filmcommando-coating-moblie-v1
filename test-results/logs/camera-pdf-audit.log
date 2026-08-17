@@ -1,0 +1,126 @@
+카메라 버튼 오작동 + PDF 로드 미구현 동시 조사 (조사만, 수정 없음)
+실행 일시: 2026-08-17
+
+====================================================================
+[문제 1] 카메라 버튼 클릭 시 갤러리가 열리는 오작동
+====================================================================
+
+1. 카메라 버튼 핸들러 위치
+   ✅ app/src/app.jsx:396-397
+      <button className="cap-btn primary" onClick={openCamera}>
+        <Icon name="camera" size={24} color="#fff" /><span>카메라로 촬영</span>
+      </button>
+   openCamera 함수 정의: app/src/app.jsx:262-270
+
+2. 구현 방식 확인
+   ✅ getUserMedia 방식 (input[capture] 방식 아님)
+      app/src/app.jsx:262-270
+      const openCamera = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          streamRef.current = stream;
+          setCameraOpen(true);
+        } catch (e) {
+          fileRef.current && fileRef.current.click(); // getUserMedia 미지원/거부 시 갤러리 선택으로 폴백
+        }
+      };
+   getUserMedia가 reject되면 268행에서 즉시 fileRef.current.click() 실행 → 갤러리(파일 선택기) 오픈.
+   이 폴백은 브라우저 환경(카메라 미지원 데스크톱 등)을 염두에 둔 의도된 설계로 보이나,
+   네이티브 WebView 환경에서는 아래 4·5번 사유로 getUserMedia가 항상 실패하여
+   폴백 경로만 타는 것이 "갤러리가 열림" 증상의 직접 원인.
+
+3. Capacitor @capacitor/camera 플러그인 연동 여부
+   ❌ 미연동. package.json 의존성 목록에는 "@capacitor/camera": "^8.2.2" 존재하나
+      app/src/ 전체(*.jsx, *.tsx)에서 "@capacitor/camera" import 또는 Camera.getPhoto() 호출 코드 없음(grep 결과 0건).
+      설치만 되어 있고 실제로는 미사용 상태(Phase 3 커밋 시점에 선제 설치된 것으로 추정).
+   ⚠️ capacitor.config.ts (app/capacitor.config.ts)에는 카메라 관련 permissions 설정 없음
+      (appId/appName/webDir/server.androidScheme만 존재).
+
+4. Android WebView에서 getUserMedia 동작 방식
+   ⚠️ Capacitor의 기본 WebView(Android System WebView 기반)는 getUserMedia를 브라우저처럼
+      자동으로 지원하지 않음 — WebChromeClient.onPermissionRequest를 오버라이드하고
+      런타임 CAMERA 권한을 함께 부여해야 정상 동작하는 것으로 알려진 제약사항.
+      현재 프로젝트의 MainActivity.java(app/android/app/src/main/java/com/dojang/once/MainActivity.java)는
+      Capacitor 기본 템플릿 그대로이며 별도 WebChromeClient/권한 처리 커스터마이징 없음.
+      → getUserMedia 호출 시 브라우저 권한 프롬프트 자체가 뜨지 않거나 즉시 reject됨.
+
+5. AndroidManifest.xml CAMERA 권한 선언 여부
+   ❌ 미선언. app/android/app/src/main/AndroidManifest.xml 전체에 <uses-permission> 은
+      android.permission.INTERNET 1건만 존재. android.permission.CAMERA 없음.
+      → 4번과 결합해, getUserMedia가 성공할 수 있는 조건 자체가 갖춰져 있지 않음.
+
+[문제 1 근본 원인]
+getUserMedia 방식은 (a) AndroidManifest에 CAMERA 권한 미선언, (b) WebView가 카메라
+스트림 권한을 자동 중계하지 않는 구조 로 인해 실기기에서 항상 예외를 던지고,
+그 결과 262-270행의 catch 블록이 매번 실행되어 "의도된 폴백"인 갤러리 선택창이
+매번 열리는 것. 코드 결함이라기보다 네이티브 패키징 시 카메라 접근 경로를
+web API에서 네이티브 플러그인으로 전환하지 않은 것이 원인.
+
+[권장 해결 방향]
+이미 설치되어 있는 @capacitor/camera 플러그인(package.json에 존재, 미사용)을
+실제로 연동 — openCamera()를 Camera.getPhoto({ resultType: CameraResultType.DataUrl, source: CameraSource.Camera })
+호출로 교체하고, AndroidManifest.xml에 CAMERA 권한 추가, capacitor.config.ts에 필요 시
+Camera 플러그인 설정 추가. getUserMedia 폴백은 웹 브라우저 환경(로컬 dev 서버 접속)
+호환을 위해 네이티브 실행 여부(Capacitor.isNativePlatform())로 분기해 유지 가능.
+
+====================================================================
+[문제 2] PDF 파일 로드 미구현
+====================================================================
+
+6. 갤러리 업로드 input accept 속성
+   ✅ app/src/app.jsx:402
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+      PDF MIME(application/pdf)이 accept에서 배제되어 있어 파일 선택기 자체에서
+      PDF가 필터링됨(일부 OS/브라우저는 accept를 강제하지 않을 수 있으나 기본은 필터링).
+
+7. FileReader → docImage 저장 코드 위치
+   ✅ app/src/app.jsx:253-255
+      const r = new FileReader();
+      r.onload = () => onLoadImage(r.result, f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '업로드 서류');
+      r.readAsDataURL(f);
+      onLoadImage → app/src/app.jsx:525
+      const loadImage = (src, name) => { setPages([{ docMode: 'image', docImage: src, placed: [] }]); setCurrentPage(0); setDocName(name); setScreen('editor'); };
+      현재 구조는 파일 1개 → dataURL 1개 → pages 배열 1개 항목으로 단순 매핑.
+      PDF의 페이지 개념이 전혀 반영되지 않음(이미지 전용 가정).
+
+8. pdfjs-dist npm 설치 가능 여부
+   ✅ registry.npmjs.org/pdfjs-dist → HTTP 200 (레지스트리 접근 가능, 설치 가능)
+   ⚠️ app/node_modules 내 pdfjs-dist·pdf-lib 등 PDF 렌더링 패키지 미설치 확인
+      (package.json dependencies에 존재하는 PDF 관련 패키지는 "jspdf"^4.2.1 뿐이며
+      이는 PDF *생성*용으로 이미 사용 중 — PDF *읽기/렌더링*용 패키지 아님)
+   ⚠️ 사용자 언급된 "pdf-lib 이미 글로벌 설치됨"은 확인 결과 사실 아님
+      (npm ls -g pdf-lib → empty, pnpm 전역 목록에도 없음). 신규 설치 필요.
+
+9. PDF 다중 페이지 → pages 배열 변환 흐름 설계 가능 여부
+   ✅ 설계 가능. 기존 pages 구조(app/src/app.jsx:472, 480)가
+      [{ docMode, docImage, placed }] 형태의 배열이므로,
+      pdfjs-dist로 PDF의 각 페이지를 canvas에 렌더링 → canvas.toDataURL('image/png') →
+      { docMode: 'image', docImage: dataURL, placed: [] } 객체로 매핑해 pages 배열을
+      구성하는 흐름이 기존 다중 페이지 구조와 자연스럽게 맞물림.
+      충돌 요소 없음 — pages 배열은 이미 이미지 dataURL 기반이라 PDF 렌더링
+      결과물(PNG dataURL)과 타입이 동일함.
+
+[문제 2 구현 방향 권장안]
+1) pdfjs-dist 설치
+2) input accept를 "image/*,application/pdf"로 확장, onFile에서 f.type === 'application/pdf' 분기
+3) PDF 분기 시 pdfjs-dist로 문서 로드 → 각 페이지를 canvas에 렌더링 → dataURL 배열 생성
+4) dataURL 배열을 pages 배열([{ docMode:'image', docImage, placed:[] }, ...])로 변환 후
+   setPages + setCurrentPage(0) + setScreen('editor')로 기존 loadImage와 동일한 흐름 재사용
+
+====================================================================
+[예상 수정 파일 목록 및 수정 범위] (조사 단계 — 실제 수정은 미진행)
+====================================================================
+- app/src/app.jsx
+  - 262-270행 openCamera(): @capacitor/camera 연동으로 교체 (또는 네이티브 분기 추가)
+  - 253-255행 onFile 근방: PDF 분기 로직 추가
+  - 402행 input accept: "image/*,application/pdf"로 확장
+  - 신규 헬퍼 함수 추가 필요 (PDF→dataURL 배열 변환)
+- app/android/app/src/main/AndroidManifest.xml
+  - <uses-permission android:name="android.permission.CAMERA" /> 추가
+- app/package.json
+  - pdfjs-dist 신규 의존성 추가 필요
+- app/capacitor.config.ts
+  - 필요 시 Camera 플러그인 옵션 추가 (선택적)
+
+결론: 두 문제 모두 구현 가능하며 구조적 충돌 없음. 카메라 문제는 권한·플러그인 미연동,
+PDF 문제는 accept 제한 + 렌더링 패키지 부재가 근본 원인.

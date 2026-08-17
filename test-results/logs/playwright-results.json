@@ -4,7 +4,8 @@
       "C:\\Program Files\\nodejs\\node.exe",
       "C:\\claude\\filmcommando-coating-moblie-v1\\app\\node_modules\\.pnpm\\playwright@1.62.1\\node_modules\\playwright\\cli.js",
       "test",
-      "--project=Pixel 8"
+      "tests/e2e/",
+      "--project=chromium"
     ],
     "configFile": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\playwright.config.ts",
     "rootDir": "C:/claude/filmcommando-coating-moblie-v1/app/tests/e2e",
@@ -115,19 +116,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7025,
+                      "duration": 7121,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:21:50.864Z",
+                      "startTime": "2026-08-17T07:47:26.863Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -135,7 +136,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "d21aca027fa0754b4a04-cc34af48946fbb8bbc96",
+              "id": "d21aca027fa0754b4a04-03dfcb31cbccf2fffeda",
               "file": "phase4-4-opencv.spec.ts",
               "line": 35,
               "column": 3
@@ -149,19 +150,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7822,
+                      "duration": 7862,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:21:58.018Z",
+                      "startTime": "2026-08-17T07:47:34.104Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -169,7 +170,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "d21aca027fa0754b4a04-cc4991d8d7e0f4f70f84",
+              "id": "d21aca027fa0754b4a04-6266daae9bb9ee2a64e3",
               "file": "phase4-4-opencv.spec.ts",
               "line": 76,
               "column": 3
@@ -183,19 +184,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3526,
+                      "duration": 3725,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:05.851Z",
+                      "startTime": "2026-08-17T07:47:41.974Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -203,7 +204,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "d21aca027fa0754b4a04-608660808937885339eb",
+              "id": "d21aca027fa0754b4a04-7d8ef52972d0ac80b6b2",
               "file": "phase4-4-opencv.spec.ts",
               "line": 103,
               "column": 3
@@ -234,19 +235,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2143,
+                      "duration": 2296,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:09.398Z",
+                      "startTime": "2026-08-17T07:47:45.720Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -254,7 +255,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "678610dbbf500055a713-73b2a0e29b9148b7e404",
+              "id": "678610dbbf500055a713-35c9e528f86b2b45d4a6",
               "file": "phase4-5-drawing.spec.ts",
               "line": 27,
               "column": 3
@@ -268,19 +269,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2153,
+                      "duration": 2266,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:11.549Z",
+                      "startTime": "2026-08-17T07:47:48.023Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -288,7 +289,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "678610dbbf500055a713-ea0950068990c18ab3e5",
+              "id": "678610dbbf500055a713-18fb99ec3670b98300e6",
               "file": "phase4-5-drawing.spec.ts",
               "line": 43,
               "column": 3
@@ -302,19 +303,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2598,
+                      "duration": 2539,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:13.710Z",
+                      "startTime": "2026-08-17T07:47:50.297Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -322,7 +323,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "678610dbbf500055a713-0acb4182be6ed5116151",
+              "id": "678610dbbf500055a713-fee175fe585a52fb52d1",
               "file": "phase4-5-drawing.spec.ts",
               "line": 66,
               "column": 3
@@ -353,19 +354,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1888,
+                      "duration": 1963,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:16.323Z",
+                      "startTime": "2026-08-17T07:47:52.860Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -373,7 +374,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "573ee8efd72a37a971eb-5273596819a957c0c541",
+              "id": "573ee8efd72a37a971eb-3cde85874c7bad78232d",
               "file": "phase4-6-drag.spec.ts",
               "line": 24,
               "column": 3
@@ -387,19 +388,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1936,
+                      "duration": 2031,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:18.217Z",
+                      "startTime": "2026-08-17T07:47:54.831Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -407,7 +408,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "573ee8efd72a37a971eb-dca0357fd780c3b8b943",
+              "id": "573ee8efd72a37a971eb-5ade38e83be20e4291c2",
               "file": "phase4-6-drag.spec.ts",
               "line": 44,
               "column": 3
@@ -421,19 +422,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1934,
+                      "duration": 2038,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:20.161Z",
+                      "startTime": "2026-08-17T07:47:56.870Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -441,7 +442,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "573ee8efd72a37a971eb-dbd2c423f3038db7678d",
+              "id": "573ee8efd72a37a971eb-0dc23407a635ba85c5c1",
               "file": "phase4-6-drag.spec.ts",
               "line": 62,
               "column": 3
@@ -455,19 +456,19 @@
                   "timeout": 30000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "Pixel 8",
-                  "projectName": "Pixel 8",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2144,
+                      "duration": 2126,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T05:22:22.101Z",
+                      "startTime": "2026-08-17T07:47:58.920Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -475,7 +476,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "573ee8efd72a37a971eb-ca94496447870bc1225d",
+              "id": "573ee8efd72a37a971eb-e00a919c17aa2eb1e36e",
               "file": "phase4-6-drag.spec.ts",
               "line": 90,
               "column": 3
@@ -487,8 +488,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-17T05:21:49.112Z",
-    "duration": 36537.368,
+    "startTime": "2026-08-17T07:47:26.429Z",
+    "duration": 34780.07,
     "expected": 10,
     "skipped": 0,
     "unexpected": 0,
