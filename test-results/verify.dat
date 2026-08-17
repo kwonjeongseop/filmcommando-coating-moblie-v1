@@ -253,3 +253,20 @@ APK: filmcommando-coating-moblie-v0.0.7.apk
 검증: 웹 Playwright 회귀 10/10 PASS, 실기기 CDP 4개 핵심 항목(h-rot 부재·
   도장scale 0.6·저장형식 4종·Share 플러그인) 전부 PASS
 상태: PASS
+
+====================================================================
+[Release v0.0.8]
+빌드일: 2026-08-18
+수정: 이슈 6·7 SMS·메일·카카오 공유 시 이미지 미첨부(files 파라미터 누락) 수정 —
+      shareDocumentImage() 신설(editor.jsx), 페이지 캡처→Filesystem.Cache 임시저장→
+      getUri()→Share.share({files:[uri]})→전송 후 임시파일 삭제. FileProvider는 기존 설정 재사용.
+      이슈 8 원형 도장(seal) 텍스트 원 밖 오버플로 수정 — SealVisual(visuals.jsx) fs 계산에
+      열(cols) 폭 기준(colFs) 추가해 행 기준과 min 적용 + 외곽 원형 div overflow:hidden 안전장치 추가.
+APK: filmcommando-coating-moblie-v0.0.8.apk
+크기: 17.23MB (18065360 bytes)
+검증: 웹 Playwright 회귀 26/26 PASS(신규 phase5-1-seal-fit 3건 포함, fix 이전 코드로 동일 테스트
+      3건 실패 재현시켜 회귀테스트 유효성 확인). 실기기(에뮬레이터 Pixel_8, release APK 설치) 확인 —
+      김민수(3자)·이영희(3자)·대한법인(4자) 도장 모두 원 안에 정상 렌더링, 문자·메일 공유 시 Android
+      네이티브 CHOOSER 인텐트에 실제 이미지 썸네일 첨부됨(logcat: clip={text/uri-list U(content)}),
+      크래시 없음.
+상태: PASS

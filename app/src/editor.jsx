@@ -678,6 +678,29 @@ function EditorScreen({ store }) {
     }
   };
 
+  // 카카오톡·문자·메일 공유 — 현재 페이지를 PNG로 캡처해 캐시에 임시 저장한 뒤
+  // Filesystem.getUri()로 file:// URI를 얻어 Share.share()의 files에 담아 전달한다.
+  // (FileProvider는 AndroidManifest.xml에 이미 등록되어 있음). 공유 시트가 닫히면 임시 파일을 삭제한다.
+  const shareDocumentImage = async (dialogTitle, toastVerb, fmt) => {
+    const prevSel = sel;
+    setSel(null);
+    try {
+      const canvas = await capturePageCanvas('#ffffff');
+      if (prevSel) setSel(prevSel);
+      const filename = `share-temp-${saveTimestamp()}.png`;
+      const base64 = canvas.toDataURL('image/png').split(',')[1];
+      await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache, recursive: true });
+      const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
+      Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle, files: [uri] })
+        .then(() => showToast(toastVerb + ' · ' + fmt))
+        .catch(() => {}) // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        .finally(() => { Filesystem.deleteFile({ path: filename, directory: Directory.Cache }).catch(() => {}); });
+    } catch (e) {
+      if (prevSel) setSel(prevSel);
+      showToast('공유 실패 — 다시 시도해 주세요');
+    }
+  };
+
   const onShareAction = (k, fmt) => {
     if (k === 'save' && (fmt === 'PDF' || fmt === 'PNG' || fmt === 'JPG')) {
       captureThumb().then((thumb) => saveDoc(thumb));
@@ -742,9 +765,7 @@ function EditorScreen({ store }) {
         // Kakao JS SDK는 네이티브 WebView의 origin(https://localhost)이 Kakao 서버의
         // 도메인 검증을 통과할 수 없어 항상 401을 반환한다(도메인 등록·link URL 수정으로도 해결 불가,
         // 실기기 재현으로 확정). 네이티브에서는 OS 공유 시트를 통해 카카오톡으로 직접 전달한다.
-        Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle: '카카오톡으로 공유' })
-          .then(() => showToast('카카오톡으로 보냈습니다 · ' + fmt))
-          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        shareDocumentImage('카카오톡으로 공유', '카카오톡으로 보냈습니다', fmt);
         return;
       }
       const Kakao = window.Kakao;
@@ -768,9 +789,7 @@ function EditorScreen({ store }) {
     }
     if (k === 'message') {
       if (Capacitor.isNativePlatform()) {
-        Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle: '공유' })
-          .then(() => showToast('문자로 보냈습니다 · ' + fmt))
-          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        shareDocumentImage('공유', '문자로 보냈습니다', fmt);
         return;
       }
       window.location.href = 'sms:?body=' + encodeURIComponent(docName + ' 서류 공유');
@@ -779,9 +798,7 @@ function EditorScreen({ store }) {
     }
     if (k === 'mail') {
       if (Capacitor.isNativePlatform()) {
-        Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle: '공유' })
-          .then(() => showToast('메일로 보냈습니다 · ' + fmt))
-          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        shareDocumentImage('공유', '메일로 보냈습니다', fmt);
         return;
       }
       window.location.href = 'mailto:?subject=' + encodeURIComponent(docName) +

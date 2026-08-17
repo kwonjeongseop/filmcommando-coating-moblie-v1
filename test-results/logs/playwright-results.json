@@ -4,7 +4,7 @@
       "C:\\Program Files\\nodejs\\node.exe",
       "C:\\claude\\filmcommando-coating-moblie-v1\\app\\node_modules\\playwright\\cli.js",
       "test",
-      "tests/e2e/",
+      "tests/e2e/phase5-1-seal-fit.spec.ts",
       "--project=chromium"
     ],
     "configFile": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\playwright.config.ts",
@@ -95,21 +95,21 @@
   },
   "suites": [
     {
-      "title": "phase4-4-opencv.spec.ts",
-      "file": "phase4-4-opencv.spec.ts",
+      "title": "phase5-1-seal-fit.spec.ts",
+      "file": "phase5-1-seal-fit.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정",
-          "file": "phase4-4-opencv.spec.ts",
-          "line": 27,
+          "title": "Phase 5-1: 원형 도장 텍스트 fit (이슈 8)",
+          "file": "phase5-1-seal-fit.spec.ts",
+          "line": 25,
           "column": 6,
           "specs": [
             {
-              "title": "Canny+findContours가 합성 문서 사각형을 정확히 감지한다",
-              "ok": true,
+              "title": "\"金民洙\"(3자) 글자가 원 밖으로 넘치지 않는다",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -122,147 +122,68 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 14245,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 2803,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m357.9453125\u001b[39m\nReceived:    \u001b[31m358.7265625\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m357.9453125\u001b[39m\nReceived:    \u001b[31m358.7265625\u001b[39m\n    at C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts:54:26",
+                        "location": {
+                          "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                          "column": 26,
+                          "line": 54
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 52 |\u001b[39m         expect(s\u001b[33m.\u001b[39mtop)\u001b[33m.\u001b[39mtoBeGreaterThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mtop \u001b[33m-\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 53 |\u001b[39m         expect(s\u001b[33m.\u001b[39mright)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mright \u001b[33m+\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 54 |\u001b[39m         expect(s\u001b[33m.\u001b[39mbottom)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mbottom \u001b[33m+\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 55 |\u001b[39m       }\n \u001b[90m 56 |\u001b[39m\n \u001b[90m 57 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                            "column": 26,
+                            "line": 54
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m357.9453125\u001b[39m\nReceived:    \u001b[31m358.7265625\u001b[39m\n\n  52 |         expect(s.top).toBeGreaterThanOrEqual(result.circle.top - EPS);\n  53 |         expect(s.right).toBeLessThanOrEqual(result.circle.right + EPS);\n> 54 |         expect(s.bottom).toBeLessThanOrEqual(result.circle.bottom + EPS);\n     |                          ^\n  55 |       }\n  56 |\n  57 |       await page.screenshot({\n    at C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts:54:26"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T13:43:30.994Z",
+                      "startTime": "2026-08-17T23:14:03.313Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--4f84b--8-金民洙-3자-글자가-원-밖으로-넘치지-않는다-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--4f84b--8-金民洙-3자-글자가-원-밖으로-넘치지-않는다-chromium\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--4f84b--8-金民洙-3자-글자가-원-밖으로-넘치지-않는다-chromium\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                        "column": 26,
+                        "line": 54
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "d21aca027fa0754b4a04-03dfcb31cbccf2fffeda",
-              "file": "phase4-4-opencv.spec.ts",
-              "line": 35,
-              "column": 3
-            },
-            {
-              "title": "원근 보정 결과 이미지가 감지 영역 크기로 캡처된다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 8172,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:43:45.366Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "d21aca027fa0754b4a04-6266daae9bb9ee2a64e3",
-              "file": "phase4-4-opencv.spec.ts",
-              "line": 76,
-              "column": 3
-            },
-            {
-              "title": "OpenCV.js 로드 실패 시 Canvas API 폴백으로 정상 동작한다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 3849,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:43:53.546Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "d21aca027fa0754b4a04-7d8ef52972d0ac80b6b2",
-              "file": "phase4-4-opencv.spec.ts",
-              "line": 105,
-              "column": 3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "phase4-5-drawing.spec.ts",
-      "file": "phase4-5-drawing.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Phase 4-5: 수기 도장 제작",
-          "file": "phase4-5-drawing.spec.ts",
-          "line": 26,
-          "column": 6,
-          "specs": [
-            {
-              "title": "기본 가이드는 원형이고, 그리면 흰색이 아닌 픽셀이 생긴다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2156,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:43:57.423Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "678610dbbf500055a713-35c9e528f86b2b45d4a6",
-              "file": "phase4-5-drawing.spec.ts",
+              "id": "c44cf8161bdbbe6b633d-1275e33eb2cdbede4aa9",
+              "file": "phase5-1-seal-fit.spec.ts",
               "line": 27,
-              "column": 3
+              "column": 5
             },
             {
-              "title": "사각형 가이드로 전환해도 이미 그린 내용은 유지된다",
-              "ok": true,
+              "title": "\"이영희\"(3자) 글자가 원 밖으로 넘치지 않는다",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -273,30 +194,70 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2224,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 1734,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m297.9453125\u001b[39m\nReceived:    \u001b[31m298.7265625\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m297.9453125\u001b[39m\nReceived:    \u001b[31m298.7265625\u001b[39m\n    at C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts:54:26",
+                        "location": {
+                          "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                          "column": 26,
+                          "line": 54
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 52 |\u001b[39m         expect(s\u001b[33m.\u001b[39mtop)\u001b[33m.\u001b[39mtoBeGreaterThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mtop \u001b[33m-\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 53 |\u001b[39m         expect(s\u001b[33m.\u001b[39mright)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mright \u001b[33m+\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 54 |\u001b[39m         expect(s\u001b[33m.\u001b[39mbottom)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mbottom \u001b[33m+\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 55 |\u001b[39m       }\n \u001b[90m 56 |\u001b[39m\n \u001b[90m 57 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                            "column": 26,
+                            "line": 54
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m297.9453125\u001b[39m\nReceived:    \u001b[31m298.7265625\u001b[39m\n\n  52 |         expect(s.top).toBeGreaterThanOrEqual(result.circle.top - EPS);\n  53 |         expect(s.right).toBeLessThanOrEqual(result.circle.right + EPS);\n> 54 |         expect(s.bottom).toBeLessThanOrEqual(result.circle.bottom + EPS);\n     |                          ^\n  55 |       }\n  56 |\n  57 |       await page.screenshot({\n    at C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts:54:26"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T13:43:59.585Z",
+                      "startTime": "2026-08-17T23:14:06.876Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--5b706--8-이영희-3자-글자가-원-밖으로-넘치지-않는다-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--5b706--8-이영희-3자-글자가-원-밖으로-넘치지-않는다-chromium\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--5b706--8-이영희-3자-글자가-원-밖으로-넘치지-않는다-chromium\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                        "column": 26,
+                        "line": 54
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "678610dbbf500055a713-18fb99ec3670b98300e6",
-              "file": "phase4-5-drawing.spec.ts",
-              "line": 43,
-              "column": 3
+              "id": "c44cf8161bdbbe6b633d-be63d297a90be907ac97",
+              "file": "phase5-1-seal-fit.spec.ts",
+              "line": 27,
+              "column": 5
             },
             {
-              "title": "등록 버튼은 그리기 전까지 비활성화되고, 등록 시 배경이 제거된 PNG가 library에 추가된다",
-              "ok": true,
+              "title": "\"대한법인\"(4자) 글자가 원 밖으로 넘치지 않는다",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -307,179 +268,66 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 2,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2510,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 1913,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m357.9453125\u001b[39m\nReceived:    \u001b[31m358.7265625\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m357.9453125\u001b[39m\nReceived:    \u001b[31m358.7265625\u001b[39m\n    at C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts:54:26",
+                        "location": {
+                          "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                          "column": 26,
+                          "line": 54
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 52 |\u001b[39m         expect(s\u001b[33m.\u001b[39mtop)\u001b[33m.\u001b[39mtoBeGreaterThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mtop \u001b[33m-\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 53 |\u001b[39m         expect(s\u001b[33m.\u001b[39mright)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mright \u001b[33m+\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 54 |\u001b[39m         expect(s\u001b[33m.\u001b[39mbottom)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(result\u001b[33m.\u001b[39mcircle\u001b[33m.\u001b[39mbottom \u001b[33m+\u001b[39m \u001b[33mEPS\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 55 |\u001b[39m       }\n \u001b[90m 56 |\u001b[39m\n \u001b[90m 57 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                            "column": 26,
+                            "line": 54
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m357.9453125\u001b[39m\nReceived:    \u001b[31m358.7265625\u001b[39m\n\n  52 |         expect(s.top).toBeGreaterThanOrEqual(result.circle.top - EPS);\n  53 |         expect(s.right).toBeLessThanOrEqual(result.circle.right + EPS);\n> 54 |         expect(s.bottom).toBeLessThanOrEqual(result.circle.bottom + EPS);\n     |                          ^\n  55 |       }\n  56 |\n  57 |       await page.screenshot({\n    at C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts:54:26"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T13:44:01.818Z",
+                      "startTime": "2026-08-17T23:14:09.342Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--64891-8-대한법인-4자-글자가-원-밖으로-넘치지-않는다-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--64891-8-대한법인-4자-글자가-원-밖으로-넘치지-않는다-chromium\\error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "C:\\claude\\filmcommando-coating-moblie-v1\\test-results\\logs\\playwright-artifacts\\phase5-1-seal-fit-Phase-5--64891-8-대한법인-4자-글자가-원-밖으로-넘치지-않는다-chromium\\trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\claude\\filmcommando-coating-moblie-v1\\app\\tests\\e2e\\phase5-1-seal-fit.spec.ts",
+                        "column": 26,
+                        "line": 54
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "678610dbbf500055a713-fee175fe585a52fb52d1",
-              "file": "phase4-5-drawing.spec.ts",
-              "line": 66,
-              "column": 3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "phase4-6-drag.spec.ts",
-      "file": "phase4-6-drag.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Phase 4-6: 도장 드래그 · 핀치줌 · 회전",
-          "file": "phase4-6-drag.spec.ts",
-          "line": 23,
-          "column": 6,
-          "specs": [
-            {
-              "title": "핸들 없이 본체를 눌러 바로 드래그 이동할 수 있다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2004,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:44:04.357Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "573ee8efd72a37a971eb-3cde85874c7bad78232d",
-              "file": "phase4-6-drag.spec.ts",
-              "line": 24,
-              "column": 3
-            },
-            {
-              "title": "캔버스 중앙 근접 시 스냅 가이드라인이 표시되고 정확히 50%로 스냅된다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1995,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:44:06.368Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "573ee8efd72a37a971eb-5ade38e83be20e4291c2",
-              "file": "phase4-6-drag.spec.ts",
-              "line": 44,
-              "column": 3
-            },
-            {
-              "title": "두 손가락 핀치 제스처로 scale이 변하고 rot은 0으로 고정된다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2011,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:44:08.369Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "573ee8efd72a37a971eb-6e935dcc4c5fb8ffe11d",
-              "file": "phase4-6-drag.spec.ts",
-              "line": 62,
-              "column": 3
-            },
-            {
-              "title": "제스처 이후 되돌리기(undo)로 직전 상태가 복원된다",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2112,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-17T13:44:10.386Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "573ee8efd72a37a971eb-e00a919c17aa2eb1e36e",
-              "file": "phase4-6-drag.spec.ts",
-              "line": 90,
-              "column": 3
+              "id": "c44cf8161bdbbe6b633d-178c586d7edc661cc4b9",
+              "file": "phase5-1-seal-fit.spec.ts",
+              "line": 27,
+              "column": 5
             }
           ]
         }
@@ -488,11 +336,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-17T13:43:30.570Z",
-    "duration": 43253.752,
-    "expected": 10,
+    "startTime": "2026-08-17T23:14:01.426Z",
+    "duration": 11430.753,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 3,
     "flaky": 0
   }
 }

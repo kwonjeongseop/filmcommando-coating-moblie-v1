@@ -51,7 +51,11 @@ function SealVisual({ text, color, size }) {
   const cols = n <= 2 ? 1 : 2;
   const rows = Math.ceil(n / cols);
   const ring = Math.max(2.5, size * 0.045);
-  const fs = (size * 0.9) / rows * (cols === 1 ? 0.78 : 0.92);
+  // 행(rows) 기준 크기와 열(cols) 폭 기준 크기 중 작은 값을 써서 가로·세로 어느 쪽으로도
+  // 글자가 셀 밖으로 넘치지 않게 한다 — 기존에는 rows만 반영해 3~4자(cols=2)일 때 가로로 넘쳤다.
+  const rowFs = (size * 0.9) / rows * (cols === 1 ? 0.78 : 0.92);
+  const colFs = (size * 0.66 / cols) * 0.85;
+  const fs = Math.min(rowFs, colFs);
   // traditional right-to-left, top-to-bottom column fill
   const cell = (ch, i) => {
     const col = cols - Math.floor(i / rows);
@@ -68,7 +72,7 @@ function SealVisual({ text, color, size }) {
     <div style={{
       width: size, height: size, borderRadius: '50%',
       border: `${ring}px solid ${color}`, boxSizing: 'border-box',
-      position: 'relative', color,
+      position: 'relative', color, overflow: 'hidden',
       fontFamily: "'Nanum Myeongjo', serif", fontWeight: 800,
       display: 'grid', placeItems: 'center', userSelect: 'none',
       background: 'transparent',
