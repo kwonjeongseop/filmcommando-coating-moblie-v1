@@ -700,44 +700,20 @@ function EditorScreen({ store }) {
       try {
         if (!Kakao.isInitialized()) Kakao.init('2b967bd314af9eec81b66c4342bb3856');
         (async () => {
-          const prevSel = sel;
-          setSel(null);
-          await new Promise((r) => requestAnimationFrame(r));
-          const canvas = await html2canvas(pageRef.current, {
-            backgroundColor: '#ffffff',
-            useCORS: true,
-            onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; },
-          });
-          if (prevSel) setSel(prevSel);
-          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.8));
-          let imageUrl = null;
-          try {
-            const fd = new FormData();
-            fd.append('file', blob, 'dojang.jpg');
-            const res = await fetch('https://0x0.st', { method: 'POST', body: fd });
-            if (res.ok) {
-              const text = (await res.text()).trim();
-              if (/^https?:\/\//.test(text)) imageUrl = text;
-            }
-          } catch (e) {} // 이미지 호스팅 업로드 실패 시 텍스트 전용 공유로 폴백
+          // 카카오 공유 카드 미리보기 이미지는 서류(개인정보 포함 가능) 대신
+          // GitHub Pages에 호스팅된 앱 아이콘의 공개 URL을 사용한다 — 서류 이미지를
+          // 익명 공개 호스팅에 업로드하지 않기 위함.
+          const imageUrl = 'https://kwonjeongseop.github.io/filmcommando-coating-moblie-v1/icon.png';
           console.log('[kakao] 공개 이미지 URL:', imageUrl);
-          if (imageUrl) {
-            Kakao.Share.sendDefault({
-              objectType: 'feed',
-              content: {
-                title: '도장 한 번 — 인증 서류',
-                description: '서류에 도장을 찍어 공유합니다.',
-                imageUrl,
-                link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
-              },
-            });
-          } else {
-            Kakao.Share.sendDefault({
-              objectType: 'text',
-              text: '도장 한 번 — 인증 서류: 서류에 도장을 찍어 공유합니다.',
+          Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+              title: '도장 한 번 — 인증 서류',
+              description: '서류에 도장을 찍어 공유합니다.',
+              imageUrl,
               link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
-            });
-          }
+            },
+          });
           showToast('카카오톡으로 보냈습니다 · ' + fmt);
         })().catch(() => webShareFallback());
       } catch (e) {
