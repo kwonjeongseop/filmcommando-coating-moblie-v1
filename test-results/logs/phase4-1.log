@@ -1,0 +1,61 @@
+Phase 4-1: 도장 이미지 배경 제거 (Canvas API)
+작업 일시: 2026-08-17
+수정 파일: app/src/editor.jsx (AddStampSheet의 onFile → FileReader.onload 콜백만 수정)
+검증 방식: vite build, oxlint, Playwright(chromium) 전/후 비교 자동 시나리오
+
+--------------------------------------------------------------------------
+조사 결과
+1. onFile 핸들러 위치: editor.jsx AddStampSheet 컴포넌트 내부(수정 전 156~161행)
+2. 처리 삽입 지점: FileReader.onload 콜백 — r.result(base64 dataURL) 확보 직후,
+   onAdd() 호출 이전. 이 지점에 Image 로드 → Canvas 픽셀 처리 → onAdd 순으로 삽입
+3. Canvas 적용 범위: new Image().onload 내부에서 offscreen canvas 생성 →
+   drawImage(img,0,0) → getImageData(0,0,w,h) → RGB 3채널 모두 BG_THRESHOLD(200) 이상인
+   픽셀의 alpha를 0으로 설정 → putImageData → canvas.toDataURL('image/png')
+
+--------------------------------------------------------------------------
+수정 내용
+- 파일 상단(clamp 함수 바로 아래)에 `const BG_THRESHOLD = 200;` 상수 추가
+- onFile의 FileReader.onload 콜백만 교체:
+  기존: r.result를 그대로 src로 사용해 onAdd 호출
+  변경: r.result → Image 로드 → canvas drawImage → getImageData 순회하며
+        (R>=200 && G>=200 && B>=200)인 픽셀만 alpha=0 처리 → putImageData →
+        canvas.toDataURL('image/png')를 src로 사용해 onAdd 호출
+- 기존 UI(Sheet, 탭, 업로드 타일, 안내 문구)는 변경 없음
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (222 modules) — 신규 에러 없음
+- npx oxlint src/editor.jsx: 신규 warning 없음 (기존 catch(e){}/exhaustive-deps 경고만 잔존)
+
+--------------------------------------------------------------------------
+Playwright 전/후 비교 시나리오 (chromium, viewport 420x900, localhost:5173)
+스크립트: test-results/scripts/phase4-1-gen-image.mjs (테스트용 도장 이미지 생성)
+          test-results/scripts/phase4-1-playwright-test.mjs (업로드→분석→배치→스크린샷)
+테스트 이미지: 200x200 PNG, 흰색 배경 + 반지름 70px 빨간 원(#D7402B) + 원 내부 흰색 글자 "印"
+              (test-results/scripts/phase4-1-test-stamp.png)
+비교 방법: git stash로 editor.jsx를 수정 전 상태로 일시 되돌려 "before" 시나리오를 먼저
+          실행하고, stash pop으로 수정 사항을 복원해 "after" 시나리오를 재실행함
+          (동일 이미지·동일 코드 경로, onFile 로직 유무만 차이)
+
+[수정 전 (before)]
+결과: 배경 제거 없음 확인
+- 전체 픽셀: 40,000 (200×200)
+- 투명 픽셀: 0
+- library 저장 src 크기: 7,290 bytes (base64 dataURL 문자열 길이)
+스크린샷: phase4-1-before.png — 흰색 정사각형 배경이 표(재직증명서) 테두리·텍스트를
+         그대로 가려 부자연스럽게 겹침 (생년월일 셀 경계선이 도장 영역에서 끊김)
+
+[수정 후 (after)]
+결과: ✅ 배경 제거 정상 동작
+- 전체 픽셀: 40,000
+- 투명 픽셀: 25,698 (64.25%) — 흰색 배경 전체 + 원 내부 흰 글자("印") 부분까지
+  BG_THRESHOLD(200) 이상 픽셀이 모두 투명 처리됨(의도된 동작)
+- library 저장 src 크기: 6,474 bytes (PNG 재인코딩 결과, 알파 채널 포함)
+- 처리 전후 투명 픽셀 수 변화: 0 → 25,698 (+25,698)
+스크린샷: phase4-1-after.png — 표 테두리선과 텍스트("1989...", "책임 / 과장" 등)가
+         도장 주변까지 자연스럽게 비쳐 보임, 정사각형 흰 배경 흔적 없음
+
+pageErrors: 0건 (before/after 시나리오 모두)
+
+--------------------------------------------------------------------------
+종합 결과: ✅ PASS. 투명 픽셀 0 → 25,698개로 증가(전체의 64.25%), 배경 제거 시각적으로 확인.

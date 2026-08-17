@@ -6,6 +6,7 @@ import { Icon, StampVisual, SealVisual, makeId, SampleCertificate } from './visu
 import { OverflowMenu, StampContextMenu, PromptDialog, ConfirmDialog } from './menus.jsx';
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const BG_THRESHOLD = 200;
 
 function ToolBtn({ name, label, onClick, active, primary, disabled, showLabel, badge }) {
   return (
@@ -156,7 +157,25 @@ function AddStampSheet({ open, onClose, sealInk, onAdd }) {
   const onFile = (e) => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = () => { onAdd({ id: makeId(), kind: 'image', src: r.result, w: 120, label: '업로드 · ' + f.name.slice(0, 10) }); onClose(); };
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i] >= BG_THRESHOLD && data[i + 1] >= BG_THRESHOLD && data[i + 2] >= BG_THRESHOLD) data[i + 3] = 0;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        onAdd({ id: makeId(), kind: 'image', src: canvas.toDataURL('image/png'), w: 120, label: '업로드 · ' + f.name.slice(0, 10) });
+        onClose();
+      };
+      img.src = r.result;
+    };
     r.readAsDataURL(f);
   };
   return (
