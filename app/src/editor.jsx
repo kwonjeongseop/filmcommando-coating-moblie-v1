@@ -284,6 +284,7 @@ function ShareSheet({ open, onClose, docName, defaults, onAction }) {
 /* ───────────────────────── Editor ───────────────────────── */
 function EditorScreen({ store }) {
   const { docMode, docImage, docName, setDocName, library, addStamp, recent, pushRecent,
+    pages, currentPage, setCurrentPage, addPage,
     placed, setPlacedLive, pushHistory, undo, redo, canUndo, canRedo,
     goBack, openDrawer, nav, showToast, settings, t, saveDoc } = store;
   const sealInk = t.sealInk;
@@ -319,6 +320,34 @@ function EditorScreen({ store }) {
       tc.getContext('2d').drawImage(c, 0, 0, tw, th);
       return tc.toDataURL('image/jpeg', 0.7);
     } catch (e) { return null; }
+  };
+  const capturePageCanvas = async (bgColor) => {
+    await new Promise((r) => requestAnimationFrame(r));
+    return html2canvas(pageRef.current, {
+      backgroundColor: bgColor,
+      useCORS: true,
+      onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; },
+    });
+  };
+  const buildPdfAllPages = async () => {
+    const originalPage = currentPage;
+    const pdfOpts = { unit: 'pt', format: 'a4' };
+    if (settings.pw) pdfOpts.encryption = { userPassword: '0000', ownerPassword: '0000', userPermissions: ['print'] };
+    const doc = new jsPDF(pdfOpts);
+    let switched = false;
+    for (let i = 0; i < pages.length; i++) {
+      if (i !== originalPage) { setCurrentPage(i); switched = true; await new Promise((r) => requestAnimationFrame(r)); }
+      const canvas = await capturePageCanvas('#ffffff');
+      const imgData = canvas.toDataURL('image/png');
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+      const w = canvas.width * ratio, h = canvas.height * ratio;
+      if (i > 0) doc.addPage();
+      doc.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+    }
+    if (switched) setCurrentPage(originalPage);
+    return doc;
   };
   const pctFromEvent = (e) => {
     const r = pageRef.current.getBoundingClientRect();
@@ -395,7 +424,7 @@ function EditorScreen({ store }) {
     if (k === 'rename') return setPrompt('rename');
     if (k === 'saveas') return setPrompt('saveas');
     if (k === 'pdf') return showToast('PDF로 변환하여 저장했습니다.');
-    if (k === 'addpage') return showToast('페이지를 추가했습니다. (2/2)');
+    if (k === 'addpage') { addPage(); showToast('페이지를 추가했습니다. (' + (pages.length + 1) + '페이지)'); return; }
     if (k === 'rotate') { setDocRot((r) => (r + 90) % 360); return showToast('서류를 90° 회전했습니다.'); }
     if (k === 'replace') return showToast('서류 이미지를 다시 선택하세요.');
     if (k === 'manager') return nav('manager');
@@ -407,30 +436,11 @@ function EditorScreen({ store }) {
     if (k === 'save' && (fmt === 'PDF' || fmt === 'PNG' || fmt === 'JPG')) {
       captureThumb().then((thumb) => saveDoc(thumb));
       (async () => {
-        const prevSel = sel;
-        setSel(null); // hide selection outline/handles while capturing so they aren't baked into the export
-        await new Promise((r) => requestAnimationFrame(r));
-        const isJpg = fmt === 'JPG';
-        const canvas = await html2canvas(pageRef.current, {
-          backgroundColor: fmt === 'PDF' || isJpg ? '#ffffff' : null,
-          useCORS: true,
-          onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; }, // avoid html2canvas box-shadow+border-radius rendering artifact
-        });
-        if (prevSel) setSel(prevSel);
-
         if (fmt === 'PDF') {
-          const imgData = canvas.toDataURL('image/png');
-          const pdfOpts = { unit: 'pt', format: 'a4' };
-          if (settings.pw) {
-            pdfOpts.encryption = { userPassword: '0000', ownerPassword: '0000', userPermissions: ['print'] };
-          }
-          const doc = new jsPDF(pdfOpts);
-          const pageW = doc.internal.pageSize.getWidth();
-          const pageH = doc.internal.pageSize.getHeight();
-          const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-          const w = canvas.width * ratio;
-          const h = canvas.height * ratio;
-          doc.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+          const prevSel = sel;
+          setSel(null);
+          const doc = await buildPdfAllPages();
+          if (prevSel) setSel(prevSel);
           const url = URL.createObjectURL(doc.output('blob'));
           const a = document.createElement('a');
           a.href = url;
@@ -439,22 +449,28 @@ function EditorScreen({ store }) {
           a.click();
           a.remove();
           URL.revokeObjectURL(url);
-          showToast('기기에 저장했습니다 · PDF' + (settings.pw ? ' (비밀번호 설정됨)' : ''));
-        } else {
-          const mime = isJpg ? 'image/jpeg' : 'image/png';
-          canvas.toBlob((blob) => {
-            if (!blob) return;
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = docName + '.' + fmt.toLowerCase();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-            showToast('기기에 저장했습니다 · ' + fmt);
-          }, mime, isJpg ? 0.92 : undefined);
+          showToast('기기에 저장했습니다 · PDF' + (settings.pw ? ' (비밀번호 설정됨)' : '') + (pages.length > 1 ? ` (${pages.length}페이지)` : ''));
+          return;
         }
+        const prevSel = sel;
+        setSel(null); // hide selection outline/handles while capturing so they aren't baked into the export
+        const isJpg = fmt === 'JPG';
+        const canvas = await capturePageCanvas(isJpg ? '#ffffff' : null);
+        if (prevSel) setSel(prevSel);
+
+        const mime = isJpg ? 'image/jpeg' : 'image/png';
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = docName + '.' + fmt.toLowerCase();
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast('기기에 저장했습니다 · ' + fmt);
+        }, mime, isJpg ? 0.92 : undefined);
       })();
       return;
     }
@@ -566,7 +582,10 @@ function EditorScreen({ store }) {
         <button className="iconbtn" onClick={goBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
         <div className="appbar-title">
           <span className="apptitle">{docName}</span>
-          <span className="appsub">1 / 1 페이지 · 도장 {placed.length}개</span>
+          <span className="appsub" style={{ cursor: pages.length > 1 ? 'pointer' : 'default' }}
+            onClick={() => pages.length > 1 && setCurrentPage((currentPage + 1) % pages.length)}>
+            {currentPage + 1} / {pages.length} 페이지 · 도장 {placed.length}개
+          </span>
         </div>
         <button className="iconbtn" onClick={openDrawer} aria-label="전체 메뉴"><Icon name="menu" size={22} /></button>
         <button className="iconbtn" onClick={() => setMenu(true)} aria-label="더보기"><Icon name="more" size={22} /></button>
@@ -607,7 +626,7 @@ function EditorScreen({ store }) {
             style={{ width: PAGE_W * zoom, height: PAGE_W * 1.414 * zoom, rotate: docRot + 'deg' }}>
             {docMode === 'image' && docImage
               ? <img className="doc-img" src={docImage} alt="" draggable={false} />
-              : <SampleCertificate />}
+              : docMode === 'blank' ? null : <SampleCertificate />}
             {placed.map(renderPlaced)}
             {placing && ghost && (
               <div className="stamp-ghost" style={{ left: ghost.x + '%', top: ghost.y + '%', opacity: placing._opts.opacity * 0.75 }}>
@@ -645,16 +664,27 @@ function EditorScreen({ store }) {
         onClose={() => setConfirm(null)} onConfirm={async () => {
           captureThumb().then((thumb) => saveDoc(thumb));
           const fmt = settings.format;
+          if (fmt === 'PDF') {
+            const prevSel = sel;
+            setSel(null);
+            const doc = await buildPdfAllPages();
+            if (prevSel) setSel(prevSel);
+            const url = URL.createObjectURL(doc.output('blob'));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = docName + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('저장했습니다 · PDF' + (pages.length > 1 ? ` (${pages.length}페이지)` : ''));
+            return;
+          }
           if (fmt !== 'PNG' && fmt !== 'JPG') { showToast('저장했습니다 · ' + fmt); return; }
           const isJpg = fmt === 'JPG';
           const prevSel = sel;
           setSel(null); // hide selection outline/handles while capturing so they aren't baked into the export
-          await new Promise((r) => requestAnimationFrame(r));
-          const canvas = await html2canvas(pageRef.current, {
-            backgroundColor: isJpg ? '#ffffff' : null,
-            useCORS: true,
-            onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; }, // avoid html2canvas box-shadow+border-radius rendering artifact
-          });
+          const canvas = await capturePageCanvas(isJpg ? '#ffffff' : null);
           if (prevSel) setSel(prevSel);
           const mime = isJpg ? 'image/jpeg' : 'image/png';
           canvas.toBlob((blob) => {

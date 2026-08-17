@@ -1,0 +1,99 @@
+Phase 4-2: 다중 페이지 지원
+작업 일시: 2026-08-17
+수정 파일: app/src/app.jsx (상태 구조), app/src/editor.jsx (EditorScreen 페이지 전환 UI + PDF 다중 페이지 캡처)
+검증 방식: vite build, oxlint, Playwright(chromium) 자동 시나리오
+
+--------------------------------------------------------------------------
+조사 결과 (요청된 3단계)
+1. docImage · placed 사용 위치(수정 전 기준): app.jsx 상태 선언(168-173) · saveState 이펙트(188-189)
+   · autosaveDataRef(196-197) · saveDoc()(216-223) · store 객체(226-235) · DocsScreen.onOpen(255)
+   · 복원 다이얼로그 onConfirm(272-280)
+2. EditorScreen 페이지 표시 코드: appbar appsub 하드코딩 "1 / 1 페이지"(editor.jsx:569)
+   · onMenu의 'addpage'가 showToast만 호출하는 미구현 상태(398) · 캔버스 렌더 삼항식(608-610,
+   docMode 기준 이미지/샘플 분기) · PDF 저장 로직 2곳(ShareSheet save 분기, 툴바 저장 확인 다이얼로그)
+   모두 pageRef.current 단일 캡처만 수행
+3. 영향 범위/설계: docMode/docImage/placed를 pages[currentPage]에서 파생되는 값으로 재정의하고
+   setDocMode/setDocImage/setPlaced를 "현재 페이지 갱신" 세터로 재구성하면 pushHistory/undo/redo/
+   saveDoc/autosave 등 기존 로직은 변수명이 동일해 무수정으로 호환됨을 확인. 단, "새 문서 로드" 성격의
+   4개 지점(loadSample/loadImage/DocsScreen.onOpen/복원 다이얼로그 onConfirm)은 pages를 1페이지로
+   리셋해야 기존 1페이지 동작과 동일하게 보장됨. EditorScreen에는 pages/currentPage/setCurrentPage/
+   addPage를 store로 추가 전달 필요.
+
+--------------------------------------------------------------------------
+구현 내용
+[app.jsx]
+- pages: [{docMode, docImage, placed}] 배열 상태 도입, currentPage 인덱스 상태 추가
+- 레거시 localStorage(docImage/placed 단일 필드)를 pages[0]으로 자동 마이그레이션(하위 호환)
+- docMode/docImage/placed는 pages[currentPage]에서 파생되는 읽기 전용 값으로 재정의
+- setPlaced를 "현재 페이지의 placed만 갱신"하는 세터로 재구성 (setDocMode/setDocImage는 아래
+  4개 지점에서 pages를 직접 리셋하는 방식으로 대체되어 미사용 → 삭제, oxlint 확인 완료)
+- addPage(): pages 배열에 {docMode:'blank', docImage:null, placed:[]} 추가
+- loadSample / loadImage / DocsScreen.onOpen / 자동저장 복원 다이얼로그 onConfirm: 새 문서 로드
+  시점에 pages를 [단일 페이지]로 리셋 + currentPage=0으로 초기화 (다중 페이지 잔존 방지)
+- saveState 저장 필드에서 docMode/docImage/placed 제거, pages/currentPage로 대체
+- store에 pages, currentPage, setCurrentPage, addPage 추가 전달
+
+[editor.jsx]
+- appbar appsub: "{currentPage+1} / {pages.length} 페이지 · 도장 {placed.length}개"로 동적 표시,
+  클릭 시 다음 페이지로 순환 전환 (pages.length>1일 때만 클릭 가능하도록 커서 스타일 처리)
+- onMenu 'addpage': store.addPage() 호출 + 실제 페이지 수를 반영한 토스트로 교체
+- 캔버스 렌더: docMode==='blank'일 때 SampleCertificate/이미지 모두 렌더링하지 않는 분기 추가
+  (신규 페이지 = 완전히 빈 캔버스)
+- capturePageCanvas() 헬퍼 추가 (rAF 대기 + html2canvas 공통화)
+- buildPdfAllPages() 헬퍼 추가: currentPage를 순회하며 각 페이지를 렌더링 상태로 전환 → 캡처 →
+  jsPDF에 addPage()로 순서대로 삽입, 완료 후 원래 보던 페이지로 복귀
+- PDF 저장 경로 2곳(ShareSheet 저장, 툴바 저장 확인 다이얼로그)을 buildPdfAllPages() 사용으로 교체
+  (PNG/JPG 저장은 기존과 동일하게 현재 페이지 단일 캡처 — 이미지 포맷 특성상 정상 동작)
+- 기존 UI(툴스트립, 다이얼로그, 시트 등) 구조는 변경하지 않음
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (222 modules) — 신규 에러 없음
+- npx oxlint src/app.jsx src/editor.jsx: 신규 warning 없음 (기존 catch(e){}/exhaustive-deps
+  경고만 잔존, setDocMode/setDocImage 미사용 경고는 삭제로 해소)
+
+--------------------------------------------------------------------------
+Playwright 자동 시나리오 (chromium, viewport 420x900, localhost:5173)
+스크립트: test-results/scripts/phase4-2-playwright-test.mjs
+
+1. 샘플 서류 로드 + 도장 1개 배치
+   결과: ✅ PASS — pages 배열 길이 1, currentPage 0, appsub "1 / 1 페이지 · 도장 1개"
+
+2. 오버플로우 메뉴 → "페이지 추가"
+   결과: ✅ PASS
+   pages 배열 길이: 1 → 2
+   currentPage: 0 (그대로 유지 — 추가 직후에도 1페이지를 계속 보고 있음)
+   appsub: "1 / 2 페이지 · 도장 1개"
+   토스트: "페이지를 추가했습니다. (2페이지)"
+   스크린샷: phase4-2-multipage.png
+
+3. 앱바 "1 / 2 페이지" 클릭 → 페이지 전환
+   결과: ✅ PASS
+   currentPage: 0 → 1
+   appsub: "2 / 2 페이지 · 도장 0개"
+   pages[1].docMode: "blank"
+   캔버스 내 SampleCertificate/표(table) 요소 개수: 0, 업로드 이미지(.doc-img) 개수: 0
+   → 완전히 빈 캔버스로 렌더링됨 확인
+   스크린샷: phase4-2-page2.png
+
+4. 다시 클릭(순환) → 1페이지로 복귀
+   결과: ✅ PASS — appsub "1 / 2 페이지 · 도장 1개" (1페이지 내용 그대로 보존)
+
+5. 툴바 저장(기본 형식 PDF) → 전체 pages 포함 여부
+   결과: ✅ PASS
+   토스트: "저장했습니다 · PDF (2페이지)" — buildPdfAllPages()가 pages.length(2)를 순회하며
+   jsPDF doc.addPage()로 2페이지 모두 캡처·삽입한 뒤 저장 완료, 저장 후 원래 보던 페이지(1페이지)로
+   자동 복귀함을 코드/토스트로 확인
+
+pageErrors: 0건 (전 시나리오)
+
+--------------------------------------------------------------------------
+하위 호환성
+- 기존 localStorage(docstamp_v2)에 pages 필드가 없는 구버전 데이터는 app.jsx 로드 시
+  {docMode: init.docMode, docImage: init.docImage, placed: init.placed} 형태로 pages[0]에
+  자동 마이그레이션되어 기존 1페이지 문서가 그대로 복원됨 (코드 검토로 확인, 로직 상 안전)
+- 도장 보관함/자동저장/서류함(docs) 등 기존 기능은 모두 "현재 페이지" 기준으로 계속 동작하며
+  회귀 없음 (Playwright 콘솔 pageerror 0건으로 교차 확인)
+
+--------------------------------------------------------------------------
+종합 결과: 전 항목 PASS. pages 배열 길이 1 → 2, currentPage 0 ↔ 1 정상 전환.

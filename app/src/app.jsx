@@ -165,12 +165,20 @@ function App() {
 
   const init = loadState();
   const [screen, setScreen] = useS(init.screen || 'capture');
-  const [docMode, setDocMode] = useS(init.docMode || 'sample');
-  const [docImage, setDocImage] = useS(init.docImage || null);
+  const initialPages = init.pages && init.pages.length
+    ? init.pages
+    : [{ docMode: init.docMode || 'sample', docImage: init.docImage || null, placed: init.placed || [] }];
+  const [pages, setPages] = useS(initialPages);
+  const [currentPage, setCurrentPage] = useS(init.currentPage || 0);
+  const curPage = pages[currentPage] || pages[0];
+  const docMode = curPage.docMode;
+  const docImage = curPage.docImage;
+  const placed = curPage.placed;
+  const setPlaced = (v) => setPages((ps) => ps.map((p, i) => i === currentPage ? { ...p, placed: typeof v === 'function' ? v(p.placed) : v } : p));
+  const addPage = () => setPages((ps) => [...ps, { docMode: 'blank', docImage: null, placed: [] }]);
   const [docName, setDocName] = useS(init.docName || '재직증명서');
   const [docs, setDocs] = useS(init.docs || []);
   const [library, setLibrary] = useS(init.library || SAMPLE_LIBRARY);
-  const [placed, setPlaced] = useS(init.placed || []);
   const [recent, setRecent] = useS(init.recent || []);
   const [favId, setFavId] = useS(init.favId || null);
   const [settings, setSettings] = useS({ ...DEFAULT_SETTINGS, ...(init.settings || {}) });
@@ -185,8 +193,8 @@ function App() {
 
   const sealInk = SEAL_INKS[settings.ink] || SEAL_INKS['주홍'];
 
-  useE(() => { saveState({ screen, docMode, docImage, docName, docs, library, placed, recent, favId, settings }); },
-    [screen, docMode, docImage, docName, docs, library, placed, recent, favId, settings]);
+  useE(() => { saveState({ screen, pages, currentPage, docName, docs, library, recent, favId, settings }); },
+    [screen, pages, currentPage, docName, docs, library, recent, favId, settings]);
 
   const showToast = (msg) => {
     setToast(msg); clearTimeout(toastT.current);
@@ -211,8 +219,8 @@ function App() {
   const undo = () => { if (!past.length) return; const prev = past[past.length - 1]; setPast((p) => p.slice(0, -1)); setFuture((f) => [placed, ...f]); setPlaced(prev); };
   const redo = () => { if (!future.length) return; const nxt = future[0]; setFuture((f) => f.slice(1)); setPast((p) => [...p, placed]); setPlaced(nxt); };
 
-  const loadSample = () => { setDocMode('sample'); setDocImage(null); setDocName('재직증명서'); setScreen('editor'); };
-  const loadImage = (src, name) => { setDocMode('image'); setDocImage(src); setDocName(name); setScreen('editor'); };
+  const loadSample = () => { setPages([{ docMode: 'sample', docImage: null, placed: [] }]); setCurrentPage(0); setDocName('재직증명서'); setScreen('editor'); };
+  const loadImage = (src, name) => { setPages([{ docMode: 'image', docImage: src, placed: [] }]); setCurrentPage(0); setDocName(name); setScreen('editor'); };
   const saveDoc = (thumbnail) => {
     setDocs((d) => {
       const idx = d.findIndex((x) => x.name === docName);
@@ -224,6 +232,7 @@ function App() {
 
   const store = {
     docMode, docImage, docName, setDocName,
+    pages, currentPage, setCurrentPage, addPage,
     library, addStamp: (s) => setLibrary((l) => [...l, s]),
     recent, pushRecent: (id) => setRecent((r) => [id, ...r.filter((x) => x !== id)].slice(0, 6)),
     placed, setPlacedLive: setPlaced, pushHistory, undo, redo,
@@ -252,7 +261,12 @@ function App() {
     );
     if (screen === 'docs') return (
       <DocsScreen docs={docs} onBack={() => setScreen('capture')}
-        onOpen={(doc) => { setDocMode(doc.docMode); setDocImage(doc.docImage); setDocName(doc.name); setPlaced(doc.placed || []); setScreen('editor'); }} />
+        onOpen={(doc) => {
+          setPages([{ docMode: doc.docMode, docImage: doc.docImage, placed: doc.placed || [] }]);
+          setCurrentPage(0);
+          setDocName(doc.name);
+          setScreen('editor');
+        }} />
     );
     if (screen === 'help') return <HelpScreen onBack={() => setScreen('capture')} />;
     return <EditorScreen store={store} />;
@@ -273,10 +287,9 @@ function App() {
               body="자동 저장된 작업 내용이 있습니다." confirmLabel="복원"
               onConfirm={() => {
                 restoreConfirmedRef.current = true;
-                setDocMode(restorePrompt.docImage ? 'image' : 'sample');
-                setDocImage(restorePrompt.docImage || null);
+                setPages([{ docMode: restorePrompt.docImage ? 'image' : 'sample', docImage: restorePrompt.docImage || null, placed: restorePrompt.placed || [] }]);
+                setCurrentPage(0);
                 setDocName(restorePrompt.docName || docName);
-                setPlaced(restorePrompt.placed || []);
                 setScreen('editor');
               }}
               onClose={() => {
