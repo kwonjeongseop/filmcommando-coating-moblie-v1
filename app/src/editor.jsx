@@ -414,6 +414,8 @@ function EditorScreen({ store }) {
   const [menu, setMenu] = useState(false);
   const [prompt, setPrompt] = useState(null);       // 'rename' | 'saveas'
   const [confirm, setConfirm] = useState(null);      // {key,...}
+  const [saveFmt, setSaveFmt] = useState(settings.format);
+  const [fmtPick, setFmtPick] = useState(false);      // 툴바 저장 버튼용 형식 선택 다이얼로그
   const [placing, setPlacing] = useState(null);
   const [ghost, setGhost] = useState(null);
   const [sel, setSel] = useState(null);
@@ -621,8 +623,15 @@ function EditorScreen({ store }) {
     return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
   };
   const saveNativeFile = async (dataUrl, filename) => {
-    const base64 = dataUrl.split(',')[1];
-    await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Documents, recursive: true });
+    try {
+      const base64 = dataUrl.split(',')[1];
+      await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Documents, recursive: true });
+      const listing = await Filesystem.readdir({ path: '', directory: Directory.Documents });
+      const exists = listing.files.some((f) => f.name === filename);
+      showToast((exists ? '✅ ' : '⚠️ ') + '문서 폴더에 저장되었습니다\n' + filename + (exists ? '' : ' (저장 확인 실패 — 다시 시도해 주세요)'));
+    } catch (e) {
+      showToast('저장 실패 — 저장소 권한을 확인해 주세요');
+    }
   };
 
   const onShareAction = (k, fmt) => {
@@ -635,12 +644,7 @@ function EditorScreen({ store }) {
           const doc = await buildPdfAllPages();
           if (prevSel) setSel(prevSel);
           if (Capacitor.isNativePlatform()) {
-            try {
-              await saveNativeFile(doc.output('datauristring'), `dojang-${saveTimestamp()}.pdf`);
-              showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
-            } catch (e) {
-              showToast('저장 실패: ' + (e && e.message || e));
-            }
+            await saveNativeFile(doc.output('datauristring'), `dojang-${saveTimestamp()}.pdf`);
             return;
           }
           const url = URL.createObjectURL(doc.output('blob'));
@@ -662,12 +666,7 @@ function EditorScreen({ store }) {
 
         const mime = isJpg ? 'image/jpeg' : 'image/png';
         if (Capacitor.isNativePlatform()) {
-          try {
-            await saveNativeFile(canvas.toDataURL(mime, isJpg ? 0.92 : undefined), `dojang-${saveTimestamp()}.${fmt.toLowerCase()}`);
-            showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
-          } catch (e) {
-            showToast('저장 실패: ' + (e && e.message || e));
-          }
+          await saveNativeFile(canvas.toDataURL(mime, isJpg ? 0.92 : undefined), `dojang-${saveTimestamp()}.${fmt.toLowerCase()}`);
           return;
         }
         canvas.toBlob((blob) => {
@@ -807,7 +806,7 @@ function EditorScreen({ store }) {
         <ToolBtn name="redo" label="다음단계" showLabel={t.toolLabels} disabled={!canRedo} onClick={redo} />
         <ToolBtn name="zoom" label="돋보기" showLabel={t.toolLabels} active={zoomBar} onClick={() => setZoomBar((v) => !v)} />
         <ToolBtn name="preview" label="미리보기" showLabel={t.toolLabels} onClick={() => setPreview(true)} />
-        <ToolBtn name="save" label="저장" showLabel={t.toolLabels} onClick={() => setConfirm({ key: 'save' })} />
+        <ToolBtn name="save" label="저장" showLabel={t.toolLabels} onClick={() => { setSaveFmt(settings.format); setFmtPick(true); }} />
         <ToolBtn name="share" label="공유" showLabel={t.toolLabels} onClick={() => setShare(true)} />
       </div>
 
@@ -874,23 +873,31 @@ function EditorScreen({ store }) {
       <PromptDialog open={prompt === 'saveas'} title="다른 이름으로 저장" hint="사본으로 저장할 이름을 입력하세요."
         initial={docName + ' 사본'} onClose={() => setPrompt(null)}
         onConfirm={(v) => { setDocName(v); showToast('「' + v + '」(으)로 저장했습니다.'); }} />
+      {fmtPick && (
+        <div className="sheet-scrim center" onClick={() => setFmtPick(false)}>
+          <div className="dialog sm" onClick={(e) => e.stopPropagation()}>
+            <div className="cf-title">저장 형식 선택</div>
+            <div className="sheet-actions">
+              {['JPG', 'PNG', 'PDF'].map((f) => (
+                <button key={f} className={'btn ' + (f === saveFmt ? 'solid' : 'ghost')}
+                  onClick={() => { setSaveFmt(f); setFmtPick(false); setConfirm({ key: 'save' }); }}>{f}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <ConfirmDialog open={confirm && confirm.key === 'save'} title="이 서류를 저장할까요?"
-        body={'도장 ' + placed.length + '개가 합쳐져 ' + settings.format + '로 저장됩니다.'} confirmLabel="저장"
+        body={'도장 ' + placed.length + '개가 합쳐져 ' + saveFmt + '로 저장됩니다.'} confirmLabel="저장"
         onClose={() => setConfirm(null)} onConfirm={async () => {
           captureThumb().then((thumb) => saveDoc(thumb));
-          const fmt = settings.format;
+          const fmt = saveFmt;
           if (fmt === 'PDF') {
             const prevSel = sel;
             setSel(null);
             const doc = await buildPdfAllPages();
             if (prevSel) setSel(prevSel);
             if (Capacitor.isNativePlatform()) {
-              try {
-                await saveNativeFile(doc.output('datauristring'), `dojang-${saveTimestamp()}.pdf`);
-                showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
-              } catch (e) {
-                showToast('저장 실패: ' + (e && e.message || e));
-              }
+              await saveNativeFile(doc.output('datauristring'), `dojang-${saveTimestamp()}.pdf`);
               return;
             }
             const url = URL.createObjectURL(doc.output('blob'));
@@ -912,12 +919,7 @@ function EditorScreen({ store }) {
           if (prevSel) setSel(prevSel);
           const mime = isJpg ? 'image/jpeg' : 'image/png';
           if (Capacitor.isNativePlatform()) {
-            try {
-              await saveNativeFile(canvas.toDataURL(mime, isJpg ? 0.92 : undefined), `dojang-${saveTimestamp()}.${fmt.toLowerCase()}`);
-              showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
-            } catch (e) {
-              showToast('저장 실패: ' + (e && e.message || e));
-            }
+            await saveNativeFile(canvas.toDataURL(mime, isJpg ? 0.92 : undefined), `dojang-${saveTimestamp()}.${fmt.toLowerCase()}`);
             return;
           }
           canvas.toBlob((blob) => {

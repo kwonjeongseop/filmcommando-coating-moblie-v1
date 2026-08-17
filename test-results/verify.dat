@@ -219,3 +219,14 @@ APK: filmcommando-coating-moblie-v0.0.4.apk
 크기: 17.23MB (18062998 bytes)
 검증: Pages 배포 2회 성공, 사이트/icon.png 모두 HTTP 200 확인, Playwright 10/10 PASS
 상태: PASS
+
+====================================================================
+[Release v0.0.5]
+빌드일: 2026-08-17
+수정: 자동저장 toast 제거(이슈7) + 저장 위치 안내·readdir 검증(이슈5·6) +
+      툴바 저장 버튼 형식(JPG/PNG/PDF) 선택 다이얼로그 추가(이슈11)
+APK: filmcommando-coating-moblie-v0.0.5.apk
+크기: 17.23MB (18063242 bytes)
+검증: 웹 Playwright 회귀 10/10 PASS + 형식선택 다이얼로그 동작 확인,
+      실기기 Filesystem.readdir로 PDF 형식 선택 저장 결과 확인
+상태: PASS

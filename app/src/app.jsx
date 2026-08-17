@@ -546,7 +546,6 @@ function App() {
       const snap = autosaveDataRef.current;
       try {
         localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ ...snap, savedAt: Date.now() }));
-        showToast('작업이 자동 저장되었습니다 💾');
       } catch (e) {}
     }, 30000);
     return () => clearInterval(id);
