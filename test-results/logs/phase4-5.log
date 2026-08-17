@@ -1,0 +1,67 @@
+Phase 4-5: 수기 도장 제작 기능
+작업 일시: 2026-08-17
+수정 파일: app/src/editor.jsx (AddStampSheet 내 탭 추가 + 드로잉 Canvas 컴포넌트만 외과적 수정)
+검증 방식: vite build, oxlint, Playwright(chromium) 자동 시나리오
+
+--------------------------------------------------------------------------
+구현 내용
+- AddStampSheet의 탭 세그먼트에 "수기로 그리기" 3번째 탭 추가. 기존 "이름으로 만들기"·
+  "촬영·업로드" 탭은 삼항 연산자 → && 조건부 렌더링으로 문법만 바뀌었을 뿐 내용은 무변경
+- 경계선(가이드) 원형/사각형 선택: mini-seg 세그먼트(기존 CSS 클래스 재사용)로 전환,
+  점선(setLineDash) 오버레이 캔버스에만 그려 실제 도장 이미지에는 포함되지 않음
+  (드로잉 레이어와 가이드 레이어를 별도 <canvas> 2장으로 분리 — Phase 4-4 카메라 오버레이와
+  동일한 패턴)
+- Canvas 드로잉: 220×220 고정 크기, pointerdown/move/up으로 자유 드로잉, 선 굵기
+  2/4/6/8px 슬라이더(기존 .rng 클래스), 색상은 sealInk prop(설정의 인주색)을 기본 적용
+- 지우개: 흰색으로 덧칠하는 방식(흰 배경 위에서 지운 자리는 다시 흰 종이처럼 보이고,
+  등록 시 BG_THRESHOLD로 자연스럽게 투명 처리됨)
+- 전체 초기화: 캔버스를 흰색으로 다시 채우고 hasDrawing 상태 리셋
+- 등록("보관함에 등록"): 그린 적이 없으면 버튼 비활성화(disabled={!hasDrawing}, 기존
+  '이름으로 만들기' 탭과 동일 패턴). 등록 시 onFile과 동일한 BG_THRESHOLD(RGB 200) 픽셀
+  분석을 그대로 재사용해 흰 배경을 투명 처리한 뒤 PNG dataURL로 변환, kind='image'로
+  onAdd() 호출(label: '수기 도장')
+
+수정 원칙 준수: editor.jsx의 AddStampSheet 함수 내부만 수정. 새 CSS 클래스는 추가하지
+않고 기존 클래스(.mini-seg, .opt-row, .rng, .btn, .sheet-actions)만 재사용, 캔버스
+레이아웃만 인라인 스타일로 처리. 다른 파일은 전혀 손대지 않음.
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (224 modules) — 신규 에러 없음
+- npx oxlint src/editor.jsx: 신규 react-hooks(exhaustive-deps) 경고 1건(drawGuide 누락) —
+  기존 파일에 이미 존재하던 동일 패턴의 경고(defaults.size/opacity 등)와 같은 성격으로,
+  의도적으로 제한된 deps 배열을 사용하는 기존 코드 스타일과 일관됨
+
+--------------------------------------------------------------------------
+Playwright 자동 시나리오 (chromium, viewport 420x900, localhost:5173)
+스크립트: test-results/scripts/phase4-5-playwright-test.mjs
+
+1. AddStampSheet → "수기로 그리기" 탭 진입, 원형 가이드로 마우스 드래그 드로잉
+   결과: ✅ PASS
+   Canvas 크기: 220×220 (DRAW_SIZE)
+   드로잉 후 흰색이 아닌 픽셀 존재 확인(hasDrawingAfterStroke=true) — 인주색(주홍, #D7402B)
+   선이 실제로 그려짐
+   스크린샷: phase4-5-drawing.png (원형 점선 가이드 + 대각선 스트로크 + 굵기 4px 슬라이더)
+
+2. 사각형 가이드로 전환
+   결과: ✅ PASS
+   가이드만 사각형 점선으로 교체되고 기존에 그린 선은 그대로 유지됨(가이드 레이어와 드로잉
+   레이어가 분리되어 있음을 실증)
+   스크린샷: phase4-5-square.png
+
+3. "보관함에 등록" → library 반영 + StampPopup 그리드 표시
+   결과: ✅ PASS
+   library 배열 길이: 5 → 6
+   등록된 항목: kind='image', label='수기 도장'
+   등록된 도장 dataURL 크기: 3,386 bytes (PNG base64 문자열 길이)
+   등록된 이미지 크기: 220×220 (원본 캔버스 크기 그대로 보존)
+   배경 제거 확인: 전체 48,400픽셀 중 47,746픽셀이 투명(alpha=0) — 흰 배경이 BG_THRESHOLD로
+   정상 제거되고 실제 잉크 스트로크(654픽셀)만 남음
+   스크린샷: phase4-5-registered.png (StampPopup "전체 도장 6" 그리드에 투명 배경의
+   수기 스트로크 카드가 표시되고, "도장이 보관함에 저장되었습니다." 토스트 노출)
+
+pageErrors: 0건 (전 시나리오)
+
+--------------------------------------------------------------------------
+종합 결과: 전 항목 PASS. Canvas 크기 220×220, 등록된 도장 dataURL 크기 3,386 bytes,
+library 배열 길이 5→6.

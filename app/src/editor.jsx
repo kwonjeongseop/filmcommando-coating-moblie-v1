@@ -143,11 +143,92 @@ function StampPopup({ open, onClose, library, recent, sealInk, defaults, onConfi
 }
 
 /* ───────── 새 도장 등록 ───────── */
+const DRAW_SIZE = 220;
+
 function AddStampSheet({ open, onClose, sealInk, onAdd }) {
   const [tab, setTab] = useState('make');
   const [text, setText] = useState('');
   const fileRef = useRef(null);
-  useEffect(() => { if (open) { setTab('make'); setText(''); } }, [open]);
+  const [guideShape, setGuideShape] = useState('circle');
+  const [lineWidth, setLineWidth] = useState(4);
+  const [erasing, setErasing] = useState(false);
+  const [hasDrawing, setHasDrawing] = useState(false);
+  const drawCanvasRef = useRef(null);
+  const guideCanvasRef = useRef(null);
+  const drawingRef = useRef(false);
+  const lastPtRef = useRef(null);
+  useEffect(() => { if (open) { setTab('make'); setText(''); setErasing(false); } }, [open]);
+
+  const initDrawCanvas = () => {
+    const c = drawCanvasRef.current; if (!c) return;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    setHasDrawing(false);
+  };
+  const drawGuide = () => {
+    const c = guideCanvasRef.current; if (!c) return;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 5]);
+    const pad = 10;
+    if (guideShape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(c.width / 2, c.height / 2, c.width / 2 - pad, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(pad, pad, c.width - pad * 2, c.height - pad * 2);
+    }
+  };
+  useEffect(() => { if (open && tab === 'draw') initDrawCanvas(); }, [open, tab]);
+  useEffect(() => { if (open && tab === 'draw') drawGuide(); }, [open, tab, guideShape]);
+
+  const canvasPoint = (e) => {
+    const c = drawCanvasRef.current;
+    const r = c.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (c.width / r.width), y: (e.clientY - r.top) * (c.height / r.height) };
+  };
+  const onDrawPointerDown = (e) => {
+    e.preventDefault();
+    drawingRef.current = true;
+    lastPtRef.current = canvasPoint(e);
+    drawCanvasRef.current.setPointerCapture(e.pointerId);
+  };
+  const onDrawPointerMove = (e) => {
+    if (!drawingRef.current) return;
+    const c = drawCanvasRef.current;
+    const ctx = c.getContext('2d');
+    const pt = canvasPoint(e);
+    ctx.strokeStyle = erasing ? '#ffffff' : sealInk;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(lastPtRef.current.x, lastPtRef.current.y);
+    ctx.lineTo(pt.x, pt.y);
+    ctx.stroke();
+    lastPtRef.current = pt;
+    setHasDrawing(true);
+  };
+  const onDrawPointerUp = () => { drawingRef.current = false; lastPtRef.current = null; };
+
+  const registerDrawing = () => {
+    const srcCanvas = drawCanvasRef.current; if (!srcCanvas) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = srcCanvas.width; canvas.height = srcCanvas.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(srcCanvas, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] >= BG_THRESHOLD && data[i + 1] >= BG_THRESHOLD && data[i + 2] >= BG_THRESHOLD) data[i + 3] = 0;
+    }
+    ctx.putImageData(imageData, 0, 0);
+    onAdd({ id: makeId(), kind: 'image', src: canvas.toDataURL('image/png'), w: 120, label: '수기 도장' });
+    onClose();
+  };
 
   const addSeal = () => {
     const t = text.trim(); if (!t) return;
@@ -183,8 +264,9 @@ function AddStampSheet({ open, onClose, sealInk, onAdd }) {
       <div className="seg">
         <button className={tab === 'make' ? 'on' : ''} onClick={() => setTab('make')}>이름으로 만들기</button>
         <button className={tab === 'up' ? 'on' : ''} onClick={() => setTab('up')}>촬영 · 업로드</button>
+        <button className={tab === 'draw' ? 'on' : ''} onClick={() => setTab('draw')}>수기로 그리기</button>
       </div>
-      {tab === 'make' ? (
+      {tab === 'make' && (
         <div className="add-make">
           <input className="tf" value={text} maxLength={4} placeholder="예) 김민수 (최대 4자)"
             onChange={(e) => setText(e.target.value)} />
@@ -193,7 +275,8 @@ function AddStampSheet({ open, onClose, sealInk, onAdd }) {
           </div>
           <button className="btn solid wide" disabled={!text.trim()} onClick={addSeal}>보관함에 등록</button>
         </div>
-      ) : (
+      )}
+      {tab === 'up' && (
         <div className="add-up">
           <button className="upload-tile" onClick={() => fileRef.current && fileRef.current.click()}>
             <Icon name="camera" size={26} /><span>도장·서명을 촬영하거나<br />갤러리에서 가져오기</span>
@@ -203,6 +286,36 @@ function AddStampSheet({ open, onClose, sealInk, onAdd }) {
             <li>흰 종이에 찍은 도장을 밝은 곳에서 촬영하세요.</li>
             <li>배경이 깨끗할수록 서류에 자연스럽게 겹쳐집니다.</li>
           </ul>
+        </div>
+      )}
+      {tab === 'draw' && (
+        <div className="add-draw">
+          <div className="opt-row">
+            <span className="opt-l">경계선</span>
+            <div className="mini-seg">
+              <button className={guideShape === 'circle' ? 'on' : ''} onClick={() => setGuideShape('circle')}>원형</button>
+              <button className={guideShape === 'square' ? 'on' : ''} onClick={() => setGuideShape('square')}>사각형</button>
+            </div>
+          </div>
+          <div style={{ position: 'relative', width: DRAW_SIZE, height: DRAW_SIZE, margin: '10px auto' }}>
+            <canvas ref={drawCanvasRef} width={DRAW_SIZE} height={DRAW_SIZE}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 12, touchAction: 'none', border: '1px solid var(--line)' }}
+              onPointerDown={onDrawPointerDown} onPointerMove={onDrawPointerMove}
+              onPointerUp={onDrawPointerUp} onPointerLeave={onDrawPointerUp} />
+            <canvas ref={guideCanvasRef} width={DRAW_SIZE} height={DRAW_SIZE}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />
+          </div>
+          <div className="opt-row">
+            <span className="opt-l">굵기</span>
+            <input className="rng" type="range" min="2" max="8" step="2" value={lineWidth}
+              onChange={(e) => setLineWidth(+e.target.value)} />
+            <span className="opt-v">{lineWidth}px</span>
+          </div>
+          <div className="sheet-actions">
+            <button className="btn ghost" onClick={() => setErasing((v) => !v)}>{erasing ? '지우개 사용중' : '지우개'}</button>
+            <button className="btn ghost" onClick={initDrawCanvas}><Icon name="trash" size={16} />전체 초기화</button>
+          </div>
+          <button className="btn solid wide" disabled={!hasDrawing} onClick={registerDrawing}>보관함에 등록</button>
         </div>
       )}
     </Sheet>
