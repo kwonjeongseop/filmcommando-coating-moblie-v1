@@ -230,3 +230,15 @@ APK: filmcommando-coating-moblie-v0.0.5.apk
 검증: 웹 Playwright 회귀 10/10 PASS + 형식선택 다이얼로그 동작 확인,
       실기기 Filesystem.readdir로 PDF 형식 선택 저장 결과 확인
 상태: PASS
+
+====================================================================
+[Release v0.0.6]
+빌드일: 2026-08-17
+수정: 도장 초기크기 축소(scale 0.6) · 카카오/SMS/메일 네이티브 공유(Share.share 통합) ·
+      카메라 문서영역 드래그 보정 · 스캔(흑백고대비) PDF 저장 · 촬영·업로드 후 편집화면
+      (밝기·대비·회전·자르기)
+APK: filmcommando-coating-moblie-v0.0.6.apk
+크기: 17.23MB (18065228 bytes)
+검증: 실기기(CDP) 6개 핵심 항목 전부 PASS(편집화면 진입·회전치수·에디터진입·도장크기·
+      회전핸들부재·스캔PDF저장), 웹 Playwright 회귀 10/10 PASS
+상태: PASS

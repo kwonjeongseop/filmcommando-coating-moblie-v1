@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { Icon, StampVisual, SealVisual, makeId, SampleCertificate } from './visuals.jsx';
 import { OverflowMenu, StampContextMenu, PromptDialog, ConfirmDialog } from './menus.jsx';
 
@@ -468,6 +469,56 @@ function EditorScreen({ store }) {
     if (switched) setCurrentPage(originalPage);
     return doc;
   };
+  // 그레이스케일 변환 + 적응형 임계값(블록 평균 대비 C만큼 어두우면 검정)으로 흑백 고대비 스캔 이미지를 만든다.
+  const toScanCanvas = (canvas) => {
+    const w = canvas.width, h = canvas.height;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    const gray = new Uint8ClampedArray(w * h);
+    for (let i = 0, p = 0; i < d.length; i += 4, p++) gray[p] = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
+    const BLOCK = 15, C = 8, half = BLOCK >> 1;
+    const integral = new Float64Array((w + 1) * (h + 1));
+    for (let y = 0; y < h; y++) {
+      let rowSum = 0;
+      for (let x = 0; x < w; x++) {
+        rowSum += gray[y * w + x];
+        integral[(y + 1) * (w + 1) + (x + 1)] = integral[y * (w + 1) + (x + 1)] + rowSum;
+      }
+    }
+    const sumRect = (x0, y0, x1, y1) => integral[y1 * (w + 1) + x1] - integral[y0 * (w + 1) + x1] - integral[y1 * (w + 1) + x0] + integral[y0 * (w + 1) + x0];
+    for (let y = 0; y < h; y++) {
+      const y0 = Math.max(0, y - half), y1 = Math.min(h, y + half + 1);
+      for (let x = 0; x < w; x++) {
+        const x0 = Math.max(0, x - half), x1 = Math.min(w, x + half + 1);
+        const mean = sumRect(x0, y0, x1, y1) / ((x1 - x0) * (y1 - y0));
+        const v = gray[y * w + x] < mean - C ? 0 : 255;
+        const i = (y * w + x) * 4;
+        d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return canvas;
+  };
+  const buildScanPdf = async () => {
+    const originalPage = currentPage;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    let switched = false;
+    for (let i = 0; i < pages.length; i++) {
+      if (i !== originalPage) { setCurrentPage(i); switched = true; await new Promise((r) => requestAnimationFrame(r)); }
+      const canvas = await capturePageCanvas('#ffffff');
+      toScanCanvas(canvas);
+      const imgData = canvas.toDataURL('image/png');
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+      const w = canvas.width * ratio, h = canvas.height * ratio;
+      if (i > 0) doc.addPage();
+      doc.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+    }
+    if (switched) setCurrentPage(originalPage);
+    return doc;
+  };
   const pctFromEvent = (e) => {
     const r = pageRef.current.getBoundingClientRect();
     return { x: clamp(((e.clientX - r.left) / r.width) * 100, 0, 100), y: clamp(((e.clientY - r.top) / r.height) * 100, 0, 100) };
@@ -687,38 +738,52 @@ function EditorScreen({ store }) {
           showToast('카카오톡 앱 연동 필요');
         }
       };
+      if (Capacitor.isNativePlatform()) {
+        // Kakao JS SDK는 네이티브 WebView의 origin(https://localhost)이 Kakao 서버의
+        // 도메인 검증을 통과할 수 없어 항상 401을 반환한다(도메인 등록·link URL 수정으로도 해결 불가,
+        // 실기기 재현으로 확정). 네이티브에서는 OS 공유 시트를 통해 카카오톡으로 직접 전달한다.
+        Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle: '카카오톡으로 공유' })
+          .then(() => showToast('카카오톡으로 보냈습니다 · ' + fmt))
+          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        return;
+      }
       const Kakao = window.Kakao;
       if (!Kakao) { webShareFallback(); return; }
       try {
         if (!Kakao.isInitialized()) Kakao.init('2b967bd314af9eec81b66c4342bb3856');
-        (async () => {
-          // 카카오 공유 카드 미리보기 이미지는 서류(개인정보 포함 가능) 대신
-          // GitHub Pages에 호스팅된 앱 아이콘의 공개 URL을 사용한다 — 서류 이미지를
-          // 익명 공개 호스팅에 업로드하지 않기 위함.
-          const imageUrl = 'https://kwonjeongseop.github.io/filmcommando-coating-moblie-v1/icon.png';
-          console.log('[kakao] 공개 이미지 URL:', imageUrl);
-          Kakao.Share.sendDefault({
-            objectType: 'feed',
-            content: {
-              title: '도장 한 번 — 인증 서류',
-              description: '서류에 도장을 찍어 공유합니다.',
-              imageUrl,
-              link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
-            },
-          });
-          showToast('카카오톡으로 보냈습니다 · ' + fmt);
-        })().catch(() => webShareFallback());
+        Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: '도장 한 번 — 인증 서류',
+            description: '서류에 도장을 찍어 공유합니다.',
+            imageUrl: window.location.origin + '/icon.png',
+            link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+          },
+        });
+        showToast('카카오톡으로 보냈습니다 · ' + fmt);
       } catch (e) {
         webShareFallback();
       }
       return;
     }
     if (k === 'message') {
+      if (Capacitor.isNativePlatform()) {
+        Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle: '공유' })
+          .then(() => showToast('문자로 보냈습니다 · ' + fmt))
+          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        return;
+      }
       window.location.href = 'sms:?body=' + encodeURIComponent(docName + ' 서류 공유');
       showToast('문자로 보냈습니다 · ' + fmt);
       return;
     }
     if (k === 'mail') {
+      if (Capacitor.isNativePlatform()) {
+        Share.share({ title: '도장 한 번 — 인증서류', text: '도장이 찍힌 서류를 공유합니다.', dialogTitle: '공유' })
+          .then(() => showToast('메일로 보냈습니다 · ' + fmt))
+          .catch(() => {}); // 사용자가 공유 시트를 취소한 경우 조용히 무시
+        return;
+      }
       window.location.href = 'mailto:?subject=' + encodeURIComponent(docName) +
         '&body=' + encodeURIComponent(docName + ' 서류를 공유합니다.');
       showToast('메일로 보냈습니다 · ' + fmt);
@@ -869,19 +934,39 @@ function EditorScreen({ store }) {
           <div className="dialog sm" onClick={(e) => e.stopPropagation()}>
             <div className="cf-title">저장 형식 선택</div>
             <div className="sheet-actions">
-              {['JPG', 'PNG', 'PDF'].map((f) => (
+              {['JPG', 'PNG', 'PDF', 'SCAN'].map((f) => (
                 <button key={f} className={'btn ' + (f === saveFmt ? 'solid' : 'ghost')}
-                  onClick={() => { setSaveFmt(f); setFmtPick(false); setConfirm({ key: 'save' }); }}>{f}</button>
+                  onClick={() => { setSaveFmt(f); setFmtPick(false); setConfirm({ key: 'save' }); }}>{f === 'SCAN' ? '스캔(PDF)' : f}</button>
               ))}
             </div>
           </div>
         </div>
       )}
       <ConfirmDialog open={confirm && confirm.key === 'save'} title="이 서류를 저장할까요?"
-        body={'도장 ' + placed.length + '개가 합쳐져 ' + saveFmt + '로 저장됩니다.'} confirmLabel="저장"
+        body={'도장 ' + placed.length + '개가 합쳐져 ' + (saveFmt === 'SCAN' ? '스캔(PDF)' : saveFmt) + '로 저장됩니다.'} confirmLabel="저장"
         onClose={() => setConfirm(null)} onConfirm={async () => {
           captureThumb().then((thumb) => saveDoc(thumb));
           const fmt = saveFmt;
+          if (fmt === 'SCAN') {
+            const prevSel = sel;
+            setSel(null);
+            const doc = await buildScanPdf();
+            if (prevSel) setSel(prevSel);
+            if (Capacitor.isNativePlatform()) {
+              await saveNativeFile(doc.output('datauristring'), `dojang-scan-${saveTimestamp()}.pdf`);
+              return;
+            }
+            const url = URL.createObjectURL(doc.output('blob'));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = docName + '-scan.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('스캔(PDF)으로 저장했습니다' + (pages.length > 1 ? ` (${pages.length}페이지)` : ''));
+            return;
+          }
           if (fmt === 'PDF') {
             const prevSel = sel;
             setSel(null);
