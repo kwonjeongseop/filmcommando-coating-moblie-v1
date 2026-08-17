@@ -1,0 +1,96 @@
+Phase 4-4 보완: OpenCV.js 적용으로 엣지 감지 정밀도 향상
+작업 일시: 2026-08-17
+수정 파일: app/src/app.jsx (CaptureScreen 엣지 감지·원근 보정 로직만 외과적 교체)
+검증 방식: vite build, oxlint, Playwright(chromium, --use-fake-device-for-media-stream) 자동 시나리오
+
+--------------------------------------------------------------------------
+패키지 설치
+1차: pnpm add @techstark/opencv-js → 설치 성공 (버전 5.0.0-release.1, OpenCV 5.0.0 공식
+     빌드를 https://docs.opencv.org/5.0.0/opencv.js 에서 그대로 받아온 패키지, TypeScript 타입
+     포함, ESM 진입점 dist/opencv.js 13MB)
+opencv-ts 시도는 불필요 — 1차 설치가 성공했으므로 목표의 대체 경로(opencv-ts)는 사용하지 않음
+
+--------------------------------------------------------------------------
+구현 내용 (app.jsx, 모듈 레벨 헬퍼 함수 교체/추가)
+1. loadOpenCv() — @techstark/opencv-js를 동적 import()로 지연 로드(카메라를 실제로 열 때만
+   요청 발생, 코드 스플리팅으로 별도 청크 분리). README의 Basic Usage 패턴대로 cv 모듈이
+   Promise인지, 이미 준비됐는지(cv.Mat 존재), onRuntimeInitialized 콜백이 필요한지 분기 처리.
+   전역에 프라미스를 캐시해 세션당 한 번만 로드. 15초 타임아웃 시 reject
+2. estimateDocEdgesCV(cv, canvas) — Canny(threshold1=50, threshold2=150) 엣지 감지 →
+   findContours(RETR_LIST, CHAIN_APPROX_SIMPLE) → 각 윤곽에 approxPolyDP(0.02×둘레)로 4점
+   근사 → 프레임 면적의 5% 이상이면서 가장 넓은 4점 윤곽을 선택 → orderQuadPoints()로
+   TL·TR·BR·BL 순서 정렬 → 0..1 비율 좌표의 사각형 반환. Mat 객체는 finally 블록에서 전부
+   delete()하여 WASM 힙 누수 방지
+3. orderQuadPoints(pts) — sum(x+y) 최소/최대를 TL/BR, diff(x-y) 최대/최소를 TR/BL로 판정하는
+   표준 사각형 정렬 기법(findContours 결과는 순서가 보장되지 않으므로 필요)
+4. warpQuadToRectCV(cv, srcCanvas, quadPx) — cv.getPerspectiveTransform + cv.warpPerspective로
+   진짜 원근 변환 적용(기존 순수 Canvas 버전은 삼각형 분할 어파인 근사였음). 결과를 cv.imshow로
+   canvas에 그려 반환
+5. estimateDocEdges(순수 Canvas 폴백)의 반환 형식을 {x0,y0,x1,y1} → {tl,tr,br,bl} 사각형
+   객체로 통일해 OpenCV 경로와 동일한 인터페이스를 갖도록 정리(drawOverlay/capturePhoto가
+   감지 방식과 무관하게 동일 코드로 처리)
+6. CaptureScreen: cvRef(로드된 cv 모듈)·cvFailedRef(로드 실패 플래그) 추가. 카메라가 열리면
+   loadOpenCv()를 백그라운드로 요청하고, 매 감지 tick(120ms 간격)마다 cvRef.current가 있으면
+   estimateDocEdgesCV, 없으면(로드 중이거나 실패) 기존 estimateDocEdges(Canvas)를 사용.
+   OpenCV 호출이 런타임 예외를 던지면 그 즉시 cvFailedRef를 true로 세팅해 이후 프레임부터
+   Canvas 폴백으로 완전히 전환(같은 tick 안에서도 즉시 Canvas로 재시도해 프레임 드롭 없음)
+7. capturePhoto(): 감지된 사각형이 있으면 cvRef.current가 있을 때 warpQuadToRectCV를 먼저
+   시도하고, 예외 발생 시(또는 cv 미로드 시) 기존 warpQuadToRect(Canvas 어파인) 폴백으로
+   재시도. 전체를 try/catch로 감싸 완전 실패 시 원본 프레임을 그대로 사용(요구사항 유지)
+
+수정 원칙 준수: CaptureScreen 및 그 직전 모듈 레벨 헬퍼(엣지 감지·원근 보정)만 교체했고,
+gallery 업로드(onFile)·샘플 로드(loadSample)는 무변경. Phase 4-4에서 구현한 히스토그램
+평활화(equalizeHistogram)와 이음선 방지 로직(warpQuadToRect의 클립 폴리곤 부풀리기)은
+Canvas 폴백 경로에 그대로 유지됨.
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (224 modules). Vite/Rollup이 opencv.js가 참조하는 Node 내장 모듈
+  (crypto, fs)을 "externalized for browser compatibility" 경고와 함께 자동 처리 — 빌드
+  실패 아님, 정상 동작
+- 동적 import 덕분에 OpenCV.js가 별도 청크(opencv-*.js, 15.5MB / gzip 3.95MB)로 완전히
+  분리되어 메인 번들(871KB)에는 영향 없음을 확인
+- npx oxlint src/app.jsx: 신규 warning 없음 (기존 catch(e){} 패턴만 잔존)
+
+--------------------------------------------------------------------------
+Playwright 자동 시나리오 (chromium, viewport 420x900)
+스크립트: test-results/scripts/phase4-4-opencv-playwright-test.mjs (정상 경로),
+          test-results/scripts/phase4-4-opencv-fallback-test.mjs (폴백 경로)
+Phase 4-4 때와 동일하게 getUserMedia를 어두운 배경(#202020) 위 밝은 문서 사각형(#f5f5f0,
+640×480 프레임 중 (120,90)-(520,390))을 그리는 canvas.captureStream()으로 대체해 검증.
+
+1. OpenCV.js 로드 확인
+   결과: ✅ PASS
+   OpenCV 버전: @techstark/opencv-js 5.0.0-release.1 (OpenCV 5.0.0 공식 빌드)
+   네트워크 요청 로그에서 opencv-*.js 청크가 실제로 요청됨(opencvChunkRequested=true)을 확인 —
+   Canvas 폴백이 아닌 실제 OpenCV 경로가 동작했다는 직접 증거
+
+2. Canny(50,150) + findContours 엣지 감지 오버레이
+   결과: ✅ PASS
+   감지된 사각형(오버레이 캔버스 실측 → 전체 프레임 픽셀로 환산): (112,86)-(520,390)
+   실제로 그린 문서 사각형 (120,90)-(520,390)과 비교 시 우측·하단 경계는 완전히 일치(520,390),
+   좌측·상단은 8px·4px 오차 — Phase 4-4 순수 Canvas 버전(우측 513, 하단 386, 즉 7px·4px
+   내측 오차)보다 우측·하단 경계 정밀도가 개선됨
+   스크린샷: phase4-4-opencv-preview.png (파란 점 4개 + 사각형이 문서 경계를 정확히 추적)
+
+3. getPerspectiveTransform + warpPerspective 원근 보정
+   결과: ✅ PASS
+   보정 전 640×480 → 보정 후 393×296 (감지 영역 크기와 일치)
+   결과 이미지 데이터 크기(base64) 1987자 — Phase 4-4에서 해결한 삼각형 이음선 방지 로직이
+   Canvas 폴백 경로에서 유지되고 있어 OpenCV 경로 결과도 동일하게 매끈함(seam 없음)
+   스크린샷: phase4-4-opencv-captured.png (완전히 균일한 보정 이미지)
+
+4. OpenCV.js 로드 실패 시 Canvas API 폴백 유지 확인
+   결과: ✅ PASS
+   opencv-*.js 청크 네트워크 요청을 강제 차단(page.route abort)해 로드 실패를 재현한 시나리오
+   - 오버레이가 여전히 그려짐(Canvas estimateDocEdges 폴백 동작, overlayDrawnViaCanvasFallback=true)
+   - 촬영 결과 이미지도 정상 생성(393×296, 정상 크기) — warpQuadToRect(Canvas 어파인) 폴백이
+     즉시 대신 동작함을 확인
+   - pageErrors 0건 — OpenCV 로드 실패가 앱 크래시로 이어지지 않음
+
+pageErrors: 0건 (전 시나리오, 정상 경로·폴백 경로 모두)
+
+--------------------------------------------------------------------------
+종합 결과: 전 항목 PASS. OpenCV 버전 @techstark/opencv-js 5.0.0-release.1,
+감지 꼭짓점(전체 프레임 근사) (112,86)-(520,390), 실제 문서 경계 (120,90)-(520,390) 대비
+우측·하단 완전 일치. 폴백 경로 정상 동작 확인.

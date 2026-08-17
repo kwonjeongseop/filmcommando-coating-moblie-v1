@@ -32,7 +32,7 @@ const AUTOSAVE_KEY = 'docstamp_autosave';
 const loadAutosave = () => { try { return JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (e) { return null; } };
 
 /* 밝기 임계값 기반 문서 윤곽(바운딩 박스) 추정 — 다운샘플된 프레임의 그레이스케일 평균보다
-   밝은 픽셀들의 최소·최대 좌표로 문서 사각형을 근사한다. */
+   밝은 픽셀들의 최소·최대 좌표로 문서 사각형을 근사한다. OpenCV.js 미로드/실패 시 폴백으로 쓰인다. */
 function estimateDocEdges(data, w, h) {
   const n = w * h;
   const lum = new Float32Array(n);
@@ -56,7 +56,110 @@ function estimateDocEdges(data, w, h) {
     }
   }
   if (count < n * 0.05 || minX >= maxX || minY >= maxY) return null;
-  return { x0: minX / w, y0: minY / h, x1: maxX / w, y1: maxY / h };
+  const x0 = minX / w, y0 = minY / h, x1 = maxX / w, y1 = maxY / h;
+  return { tl: { x: x0, y: y0 }, tr: { x: x1, y: y0 }, br: { x: x1, y: y1 }, bl: { x: x0, y: y1 } };
+}
+
+/* OpenCV.js(@techstark/opencv-js)를 지연 로드하고 런타임 초기화까지 기다린 뒤 cv 모듈을 반환한다.
+   13MB급 WASM 번들이라 카메라를 실제로 열 때만 동적 import로 불러온다. 로드 실패는 호출부에서
+   catch해 기존 Canvas API 폴백으로 넘어간다. */
+let cvLoadPromise = null;
+function loadOpenCv() {
+  if (!cvLoadPromise) {
+    cvLoadPromise = import('@techstark/opencv-js').then((mod) => new Promise((resolve, reject) => {
+      const cvModule = mod.default;
+      if (cvModule && cvModule.Mat) { resolve(cvModule); return; }
+      if (cvModule instanceof Promise) { cvModule.then(resolve, reject); return; }
+      const timer = setTimeout(() => reject(new Error('OpenCV.js 초기화 타임아웃')), 15000);
+      cvModule.onRuntimeInitialized = () => { clearTimeout(timer); resolve(cvModule); };
+    }));
+  }
+  return cvLoadPromise;
+}
+
+/* sum(x+y) 최소/최대, diff(x-y) 최소/최대로 4점을 TL·TR·BR·BL 순서로 정렬한다
+   (findContours의 approxPolyDP 결과는 순서가 보장되지 않으므로 필요). */
+function orderQuadPoints(pts) {
+  const sums = pts.map((p) => p.x + p.y);
+  const diffs = pts.map((p) => p.x - p.y);
+  return {
+    tl: pts[sums.indexOf(Math.min(...sums))],
+    br: pts[sums.indexOf(Math.max(...sums))],
+    tr: pts[diffs.indexOf(Math.max(...diffs))],
+    bl: pts[diffs.indexOf(Math.min(...diffs))],
+  };
+}
+
+/* OpenCV.js Canny 엣지 감지 + findContours로 가장 큰 사각형(4점 근사) 윤곽을 찾는다.
+   threshold1=50, threshold2=150. 반환은 다운샘플 캔버스 기준 0..1 비율 좌표의 4점 사각형. */
+function estimateDocEdgesCV(cv, canvas) {
+  const src = cv.imread(canvas);
+  const gray = new cv.Mat();
+  const blurred = new cv.Mat();
+  const edges = new cv.Mat();
+  const contours = new cv.MatVector();
+  const hierarchy = new cv.Mat();
+  let bestApprox = null;
+  try {
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+    cv.Canny(blurred, edges, 50, 150);
+    cv.findContours(edges, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+    const minArea = canvas.width * canvas.height * 0.05;
+    let bestArea = 0;
+    for (let i = 0; i < contours.size(); i++) {
+      const cnt = contours.get(i);
+      const peri = cv.arcLength(cnt, true);
+      const approx = new cv.Mat();
+      cv.approxPolyDP(cnt, approx, 0.02 * peri, true);
+      if (approx.rows === 4) {
+        const area = Math.abs(cv.contourArea(approx));
+        if (area > bestArea && area > minArea) {
+          bestArea = area;
+          if (bestApprox) bestApprox.delete();
+          bestApprox = approx.clone();
+        }
+      }
+      approx.delete();
+      cnt.delete();
+    }
+    if (!bestApprox) return null;
+    const pts = [];
+    for (let i = 0; i < 4; i++) pts.push({ x: bestApprox.data32S[i * 2], y: bestApprox.data32S[i * 2 + 1] });
+    const q = orderQuadPoints(pts);
+    const w = canvas.width, h = canvas.height;
+    return {
+      tl: { x: q.tl.x / w, y: q.tl.y / h }, tr: { x: q.tr.x / w, y: q.tr.y / h },
+      br: { x: q.br.x / w, y: q.br.y / h }, bl: { x: q.bl.x / w, y: q.bl.y / h },
+    };
+  } finally {
+    if (bestApprox) bestApprox.delete();
+    src.delete(); gray.delete(); blurred.delete(); edges.delete(); contours.delete(); hierarchy.delete();
+  }
+}
+
+/* OpenCV.js getPerspectiveTransform + warpPerspective로 사각형 4점을 직사각형으로 원근 보정한다.
+   quadPx는 원본(전체 해상도) 픽셀 좌표의 {tl,tr,br,bl}. */
+function warpQuadToRectCV(cv, srcCanvas, quadPx) {
+  const { tl, tr, br, bl } = quadPx;
+  const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+  const outW = Math.round(Math.max(dist(tl, tr), dist(bl, br)));
+  const outH = Math.round(Math.max(dist(tl, bl), dist(tr, br)));
+  if (!outW || !outH || outW < 20 || outH < 20) return null;
+  const src = cv.imread(srcCanvas);
+  const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y]);
+  const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, outW, 0, outW, outH, 0, outH]);
+  const M = cv.getPerspectiveTransform(srcTri, dstTri);
+  const dst = new cv.Mat();
+  try {
+    cv.warpPerspective(src, dst, M, new cv.Size(outW, outH), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = outW; outCanvas.height = outH;
+    cv.imshow(outCanvas, dst);
+    return outCanvas;
+  } finally {
+    src.delete(); srcTri.delete(); dstTri.delete(); M.delete(); dst.delete();
+  }
 }
 
 /* 사각형(quad) 4점을 직사각형으로 매핑하는 원근 보정 근사 — 두 개의 삼각형으로 분할해
@@ -142,6 +245,8 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const streamRef = useR(null);
   const overlayRef = useR(null);
   const boxRef = useR(null);
+  const cvRef = useR(null);
+  const cvFailedRef = useR(false);
   const [cameraOpen, setCameraOpen] = useS(false);
   const onFile = (e) => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
@@ -178,10 +283,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     ctx.clearRect(0, 0, w, h);
     const b = boxRef.current;
     if (!b) return;
-    const pts = [
-      { x: b.x0 * w, y: b.y0 * h }, { x: b.x1 * w, y: b.y0 * h },
-      { x: b.x1 * w, y: b.y1 * h }, { x: b.x0 * w, y: b.y1 * h },
-    ];
+    const pts = [b.tl, b.tr, b.br, b.bl].map((p) => ({ x: p.x * w, y: p.y * h }));
     ctx.strokeStyle = '#2B6CE6';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -193,8 +295,12 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   };
 
   // 카메라가 열려 있는 동안 실시간으로 프레임을 다운샘플해 문서 윤곽을 추정하고 오버레이에 그린다.
+  // OpenCV.js가 로드·초기화되면 Canny+findContours로, 아니면(로드 중·실패) Canvas API 폴백으로 감지한다.
   useE(() => {
     if (!cameraOpen) { boxRef.current = null; return; }
+    if (!cvRef.current && !cvFailedRef.current) {
+      loadOpenCv().then((cv) => { cvRef.current = cv; }).catch(() => { cvFailedRef.current = true; });
+    }
     const AW = 96, AH = 128;
     const analysisCanvas = document.createElement('canvas');
     analysisCanvas.width = AW; analysisCanvas.height = AH;
@@ -207,9 +313,19 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
           lastRun = ts;
           try {
             actx.drawImage(video, 0, 0, AW, AH);
-            const { data } = actx.getImageData(0, 0, AW, AH);
-            boxRef.current = estimateDocEdges(data, AW, AH);
-          } catch (e) { /* 프레임 미준비 등 일시적 오류는 다음 tick에서 재시도 */ }
+            if (cvRef.current) {
+              boxRef.current = estimateDocEdgesCV(cvRef.current, analysisCanvas);
+            } else {
+              const { data } = actx.getImageData(0, 0, AW, AH);
+              boxRef.current = estimateDocEdges(data, AW, AH);
+            }
+          } catch (e) {
+            cvFailedRef.current = true; // OpenCV 런타임 오류 시 이후 프레임부터 Canvas 폴백으로 전환
+            try {
+              const { data } = actx.getImageData(0, 0, AW, AH);
+              boxRef.current = estimateDocEdges(data, AW, AH);
+            } catch (e2) { /* 프레임 미준비 등 일시적 오류는 다음 tick에서 재시도 */ }
+          }
         }
         drawOverlay();
       }
@@ -230,11 +346,16 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     try {
       const b = boxRef.current;
       if (b) {
-        const corners = [
-          { x: b.x0 * vw, y: b.y0 * vh }, { x: b.x1 * vw, y: b.y0 * vh },
-          { x: b.x1 * vw, y: b.y1 * vh }, { x: b.x0 * vw, y: b.y1 * vh },
-        ];
-        const warped = warpQuadToRect(raw, corners);
+        const quadPx = {
+          tl: { x: b.tl.x * vw, y: b.tl.y * vh }, tr: { x: b.tr.x * vw, y: b.tr.y * vh },
+          br: { x: b.br.x * vw, y: b.br.y * vh }, bl: { x: b.bl.x * vw, y: b.bl.y * vh },
+        };
+        let warped = null;
+        if (cvRef.current) {
+          try { warped = warpQuadToRectCV(cvRef.current, raw, quadPx); }
+          catch (e) { warped = null; } // OpenCV 워프 실패 시 Canvas 어파인 폴백으로 재시도
+        }
+        if (!warped) warped = warpQuadToRect(raw, [quadPx.tl, quadPx.tr, quadPx.br, quadPx.bl]);
         if (warped) outCanvas = warped;
       }
       equalizeHistogram(outCanvas);
