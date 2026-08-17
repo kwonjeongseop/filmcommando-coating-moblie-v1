@@ -518,9 +518,6 @@ function EditorScreen({ store }) {
     } else if (d.mode === 'resize') {
       const dist = Math.hypot(e.clientX - d.center.x, e.clientY - d.center.y);
       set((p) => ({ ...p, scale: clamp(d.startScale * (dist / d.startDist), 0.4, 3.2) }));
-    } else if (d.mode === 'rotate') {
-      const ang = Math.atan2(e.clientY - d.center.y, e.clientX - d.center.x);
-      set((p) => ({ ...p, rot: d.startRot + (ang - d.startAngle) * 180 / Math.PI }));
     }
   };
   const onDragUp = () => {
@@ -557,7 +554,7 @@ function EditorScreen({ store }) {
     window.addEventListener('pointerup', onUp);
   };
 
-  // 핀치 투 줌(두 손가락 거리 비율 → scale) + 두 손가락 회전(각도 차이 → rot).
+  // 핀치 투 줌(두 손가락 거리 비율 → scale). 회전 제스처는 제거됨 — rot은 항상 0으로 고정.
   // 단일 포인터 드래그(startBodyDrag)와 별개로 Touch 이벤트의 두 번째 손가락이 닿을 때만 개입한다.
   const onStampTouchStart = (e, id) => {
     if (e.touches.length !== 2) return;
@@ -571,9 +568,7 @@ function EditorScreen({ store }) {
     pinchRef.current = {
       id,
       startDist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY) || 1,
-      startAngle: Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX),
       startScale: inst.scale,
-      startRot: inst.rot,
     };
   };
   const onStampTouchMove = (e) => {
@@ -581,10 +576,8 @@ function EditorScreen({ store }) {
     e.preventDefault();
     const [t0, t1] = e.touches;
     const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
-    const angle = Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX);
     const scale = clamp(pr.startScale * (dist / pr.startDist), 0.4, 3.2);
-    const rot = pr.startRot + (angle - pr.startAngle) * 180 / Math.PI;
-    setPlacedLive((arr) => arr.map((p) => (p.id === pr.id ? { ...p, scale, rot } : p)));
+    setPlacedLive((arr) => arr.map((p) => (p.id === pr.id ? { ...p, scale } : p)));
   };
   const onStampTouchEnd = (e) => {
     if (e.touches.length < 2) pinchRef.current = null;
@@ -775,7 +768,6 @@ function EditorScreen({ store }) {
         {isSel && (
           <React.Fragment>
             <span className="h-del" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); ctxAction('del'); }}><Icon name="close" size={13} sw={2.6} /></span>
-            <span className="h-rot" onPointerDown={(e) => onHandleDown(e, p.id, 'rotate')}><Icon name="rotate" size={13} sw={2.2} /></span>
             <span className="h-res" onPointerDown={(e) => onHandleDown(e, p.id, 'resize')}><Icon name="resize" size={13} sw={2.2} /></span>
             <span className="h-mn" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }}><Icon name="more" size={13} sw={2.4} /></span>
           </React.Fragment>
@@ -855,7 +847,6 @@ function EditorScreen({ store }) {
         <div className="selbar">
           <span className="sb-t">도장 선택됨</span>
           <button onClick={() => ctxAction('dup')}><Icon name="layers" size={17} />복제</button>
-          <button onClick={() => ctxAction('reset')}><Icon name="rotate" size={17} />회전 초기화</button>
           <button className="danger" onClick={() => ctxAction('del')}><Icon name="trash" size={17} />삭제</button>
         </div>
       )}

@@ -59,7 +59,7 @@ test.describe('Phase 4-6: 도장 드래그 · 핀치줌 · 회전', () => {
     expect(after.x).toBeCloseTo(50, 0);
   });
 
-  test('두 손가락 핀치·회전 제스처로 scale과 rot이 함께 변한다', async ({ page, context }) => {
+  test('두 손가락 핀치 제스처로 scale이 변하고 rot은 0으로 고정된다', async ({ page, context }) => {
     await placeStamp(page);
     const placedBox = await page.locator('.placed').boundingBox();
     const c = { x: placedBox.x + placedBox.width / 2, y: placedBox.y + placedBox.height / 2 };
@@ -84,7 +84,7 @@ test.describe('Phase 4-6: 도장 드래그 · 핀치줌 · 회전', () => {
 
     const after = await readPlaced(page);
     expect(after.scale).toBeGreaterThan(before.scale * 2.5); // 20px→60px, 3배 확대 기대
-    expect(Math.abs(after.rot)).toBeGreaterThan(20); // 30도 회전 기대
+    expect(after.rot).toBe(0); // 회전 기능 제거 — 항상 0 고정
   });
 
   test('제스처 이후 되돌리기(undo)로 직전 상태가 복원된다', async ({ page, context }) => {
