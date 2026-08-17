@@ -1,0 +1,18 @@
+v0.0.7 릴리즈 완료 로그
+실행 일시: 2026-08-17
+
+목적: d452159(도장 회전 기능 제거) 커밋이 v0.0.6 릴리즈 APK 빌드 시점에 이미 반영되어
+있었으나, 별도 확인 결과 최신 소스 기준 재빌드로 정합성 재확인 필요 판단 → v0.0.7로 재빌드.
+
+[1단계] Release APK 빌드: BUILD SUCCESSFUL (20초)
+[2단계] 검증: 웹 Playwright 10/10 PASS, 실기기 CDP 4개 핵심 항목 4/4 PASS
+[3단계] verify.dat 갱신 완료
+[4단계] 커밋 bf12e61, 태그 v0.0.7(annotated) 생성 완료
+[5단계] push origin master + v0.0.7 완료
+[6단계] GitHub 릴리즈 게시 완료
+
+APK: filmcommando-coating-moblie-v0.0.7.apk
+크기: 18065228 bytes (17.23MB)
+다운로드 URL: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/download/v0.0.7/filmcommando-coating-moblie-v0.0.7.apk
+
+결과: PASS
