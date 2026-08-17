@@ -175,3 +175,13 @@ git 커밋: d6ca56d
 - test-results\logs\e2e-final.log: 통합 회귀 실행 결과
 ====================================================================
 종합: Phase 0~4-6 전 구간 구현 완료, 로그·스크린샷 산출물 완비, 공식 테스트 스위트 신규 구축.
+
+====================================================================
+[Release v0.0.1]
+빌드일: 2026-08-17
+APK: filmcommando-coating-moblie-v0.0.1.apk
+크기: 16.59MB (17397643 bytes)
+서명: apksigner v2 scheme 검증 통과 (dojang-release.jks, alias dojang)
+검증: 에뮬레이터(emulator-5554) 설치·실행 확인, 스크린샷 test-results\screenshots\release-v0.0.1.png
+상태: PASS
+====================================================================
