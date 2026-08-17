@@ -242,3 +242,14 @@ APK: filmcommando-coating-moblie-v0.0.6.apk
 검증: 실기기(CDP) 6개 핵심 항목 전부 PASS(편집화면 진입·회전치수·에디터진입·도장크기·
       회전핸들부재·스캔PDF저장), 웹 Playwright 회귀 10/10 PASS
 상태: PASS
+
+====================================================================
+[Release v0.0.7]
+빌드일: 2026-08-17
+APK: filmcommando-coating-moblie-v0.0.7.apk
+크기: 17.23MB (18065228 bytes)
+수정: 도장회전제거·크기조정·공유개선·문서스캔·편집기능
+  (d452159 도장 회전 제거 커밋이 v0.0.6 APK에 미반영되었던 것을 포함해 재빌드)
+검증: 웹 Playwright 회귀 10/10 PASS, 실기기 CDP 4개 핵심 항목(h-rot 부재·
+  도장scale 0.6·저장형식 4종·Share 플러그인) 전부 PASS
+상태: PASS
