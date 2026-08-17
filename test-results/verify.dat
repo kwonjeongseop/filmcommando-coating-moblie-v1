@@ -208,3 +208,14 @@ APK: filmcommando-coating-moblie-v0.0.3.apk
       저장 확정 확인. 웹 환경 blob 다운로드 경로 회귀 없음(Playwright 10/10 PASS).
 상태: PASS (문제5 완전 해결, 문제4는 Kakao Developers 콘솔 도메인 등록 후 최종 확인 필요)
 ====================================================================
+
+====================================================================
+[Release v0.0.4]
+빌드일: 2026-08-17
+수정: GitHub Pages 배포 설정(저장소 public 전환 + Actions 기반 자동배포) +
+      카카오 imageUrl을 0x0.st 대신 GitHub Pages 호스팅 앱 아이콘 URL로 교체(보안 개선)
+GitHub Pages: https://kwonjeongseop.github.io/filmcommando-coating-moblie-v1/
+APK: filmcommando-coating-moblie-v0.0.4.apk
+크기: 17.23MB (18062998 bytes)
+검증: Pages 배포 2회 성공, 사이트/icon.png 모두 HTTP 200 확인, Playwright 10/10 PASS
+상태: PASS
