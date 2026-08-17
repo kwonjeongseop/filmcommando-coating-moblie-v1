@@ -417,8 +417,10 @@ function EditorScreen({ store }) {
   const [sel, setSel] = useState(null);
   const [ctx, setCtx] = useState(null);
   const [docRot, setDocRot] = useState(0);
+  const [snapGuides, setSnapGuides] = useState({ x: false, y: false });
   const dragRef = useRef(null);
   const lpRef = useRef(null);
+  const pinchRef = useRef(null);
 
   const stampById = (id) => library.find((s) => s.id === id);
   const captureThumb = async () => {
@@ -496,12 +498,18 @@ function EditorScreen({ store }) {
     window.addEventListener('pointermove', onDragMove);
     window.addEventListener('pointerup', onDragUp);
   };
+  const SNAP_THRESHOLD = 5; // 캔버스 크기 대비 % — 가운데 근접 시 스냅
   const onDragMove = (e) => {
     const d = dragRef.current; if (!d) return;
     const set = (fn) => setPlacedLive((arr) => arr.map((p) => p.id === d.id ? fn(p) : p));
     if (d.mode === 'move') {
-      const x = clamp(((e.clientX - d.rect.left) / d.rect.width) * 100, 0, 100);
-      const y = clamp(((e.clientY - d.rect.top) / d.rect.height) * 100, 0, 100);
+      let x = clamp(((e.clientX - d.rect.left) / d.rect.width) * 100, 0, 100);
+      let y = clamp(((e.clientY - d.rect.top) / d.rect.height) * 100, 0, 100);
+      const snapX = Math.abs(x - 50) < SNAP_THRESHOLD;
+      const snapY = Math.abs(y - 50) < SNAP_THRESHOLD;
+      if (snapX) x = 50;
+      if (snapY) y = 50;
+      setSnapGuides({ x: snapX, y: snapY });
       set((p) => ({ ...p, x, y }));
     } else if (d.mode === 'resize') {
       const dist = Math.hypot(e.clientX - d.center.x, e.clientY - d.center.y);
@@ -513,8 +521,69 @@ function EditorScreen({ store }) {
   };
   const onDragUp = () => {
     dragRef.current = null;
+    setSnapGuides({ x: false, y: false });
     window.removeEventListener('pointermove', onDragMove);
     window.removeEventListener('pointerup', onDragUp);
+  };
+
+  // 도장 본체를 어디든 눌러 바로 드래그 이동 — 작은 이동 임계값을 넘기기 전까지는 탭/롱프레스로
+  // 취급해 기존 선택·컨텍스트메뉴 동작과 충돌하지 않는다. 실제 드래그가 시작되면 기존 핸들
+  // 이동(mode='move')과 동일한 onDragMove 로직(스냅 가이드 포함)을 그대로 재사용한다.
+  const startBodyDrag = (e, id) => {
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const r = pageRef.current.getBoundingClientRect();
+    let dragging = false;
+    const onMove = (ev) => {
+      if (!dragging) {
+        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) < 4) return;
+        dragging = true;
+        clearTimeout(lpRef.current);
+        pushHistory();
+        dragRef.current = { id, mode: 'move', rect: r };
+      }
+      onDragMove(ev);
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      if (dragging) onDragUp(); else dragRef.current = null;
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  // 핀치 투 줌(두 손가락 거리 비율 → scale) + 두 손가락 회전(각도 차이 → rot).
+  // 단일 포인터 드래그(startBodyDrag)와 별개로 Touch 이벤트의 두 번째 손가락이 닿을 때만 개입한다.
+  const onStampTouchStart = (e, id) => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    const inst = placed.find((p) => p.id === id); if (!inst) return;
+    clearTimeout(lpRef.current);
+    if (dragRef.current) { window.removeEventListener('pointermove', onDragMove); window.removeEventListener('pointerup', onDragUp); dragRef.current = null; }
+    pushHistory();
+    setSel(id);
+    const [t0, t1] = e.touches;
+    pinchRef.current = {
+      id,
+      startDist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY) || 1,
+      startAngle: Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX),
+      startScale: inst.scale,
+      startRot: inst.rot,
+    };
+  };
+  const onStampTouchMove = (e) => {
+    const pr = pinchRef.current; if (!pr || e.touches.length !== 2) return;
+    e.preventDefault();
+    const [t0, t1] = e.touches;
+    const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    const angle = Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX);
+    const scale = clamp(pr.startScale * (dist / pr.startDist), 0.4, 3.2);
+    const rot = pr.startRot + (angle - pr.startAngle) * 180 / Math.PI;
+    setPlacedLive((arr) => arr.map((p) => (p.id === pr.id ? { ...p, scale, rot } : p)));
+  };
+  const onStampTouchEnd = (e) => {
+    if (e.touches.length < 2) pinchRef.current = null;
   };
 
   const ctxAction = (k) => {
@@ -664,8 +733,9 @@ function EditorScreen({ store }) {
     const startLP = (e) => {
       if (placing) return;
       clearTimeout(lpRef.current);
-      lpRef.current = setTimeout(() => { setSel(p.id); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }, 520);
-      if (isSel) onHandleDown(e, p.id, 'move');
+      setSel(p.id);
+      lpRef.current = setTimeout(() => { setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }, 520);
+      startBodyDrag(e, p.id); // 핸들 없이 도장 본체 어디든 눌러 바로 드래그 이동 가능(기존 핸들 이동 방식과 병행)
     };
     return (
       <div key={p.id} className={'placed' + (isSel ? ' sel' : '')}
@@ -675,7 +745,10 @@ function EditorScreen({ store }) {
         onContextMenu={(e) => { e.preventDefault(); setSel(p.id); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }}
         onPointerDown={startLP}
         onPointerUp={() => clearTimeout(lpRef.current)}
-        onPointerLeave={() => clearTimeout(lpRef.current)}>
+        onPointerLeave={() => clearTimeout(lpRef.current)}
+        onTouchStart={(e) => onStampTouchStart(e, p.id)}
+        onTouchMove={onStampTouchMove}
+        onTouchEnd={onStampTouchEnd}>
         <StampVisual stamp={stamp} scale={p.scale} />
         {isSel && (
           <React.Fragment>
@@ -741,6 +814,12 @@ function EditorScreen({ store }) {
               ? <img className="doc-img" src={docImage} alt="" draggable={false} />
               : docMode === 'blank' ? null : <SampleCertificate />}
             {placed.map(renderPlaced)}
+            {snapGuides.x && (
+              <div className="snap-guide-v" style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: '#2B6CE6', pointerEvents: 'none' }} />
+            )}
+            {snapGuides.y && (
+              <div className="snap-guide-h" style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, background: '#2B6CE6', pointerEvents: 'none' }} />
+            )}
             {placing && ghost && (
               <div className="stamp-ghost" style={{ left: ghost.x + '%', top: ghost.y + '%', opacity: placing._opts.opacity * 0.75 }}>
                 <StampVisual stamp={{ ...placing, color: placing.kind === 'seal' ? (placing.color || sealInk) : placing.color }} scale={placing._opts.size} />

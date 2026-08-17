@@ -1,0 +1,78 @@
+Phase 4-6: 도장 드래그 이동 고도화
+작업 일시: 2026-08-17
+수정 파일: app/src/editor.jsx (placed 아이템 이벤트 핸들러만 외과적 수정)
+검증 방식: vite build, oxlint, Playwright(chromium, hasTouch + CDP Input.dispatchTouchEvent) 자동 시나리오
+
+--------------------------------------------------------------------------
+구현 내용
+1. startBodyDrag(e, id) 추가 — 도장 본체 어디를 누르든 즉시 드래그 이동 가능. pointerdown
+   시점에는 아무것도 하지 않고, 이동 거리가 4px 임계값을 넘는 순간에만 실제 드래그로 인정해
+   pushHistory() + dragRef 설정 → 이후 프레임은 기존 onDragMove(mode='move') 로직을 그대로
+   재사용. 임계값 이하(단순 탭)면 기존 롱프레스(520ms, 더보기 메뉴) 동작이 그대로 유지됨
+2. startLP(renderPlaced 내부)를 "if(isSel) onHandleDown(...)" 조건부 방식에서
+   startBodyDrag를 항상 호출하는 방식으로 교체 — 이제 선택 여부와 무관하게 본체를 누르는
+   즉시 드래그 이동이 시작됨(요구사항: "핸들 없이 도장 영역 어디든 드래그 가능")
+3. onDragMove의 mode==='move' 분기에 스냅 로직 추가 — 계산된 x·y가 50(캔버스 중앙)에서
+   SNAP_THRESHOLD(5%) 이내면 정확히 50으로 스냅하고 snapGuides state를 갱신, onDragUp에서
+   초기화. .page 내부에 snapGuides.x/y에 따라 파란 세로/가로 가이드라인(1px, #2B6CE6)을
+   조건부 렌더링
+4. onStampTouchStart/Move/End 추가 — Touch 이벤트의 두 번째 손가락이 닿는 순간(터치 2개)에만
+   개입해 핀치(거리 비율 → scale, 0.4~3.2 clamp) + 회전(atan2 각도 차 → rot)을 동시에 계산.
+   진행 중이던 단일 포인터 드래그(dragRef)가 있으면 즉시 취소하고 핀치로 전환, 롱프레스도
+   취소. 제스처 시작 시 pushHistory() 1회만 호출(연속 이동은 undo 1건으로 묶임, 기존 핸들
+   드래그와 동일한 정책)
+5. StampVisual 렌더링·핸들 4개(h-del·h-rot·h-res·h-mn)의 onPointerDown 바인딩은 완전히
+   무변경 — onHandleDown 함수 자체도 시그니처·본문 무수정
+
+버그 수정(구현 중 발견): startBodyDrag에 e.preventDefault()가 누락되어 있어 브라우저의
+기본 드래그/선택 동작과 충돌해 pointermove가 의도대로 처리되지 않는 문제를 자체 테스트 중
+발견, 기존 onHandleDown과 동일하게 e.preventDefault() 호출을 추가해 해결 확인.
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (224 modules) — 신규 에러 없음
+- npx oxlint src/editor.jsx: 신규 warning 없음 (기존 catch(e){}/exhaustive-deps 패턴만 잔존)
+
+--------------------------------------------------------------------------
+Playwright 자동 시나리오 (chromium, viewport 420x900, hasTouch:true)
+스크립트: test-results/scripts/phase4-6-playwright-test.mjs
+좌표는 매번 .placed 엘리먼트의 실제 boundingBox()를 다시 조회해 사용(퍼센트 재계산 방식은
+레이아웃 미세 오차로 부정확할 수 있음을 디버깅 중 확인해 이 방식으로 교정).
+
+1. 도장 본체 직접 드래그 이동 (사전 선택 없이)
+   결과: ✅ PASS
+   이동 전 좌표: (x=20.00, y=19.84)
+   이동 후 좌표: (x=75.00, y=39.63)
+   드래그 종료 후 자동 선택 상태 확인(.placed.sel 존재) — 핸들 없이 본체만으로 이동 가능함을
+   실증
+   스크린샷: phase4-6-drag.png
+
+2. 캔버스 중앙 근접 시 스냅 가이드라인
+   결과: ✅ PASS
+   드래그 목표 좌표를 캔버스 중앙(50%,50%) 근처로 이동한 결과, x축은 임계값(5%) 이내로 진입해
+   세로 가이드라인(.snap-guide-v) 표시 및 x가 정확히 50으로 스냅됨. y축은 60.02%로 임계값
+   밖이라 가로 가이드라인은 미표시(.snap-guide-h=false) — 임계값 판정이 축별로 독립적으로
+   정확히 동작함을 확인
+   스냅 후 좌표: (x=50.00, y=60.02)
+   스크린샷: phase4-6-snap.png
+
+3. 핀치 투 줌 + 두 손가락 회전 (CDP Input.dispatchTouchEvent로 실제 2포인트 터치 시뮬레이션)
+   결과: ✅ PASS
+   두 터치 포인트를 도장 중심 기준 좌우 10px(거리 20px)에서 시작해 30px(거리 60px, 3배)로
+   벌리면서 30° 회전시키는 제스처를 재현
+   scale 변화: 1.0 → 2.99999970... (기대값 3.0과 사실상 일치, 부동소수점 오차 범위)
+   rot 변화: 0.0° → 30.00000329...° (기대값 30°와 사실상 일치)
+   스크린샷: phase4-6-pinch.png (도장이 확대·회전된 상태로 서류 위에 표시됨)
+
+4. 기존 Undo 연동 확인
+   결과: ✅ PASS
+   전단계(undo) 버튼 클릭 1회로 직전 핀치 제스처가 정확히 취소되어 스냅 직후 상태
+   (x=50, y=60.02, scale=1, rot=0)로 정확히 복귀함을 확인 — 핀치 제스처가 시작 시점에
+   pushHistory()를 1회만 호출해 undo 스택에 깔끔하게 1건으로 기록됨
+
+pageErrors: 0건 (전 시나리오)
+
+--------------------------------------------------------------------------
+종합 결과: 전 항목 PASS.
+이동: (20.00, 19.84) → (75.00, 39.63) → 스냅 후 (50.00, 60.02)
+scale: 1.0 → 3.0 (핀치), rot: 0° → 30°(회전 제스처)
