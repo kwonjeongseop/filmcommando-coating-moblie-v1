@@ -1,6 +1,6 @@
 /* app.jsx — root: routing, shared state, settings, tweaks, mount */
 import { useState as useS, useEffect as useE, useRef as useR } from 'react';
-import { Icon, SealVisual, SAMPLE_LIBRARY } from './visuals.jsx';
+import { Icon, SealVisual, SAMPLE_LIBRARY, makeId } from './visuals.jsx';
 import { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio, TweakToggle } from './tweaks-panel.jsx';
 import { AndroidDevice } from './android-frame.jsx';
 import { Drawer, SettingsScreen, StampManagerScreen, DocsScreen } from './menus.jsx';
@@ -165,6 +165,7 @@ function App() {
   const [docMode, setDocMode] = useS(init.docMode || 'sample');
   const [docImage, setDocImage] = useS(init.docImage || null);
   const [docName, setDocName] = useS(init.docName || '재직증명서');
+  const [docs, setDocs] = useS(init.docs || []);
   const [library, setLibrary] = useS(init.library || SAMPLE_LIBRARY);
   const [placed, setPlaced] = useS(init.placed || []);
   const [recent, setRecent] = useS(init.recent || []);
@@ -179,8 +180,8 @@ function App() {
 
   const sealInk = SEAL_INKS[settings.ink] || SEAL_INKS['주홍'];
 
-  useE(() => { saveState({ screen, docMode, docImage, docName, library, placed, recent, favId, settings }); },
-    [screen, docMode, docImage, docName, library, placed, recent, favId, settings]);
+  useE(() => { saveState({ screen, docMode, docImage, docName, docs, library, placed, recent, favId, settings }); },
+    [screen, docMode, docImage, docName, docs, library, placed, recent, favId, settings]);
 
   const showToast = (msg) => {
     setToast(msg); clearTimeout(toastT.current);
@@ -193,6 +194,14 @@ function App() {
 
   const loadSample = () => { setDocMode('sample'); setDocImage(null); setDocName('재직증명서'); setScreen('editor'); };
   const loadImage = (src, name) => { setDocMode('image'); setDocImage(src); setDocName(name); setScreen('editor'); };
+  const saveDoc = (thumbnail) => {
+    setDocs((d) => {
+      const idx = d.findIndex((x) => x.name === docName);
+      const entry = { id: idx >= 0 ? d[idx].id : makeId(), name: docName, date: new Date().toISOString(), stampCount: placed.length, thumbnail, docMode, docImage, placed };
+      if (idx >= 0) { const copy = [...d]; copy[idx] = entry; return copy; }
+      return [entry, ...d];
+    });
+  };
 
   const store = {
     docMode, docImage, docName, setDocName,
@@ -203,7 +212,7 @@ function App() {
     goBack: () => setScreen('capture'),
     openDrawer: () => setDrawer(true),
     nav: (k) => setScreen(k),
-    showToast, settings, t: { ...t, sealInk },
+    showToast, settings, t: { ...t, sealInk }, saveDoc,
   };
 
   const vars = {
@@ -222,7 +231,10 @@ function App() {
         onRename={(id, label) => { setLibrary((l) => l.map((s) => s.id === id ? { ...s, label } : s)); showToast('이름을 변경했습니다.'); }}
         onFav={(id) => { setFavId(id); showToast('기본 도장으로 지정했습니다.'); }} />
     );
-    if (screen === 'docs') return <DocsScreen onBack={() => setScreen('capture')} onOpen={() => setScreen('editor')} docName={docName} />;
+    if (screen === 'docs') return (
+      <DocsScreen docs={docs} onBack={() => setScreen('capture')}
+        onOpen={(doc) => { setDocMode(doc.docMode); setDocImage(doc.docImage); setDocName(doc.name); setPlaced(doc.placed || []); setScreen('editor'); }} />
+    );
     if (screen === 'help') return <HelpScreen onBack={() => setScreen('capture')} />;
     return <EditorScreen store={store} />;
   };

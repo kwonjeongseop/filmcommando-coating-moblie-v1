@@ -265,28 +265,39 @@ function StampManagerScreen({ library, onBack, onAdd, onRemove, onRename, favId,
 }
 
 /* ───────────── 내 서류함 화면 ───────────── */
-function DocsScreen({ onBack, onOpen, docName }) {
-  const rows = [
-    { n: docName, d: '방금 · 편집 중', s: '도장 적용', on: true },
-    { n: '위임장_2026.pdf', d: '어제 · 2페이지', s: '완료' },
-    { n: '사업자등록증_스캔.jpg', d: '6월 4일', s: '도장 없음' },
-  ];
+function fmtDocDate(iso) {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function DocsScreen({ docs, onBack, onOpen }) {
   return (
     <div className="sub-screen">
       <div className="appbar">
         <button className="iconbtn" onClick={onBack} aria-label="뒤로"><Icon name="back" size={22} /></button>
-        <div className="appbar-title"><span className="apptitle">내 서류함</span><span className="appsub">{rows.length}건</span></div>
+        <div className="appbar-title"><span className="apptitle">내 서류함</span><span className="appsub">{docs.length}건</span></div>
       </div>
       <div className="st-scroll">
-        <div className="doc-list">
-          {rows.map((r, i) => (
-            <button key={i} className="doc-row" onClick={onOpen}>
-              <span className="doc-thumb"><Icon name="file" size={20} /></span>
-              <span className="doc-meta"><b>{r.n}</b><i>{r.d}</i></span>
-              <span className={'doc-tag' + (r.on ? ' on' : '')}>{r.s}</span>
-            </button>
-          ))}
-        </div>
+        {docs.length ? (
+          <div className="doc-list">
+            {docs.map((d) => (
+              <button key={d.id} className="doc-row" onClick={() => onOpen(d)}>
+                <span className="doc-thumb">
+                  {d.thumbnail
+                    ? <img src={d.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }} />
+                    : <Icon name="file" size={20} />}
+                </span>
+                <span className="doc-meta"><b>{d.name}</b><i>{fmtDocDate(d.date)}</i></span>
+                <span className={'doc-tag' + (d.stampCount ? ' on' : '')}>{d.stampCount ? `도장 ${d.stampCount}개` : '도장 없음'}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="empty">
+            <Icon name="file" size={26} color="#b9c1d0" />
+            <span>저장된 서류가 없습니다</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,65 @@
+Phase 3-3: 내 서류함 실제 데이터 연동
+검증 일시: 2026-08-17
+수정 파일: app/src/app.jsx, app/src/menus.jsx (DocsScreen), app/src/editor.jsx (저장 지점 훅)
+검증 방식: vite build, oxlint, Playwright(chromium) 자동 시나리오
+
+--------------------------------------------------------------------------
+수정 내용 요약
+- app.jsx: docs 상태 추가(init.docs 복원 포함), saveState/useEffect 의존성에 docs 반영,
+  saveDoc(thumbnail) 함수 추가(같은 docName 존재 시 갱신, 없으면 새 항목 선두 추가),
+  store에 saveDoc 전달, DocsScreen 호출부를 docs prop + onOpen(doc) 복원 로직으로 교체
+  (doc.docMode/docImage/name/placed → 각 상태 세팅 후 screen='editor' 이동)
+- menus.jsx: DocsScreen을 목업 3건 배열 대신 docs prop 렌더링으로 교체.
+  기존 doc-row/doc-thumb/doc-meta/doc-tag 클래스는 변경 없이 재사용, 빈 배열 시
+  "저장된 서류가 없습니다" 빈 상태(.empty, 기존 클래스 재사용) 표시
+- editor.jsx: captureThumb() 헬퍼 추가(html2canvas 결과를 100px 폭으로 축소 후 JPEG dataURL 반환).
+  툴바 "저장" 확인 다이얼로그 onConfirm과 공유시트 "저장"(PDF/PNG/JPG 공통 분기) 두 지점 각각에
+  captureThumb().then(thumb => saveDoc(thumb)) 호출을 추가. 기존 다운로드/내보내기 로직은 미변경.
+
+--------------------------------------------------------------------------
+빌드/린트 검증
+- npx vite build: 성공 (222 modules, 1.62s) — 신규 에러 없음
+- npx tsc -b: 기존에도 존재하던 pre-existing 에러(TS7016, main.tsx→app.jsx allowJs 미설정) 그대로,
+  이번 수정으로 인한 신규 에러 아님 (git stash로 원본 상태 재현하여 동일 에러 확인)
+- npx oxlint (app.jsx/menus.jsx/editor.jsx): 신규 warning 없음, 기존 warning(uR 미사용 import,
+  catch(e) 미사용, react-hooks exhaustive-deps)만 그대로 잔존 — 모두 이번 수정 이전부터 존재
+
+--------------------------------------------------------------------------
+Playwright 자동 시나리오 (chromium, viewport 420x900, localhost:5173)
+스크립트: test-results/scripts/phase3-3-playwright-test.mjs
+(playwright는 devDependency로 설치됨 — app/package.json, pnpm-lock.yaml 갱신됨. 브라우저 바이너리는 별도 설치)
+
+1. 캡처 화면 → "재직증명서.jpg" 최근 서류 클릭 → 에디터 진입
+   결과: ✅ PASS (apptitle="재직증명서")
+
+2. 도장 팝업 → "인감 · 김민수" 선택 → 확인 → 캔버스 탭하여 배치
+   결과: ✅ PASS (appsub="1 / 1 페이지 · 도장 1개")
+
+3. 툴바 "저장" → 확인 다이얼로그 "저장" 클릭 (형식: 기본값 PDF)
+   결과: ✅ PASS, 토스트 "저장했습니다 · PDF" 노출
+   docs 배열 길이: 1
+   docs[0].thumbnail 크기: 3851 bytes (base64 디코딩 환산, JPEG quality 0.7, 100px 폭)
+   docs[0].stampCount: 1
+   docs[0].placed.length: 1 (docImage 필드 존재 확인 — 복원용 원본 서류/배치 데이터 보존됨)
+
+4. 드로어 → "내 서류함" 진입
+   결과: ✅ PASS, appsub="1건" (docs.length와 일치)
+   스크린샷: phase3-3-docs.png (썸네일·이름·날짜·"도장 1개" 태그 정상 표시)
+
+5. 서류함 항목 클릭 → EditorScreen 복원
+   결과: ✅ PASS
+   복원된 apptitle: "재직증명서" (저장 시 docName과 일치)
+   복원된 appsub: "1 / 1 페이지 · 도장 1개" (placed 배열 복원 확인)
+   스크린샷: phase3-3-restore.png (배치했던 인감 도장이 서류 위에 동일 위치로 복원됨)
+
+콘솔 로그: pageerror 0건 (html2canvas 디버그 로그만 존재, 런타임 에러 없음)
+
+--------------------------------------------------------------------------
+빈 상태 확인
+docs=[] 초기 상태(신규 브라우저/최초 실행)에서 "내 서류함" 진입 시 .empty 블록으로
+"저장된 서류가 없습니다" 문구가 표시되도록 코드 작성(코드 리뷰로 확인, 별도 스크린샷 없음 —
+요청된 필수 스크린샷 2장(docs/restore)에 포함되지 않는 부가 확인 항목).
+
+--------------------------------------------------------------------------
+종합 결과: 전 항목 PASS. docs 배열 길이 1, thumbnail 3851 bytes.
+git add·commit·push는 본 로그 작성 이후 별도 진행.

@@ -266,7 +266,7 @@ function ShareSheet({ open, onClose, docName, defaults, onAction }) {
 function EditorScreen({ store }) {
   const { docMode, docImage, docName, setDocName, library, addStamp, recent, pushRecent,
     placed, setPlacedLive, pushHistory, undo, redo, canUndo, canRedo,
-    goBack, openDrawer, nav, showToast, settings, t } = store;
+    goBack, openDrawer, nav, showToast, settings, t, saveDoc } = store;
   const sealInk = t.sealInk;
 
   const pageRef = useRef(null);
@@ -288,6 +288,19 @@ function EditorScreen({ store }) {
   const lpRef = useRef(null);
 
   const stampById = (id) => library.find((s) => s.id === id);
+  const captureThumb = async () => {
+    try {
+      const c = await html2canvas(pageRef.current, {
+        backgroundColor: '#ffffff', useCORS: true,
+        onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; },
+      });
+      const tw = 100, th = Math.round(100 * c.height / c.width);
+      const tc = document.createElement('canvas');
+      tc.width = tw; tc.height = th;
+      tc.getContext('2d').drawImage(c, 0, 0, tw, th);
+      return tc.toDataURL('image/jpeg', 0.7);
+    } catch (e) { return null; }
+  };
   const pctFromEvent = (e) => {
     const r = pageRef.current.getBoundingClientRect();
     return { x: clamp(((e.clientX - r.left) / r.width) * 100, 0, 100), y: clamp(((e.clientY - r.top) / r.height) * 100, 0, 100) };
@@ -373,6 +386,7 @@ function EditorScreen({ store }) {
 
   const onShareAction = (k, fmt) => {
     if (k === 'save' && (fmt === 'PDF' || fmt === 'PNG' || fmt === 'JPG')) {
+      captureThumb().then((thumb) => saveDoc(thumb));
       (async () => {
         const prevSel = sel;
         setSel(null); // hide selection outline/handles while capturing so they aren't baked into the export
@@ -610,6 +624,7 @@ function EditorScreen({ store }) {
       <ConfirmDialog open={confirm && confirm.key === 'save'} title="이 서류를 저장할까요?"
         body={'도장 ' + placed.length + '개가 합쳐져 ' + settings.format + '로 저장됩니다.'} confirmLabel="저장"
         onClose={() => setConfirm(null)} onConfirm={async () => {
+          captureThumb().then((thumb) => saveDoc(thumb));
           const fmt = settings.format;
           if (fmt !== 'PNG' && fmt !== 'JPG') { showToast('저장했습니다 · ' + fmt); return; }
           const isJpg = fmt === 'JPG';
