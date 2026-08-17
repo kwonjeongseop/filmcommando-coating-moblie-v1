@@ -105,8 +105,8 @@ WARNING: Using flatDir should be avoided because it doesn't support any meta-dat
 > Task :capacitor-android:writeReleaseAarMetadata UP-TO-DATE
 > Task :capacitor-camera:writeReleaseAarMetadata UP-TO-DATE
 > Task :capacitor-filesystem:writeReleaseAarMetadata UP-TO-DATE
-> Task :capacitor-haptics:writeReleaseAarMetadata UP-TO-DATE
 > Task :capacitor-cordova-android-plugins:writeReleaseAarMetadata
+> Task :capacitor-haptics:writeReleaseAarMetadata UP-TO-DATE
 > Task :capacitor-share:writeReleaseAarMetadata UP-TO-DATE
 > Task :capacitor-cordova-android-plugins:generateReleaseRFile
 > Task :app:checkReleaseAarMetadata UP-TO-DATE
@@ -136,8 +136,8 @@ WARNING: Using flatDir should be avoided because it doesn't support any meta-dat
 > Task :capacitor-android:compileReleaseLibraryResources UP-TO-DATE
 > Task :capacitor-camera:compileReleaseLibraryResources UP-TO-DATE
 > Task :capacitor-filesystem:compileReleaseLibraryResources UP-TO-DATE
-> Task :capacitor-cordova-android-plugins:compileReleaseLibraryResources
 > Task :capacitor-haptics:compileReleaseLibraryResources UP-TO-DATE
+> Task :capacitor-cordova-android-plugins:compileReleaseLibraryResources
 > Task :capacitor-share:compileReleaseLibraryResources UP-TO-DATE
 > Task :capacitor-camera:bundleLibCompileToJarRelease UP-TO-DATE
 > Task :capacitor-filesystem:bundleLibCompileToJarRelease UP-TO-DATE
@@ -189,25 +189,18 @@ WARNING: Using flatDir should be avoided because it doesn't support any meta-dat
 > Task :capacitor-share:mergeReleaseShaders UP-TO-DATE
 > Task :capacitor-share:compileReleaseShaders NO-SOURCE
 > Task :capacitor-share:generateReleaseAssets UP-TO-DATE
-> Task :app:processReleaseManifestForPackage
 > Task :capacitor-share:mergeReleaseAssets UP-TO-DATE
-> Task :app:processReleaseResources
 > Task :app:mergeReleaseAssets
-> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
-> Task :app:dexBuilderRelease UP-TO-DATE
-> Task :app:mergeDexRelease UP-TO-DATE
-> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
-> Task :app:compileReleaseArtProfile UP-TO-DATE
 > Task :app:extractReleaseVersionControlInfo UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :capacitor-android:processReleaseJavaRes NO-SOURCE
 > Task :capacitor-android:createFullJarRelease UP-TO-DATE
 > Task :capacitor-android:extractProguardFiles UP-TO-DATE
+> Task :app:compressReleaseAssets
 > Task :capacitor-android:generateReleaseLintModel UP-TO-DATE
 > Task :capacitor-android:prepareLintJarForPublish UP-TO-DATE
 > Task :capacitor-camera:processReleaseJavaRes UP-TO-DATE
 > Task :capacitor-camera:createFullJarRelease UP-TO-DATE
-> Task :app:compressReleaseAssets
 > Task :capacitor-camera:extractProguardFiles UP-TO-DATE
 > Task :capacitor-camera:generateReleaseLintModel UP-TO-DATE
 > Task :capacitor-camera:prepareLintJarForPublish UP-TO-DATE
@@ -231,7 +224,6 @@ WARNING: Using flatDir should be avoided because it doesn't support any meta-dat
 > Task :capacitor-share:extractProguardFiles UP-TO-DATE
 > Task :capacitor-share:generateReleaseLintModel UP-TO-DATE
 > Task :capacitor-share:prepareLintJarForPublish UP-TO-DATE
-> Task :app:generateReleaseLintVitalReportModel
 > Task :capacitor-camera:checkReleaseAarMetadata UP-TO-DATE
 > Task :capacitor-camera:stripReleaseDebugSymbols NO-SOURCE
 > Task :capacitor-camera:copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
@@ -282,6 +274,7 @@ WARNING: Using flatDir should be avoided because it doesn't support any meta-dat
 > Task :capacitor-android:mergeReleaseJavaResource UP-TO-DATE
 > Task :capacitor-android:syncReleaseLibJars UP-TO-DATE
 > Task :capacitor-android:bundleReleaseLocalLintAar UP-TO-DATE
+> Task :app:processReleaseManifestForPackage
 > Task :capacitor-cordova-android-plugins:stripReleaseDebugSymbols NO-SOURCE
 > Task :capacitor-cordova-android-plugins:copyReleaseJniLibsProjectAndLocalJars
 > Task :capacitor-cordova-android-plugins:extractDeepLinksForAarRelease UP-TO-DATE
@@ -328,7 +321,14 @@ WARNING: Using flatDir should be avoided because it doesn't support any meta-dat
 > Task :capacitor-camera:assembleRelease UP-TO-DATE
 > Task :capacitor-cordova-android-plugins:bundleReleaseAar
 > Task :capacitor-cordova-android-plugins:mapReleaseSourceSetPaths
+> Task :app:processReleaseResources
 > Task :capacitor-cordova-android-plugins:mergeReleaseResources
+> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :app:dexBuilderRelease UP-TO-DATE
+> Task :app:mergeDexRelease UP-TO-DATE
+> Task :app:mergeReleaseGlobalSynthetics UP-TO-DATE
+> Task :app:compileReleaseArtProfile UP-TO-DATE
+> Task :app:generateReleaseLintVitalReportModel
 > Task :capacitor-filesystem:bundleReleaseAar UP-TO-DATE
 > Task :capacitor-filesystem:mapReleaseSourceSetPaths UP-TO-DATE
 > Task :capacitor-filesystem:mergeReleaseResources UP-TO-DATE
@@ -363,31 +363,35 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 
 For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD SUCCESSFUL in 26s
+BUILD SUCCESSFUL in 22s
 290 actionable tasks: 48 executed, 242 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html
 
 ────────────────────────────────────────
-[검증 v0.0.2] 2026-08-17
+[검증 v0.0.3] 2026-08-17
 ────────────────────────────────────────
-APK: filmcommando-coating-moblie-v0.0.2.apk
+APK: filmcommando-coating-moblie-v0.0.3.apk (17.18MB, 18008734 bytes)
 서명: apksigner v2 scheme 검증 통과
-수정1 카메라 네이티브 연동: 에뮬레이터에서 "카메라로 촬영" 탭 → Android 시스템 CAMERA 권한 다이얼로그
-  ("Allow 도장 한 번 to take pictures and record video?") 정상 표시 → 허용 시 실제 네이티브
-  카메라 앱(합성 카메라 피드) 실행 확인. v0.0.1까지의 즉시 갤러리 폴백 문제 해결됨.
-수정2 PDF 로드: jsPDF로 생성한 2페이지 테스트 PDF(test-2page.pdf)를 "갤러리에서 업로드" →
-  시스템 파일 선택기(Documents 폴더, accept 필터로 PDF 정상 노출) → 선택 후 에디터에
-  "test-2page · 1/2 페이지"로 정상 로드, 1페이지 내용("Test Page 1") 렌더링 확인.
-스크린샷: test-results/screenshots/v0.0.2-camera.png, v0.0.2-pdf.png
-결과: PASS
 
-────────────────────────────────────────
-[릴리즈 완료] 2026-08-17
-────────────────────────────────────────
-커밋: d8152fa "fix: v0.0.2 카메라 네이티브 연동 + PDF 로드 구현"
-태그: v0.0.2 (annotated)
-푸시: origin master, origin v0.0.2 완료
-GitHub 릴리즈: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.2
-다운로드 URL: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/download/v0.0.2/filmcommando-coating-moblie-v0.0.2.apk
-APK 크기: 18004728 bytes (17.17MB)
-결과: PASS
+수정1 파일 저장 검증:
+- 웹(Playwright, blob 경로): 툴바 저장 버튼 → 다이얼로그 확인 → blob: URL + download="test.pdf" 정상 발생 (회귀 없음)
+- 네이티브(CDP 직결, Documents 저장 경로): 편집화면에서 저장 버튼 → 확인 → 이후
+  Filesystem.readdir({directory:'DOCUMENTS'}) 조회 결과:
+    dojang-20260817-090055.pdf, 3796548 bytes
+  → 실제 파일이 문서 폴더에 정상 저장됨을 확정 확인 (v0.0.1~v0.0.2까지의 "저장 안됨" 문제 해결).
+- 동일 패턴이 중복 존재하던 editor.jsx 두 곳(onShareAction 저장 분기 617-680,
+  ConfirmDialog onConfirm 저장 분기 901-953 부근) 모두 동일하게 수정함
+  (기존 지시 라인은 onShareAction만 지목했으나, 실사용자가 실제로 트리거하는
+  툴바 "저장" 버튼은 ConfirmDialog 쪽 별도 구현이라 이 경로도 함께 수정 — 문제5의
+  실제 재현 경로와 정확히 일치).
+
+수정2 카카오 imageUrl 검증:
+- editor.jsx에 console.log('[kakao] 공개 이미지 URL:', imageUrl) 추가로 요구사항 반영.
+- 0x0.st 업로드 방식은 코드 경로 확인 완료(회귀 테스트로 정상 실행 확인),
+  Kakao Developers 콘솔의 도메인 미등록 이슈(외부 설정)는 코드 수정 범위 밖이라
+  실제 카톡 전송 성공 여부는 콘솔 설정 완료 후 별도 확인 필요.
+⚠️ 참고: content.imageUrl로 전달될 문서 이미지가 0x0.st(익명 공개 파일 호스팅)에
+  업로드됨 — 인증서류 등 개인정보가 포함된 이미지가 공개 URL로 노출될 수 있어
+  운영 반영 전 재검토 권장(최초 조사 로그에서도 동일하게 명시함).
+
+결과: PASS (문제 5 완전 해결 확정, 문제 4는 콘솔 설정 완료 후 최종 검증 필요)

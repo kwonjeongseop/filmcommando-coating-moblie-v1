@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Icon, StampVisual, SealVisual, makeId, SampleCertificate } from './visuals.jsx';
 import { OverflowMenu, StampContextMenu, PromptDialog, ConfirmDialog } from './menus.jsx';
 
@@ -614,6 +616,15 @@ function EditorScreen({ store }) {
     if (k === 'clear') return setConfirm({ key: 'clear' });
   };
 
+  const saveTimestamp = () => {
+    const d = new Date(); const p = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+  };
+  const saveNativeFile = async (dataUrl, filename) => {
+    const base64 = dataUrl.split(',')[1];
+    await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Documents, recursive: true });
+  };
+
   const onShareAction = (k, fmt) => {
     if (k === 'save' && (fmt === 'PDF' || fmt === 'PNG' || fmt === 'JPG')) {
       captureThumb().then((thumb) => saveDoc(thumb));
@@ -623,6 +634,15 @@ function EditorScreen({ store }) {
           setSel(null);
           const doc = await buildPdfAllPages();
           if (prevSel) setSel(prevSel);
+          if (Capacitor.isNativePlatform()) {
+            try {
+              await saveNativeFile(doc.output('datauristring'), `dojang-${saveTimestamp()}.pdf`);
+              showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
+            } catch (e) {
+              showToast('저장 실패: ' + (e && e.message || e));
+            }
+            return;
+          }
           const url = URL.createObjectURL(doc.output('blob'));
           const a = document.createElement('a');
           a.href = url;
@@ -641,6 +661,15 @@ function EditorScreen({ store }) {
         if (prevSel) setSel(prevSel);
 
         const mime = isJpg ? 'image/jpeg' : 'image/png';
+        if (Capacitor.isNativePlatform()) {
+          try {
+            await saveNativeFile(canvas.toDataURL(mime, isJpg ? 0.92 : undefined), `dojang-${saveTimestamp()}.${fmt.toLowerCase()}`);
+            showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
+          } catch (e) {
+            showToast('저장 실패: ' + (e && e.message || e));
+          }
+          return;
+        }
         canvas.toBlob((blob) => {
           if (!blob) return;
           const url = URL.createObjectURL(blob);
@@ -680,17 +709,35 @@ function EditorScreen({ store }) {
             onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; },
           });
           if (prevSel) setSel(prevSel);
-          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-          const imageUrl = URL.createObjectURL(blob);
-          Kakao.Share.sendDefault({
-            objectType: 'feed',
-            content: {
-              title: '도장 한 번 — 인증 서류',
-              description: '서류에 도장을 찍어 공유합니다.',
-              imageUrl,
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+          let imageUrl = null;
+          try {
+            const fd = new FormData();
+            fd.append('file', blob, 'dojang.jpg');
+            const res = await fetch('https://0x0.st', { method: 'POST', body: fd });
+            if (res.ok) {
+              const text = (await res.text()).trim();
+              if (/^https?:\/\//.test(text)) imageUrl = text;
+            }
+          } catch (e) {} // 이미지 호스팅 업로드 실패 시 텍스트 전용 공유로 폴백
+          console.log('[kakao] 공개 이미지 URL:', imageUrl);
+          if (imageUrl) {
+            Kakao.Share.sendDefault({
+              objectType: 'feed',
+              content: {
+                title: '도장 한 번 — 인증 서류',
+                description: '서류에 도장을 찍어 공유합니다.',
+                imageUrl,
+                link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+              },
+            });
+          } else {
+            Kakao.Share.sendDefault({
+              objectType: 'text',
+              text: '도장 한 번 — 인증 서류: 서류에 도장을 찍어 공유합니다.',
               link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
-            },
-          });
+            });
+          }
           showToast('카카오톡으로 보냈습니다 · ' + fmt);
         })().catch(() => webShareFallback());
       } catch (e) {
@@ -861,6 +908,15 @@ function EditorScreen({ store }) {
             setSel(null);
             const doc = await buildPdfAllPages();
             if (prevSel) setSel(prevSel);
+            if (Capacitor.isNativePlatform()) {
+              try {
+                await saveNativeFile(doc.output('datauristring'), `dojang-${saveTimestamp()}.pdf`);
+                showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
+              } catch (e) {
+                showToast('저장 실패: ' + (e && e.message || e));
+              }
+              return;
+            }
             const url = URL.createObjectURL(doc.output('blob'));
             const a = document.createElement('a');
             a.href = url;
@@ -879,6 +935,15 @@ function EditorScreen({ store }) {
           const canvas = await capturePageCanvas(isJpg ? '#ffffff' : null);
           if (prevSel) setSel(prevSel);
           const mime = isJpg ? 'image/jpeg' : 'image/png';
+          if (Capacitor.isNativePlatform()) {
+            try {
+              await saveNativeFile(canvas.toDataURL(mime, isJpg ? 0.92 : undefined), `dojang-${saveTimestamp()}.${fmt.toLowerCase()}`);
+              showToast('저장되었습니다 — 문서 폴더에서 확인하세요');
+            } catch (e) {
+              showToast('저장 실패: ' + (e && e.message || e));
+            }
+            return;
+          }
           canvas.toBlob((blob) => {
             if (!blob) return;
             const url = URL.createObjectURL(blob);
