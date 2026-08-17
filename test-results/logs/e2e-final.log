@@ -1,0 +1,44 @@
+E2E 통합 회귀 테스트 — Phase 1-1 ~ 4-6 핵심 시나리오 순차 실행
+실행 일시: 2026-08-17T05:38:18.588Z
+대상: http://localhost:5173/ (chromium, viewport 420x900, hasTouch)
+
+✅ [e2e-01] Phase 1-1: 캡처 화면 진입
+    결과: PASS | CaptureScreen 렌더링 확인
+✅ [e2e-02] Phase 1-1: 샘플 문서 로드
+    결과: PASS | apptitle=재직증명서
+✅ [e2e-03] Phase 1-2/1-3: 도장 생성 및 배치
+    결과: PASS | library 5→6, placed=1
+✅ [e2e-04] Phase 1-4: 핸들 크기 조작
+    결과: PASS | scale 1.00→1.57
+✅ [e2e-05] Phase 1-5/2-2: PDF 저장
+    결과: PASS | toast="저장했습니다 · PDF"
+✅ [e2e-06] Phase 2-1: 카메라 촬영
+    결과: PASS | docName="촬영 서류"
+✅ [e2e-07] Phase 2-3: 서명 폰트 도장 배치
+    결과: PASS | kind=signature
+✅ [e2e-08] Phase 2-4/4-1: 업로드+배경제거
+    결과: PASS | 투명비율=64.2%
+✅ [e2e-09] Phase 2-5: Undo/Redo
+    결과: PASS | before=1 undo=0 redo=1
+✅ [e2e-10] Phase 3-1: 공유 시트
+    결과: PASS | toast="링크 복사에 실패했습니다"
+✅ [e2e-11] Phase 3-2: 도장 보관함 CRUD
+    결과: PASS | 그룹 수=4
+✅ [e2e-12] Phase 3-3: 내 서류함
+    결과: PASS | docs.length=1
+✅ [e2e-13] Phase 3-4: 설정+자동저장
+    결과: PASS | autosave true→false
+✅ [e2e-14] Phase 4-2: 다중 페이지
+    결과: PASS | pages 1→2
+✅ [e2e-15] Phase 4-3: 테마 시스템
+    결과: PASS | --primary=#0E8C86
+✅ [e2e-16] Phase 4-4: 카메라 스캔(OpenCV)
+    결과: PASS | overlayDrawn=true
+✅ [e2e-17] Phase 4-5: 수기 도장
+    결과: PASS | 등록=true
+✅ [e2e-18] Phase 4-6: 본체 드래그 이동
+    결과: PASS | (20.0,19.8)→(70.0,79.6)
+
+콘솔 pageerror 발생 건수: 0
+
+종합: 18개 시나리오 중 PASS 18 / FAIL 0

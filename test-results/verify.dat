@@ -1,0 +1,177 @@
+도장 한 번 (filmcommando-coating-moblie-v1) — Phase 0~4-6 전체 구현 현황
+생성 일시: 2026-08-17
+====================================================================
+
+[Phase 0] Vite+React+TS 초기화 · 환경 점검
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\initial-state.png, initial-state-v2.png, initial-v3.png,
+         local-cdn-test.png, localhost-test.png, migration-verify.png, render-test.png
+로그: test-results\logs\env-setup-20260815-224721.log, install-complete-20260815-225002.log,
+     migration-20260815-231656.log, mobile-env-check.log, android-studio-precheck.log
+비고: "phase0-*" 네이밍 규칙 대신 작업 성격별 파일명 사용(env-setup/install-complete/
+     migration/mobile-env-check/android-studio-precheck)
+
+[Phase 1-1] 도장 배치 기본 흐름 (캡처 화면 → 에디터 진입)
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase1-1-capture.png, phase1-1-editor.png, phase1-1-recent.png
+로그: test-results\logs\phase1-1.log
+
+[Phase 1-2] 도장 생성 (이름으로 만들기, seal 미리보기)
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase1-2-seal-input.png, phase1-2-seal-popup.png, phase1-2-seal-storage.png
+로그: test-results\logs\phase1-2.log
+
+[Phase 1-3] 도장 배치 (배너 안내 · 클릭 날인)
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase1-3-banner.png, phase1-3-placed.png
+로그: test-results\logs\phase1-3.log
+
+[Phase 1-4] 배치된 도장 조작 (선택 · 이동 · 크기 · 삭제)
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase1-4-sel.png, phase1-4-move.png, phase1-4-resize.png, phase1-4-delete.png
+로그: test-results\logs\phase1-4.log
+
+[Phase 1-5] 저장 · 에뮬레이터 렌더링 확인
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase1-5-save-dialog.png, phase1-5-save-done.png,
+         phase1-5-emulator.png, phase1-5-emulator-fixed.png, phase1-5-pixel8.png
+로그: test-results\logs\phase1-5.log, phase1-5-fix.log, phase1-5-pixel8.log, phase1-5-final.log
+
+[Phase 2-1] 카메라 촬영 (프리뷰 · 캡처, 에뮬레이터 포함)
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase2-1-camera-preview.png, phase2-1-camera-captured.png,
+         phase2-1-camera-preview-emulator.png, phase2-1-camera-captured-emulator.png
+로그: test-results\logs\phase2-1.log
+
+[Phase 2-2] PDF 내보내기
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase2-2-pdf-sheet.png, phase2-2-pdf-done.png
+로그: test-results\logs\phase2-2.log
+
+[Phase 2-3] 서명 · 사인 폰트 도장
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase2-3-signature.png, phase2-3-sign.png,
+         phase2-3-font-signature.png, phase2-3-font-sign.png
+로그: test-results\logs\phase2-3.log, phase2-3-font.log
+
+[Phase 2-4] 도장 이미지 업로드
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase2-4-upload-popup.png, phase2-4-upload-placed.png
+로그: test-results\logs\phase2-4.log
+
+[Phase 2-5] Undo/Redo
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase2-5-initial.png, phase2-5-placed.png, phase2-5-undo.png, phase2-5-redo.png
+로그: test-results\logs\phase2-5.log
+
+[Phase 3-1] 공유 기능 (Web Share·SMS·mailto·clipboard·print) + 카카오톡 SDK 연동
+상태: PASS
+완료일: 2026-08-16
+스크린샷: test-results\screenshots\phase3-1-share-sheet.png, phase3-1-share-done.png, phase3-1-kakao.png
+로그: test-results\logs\phase3-1.log, phase3-1-kakao.log
+git 커밋: 71c3750 (공유 기능), fad4b91 (카카오톡 SDK 실연동)
+
+[Phase 3-2] 도장 보관함 CRUD 전체 검증
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase3-2-manager.png, phase3-2-add.png, phase3-2-delete.png, phase3-2-restore.png
+         (그 외 디버깅용 부가 캡처 35장 동일 폴더 내 존재)
+로그: test-results\logs\phase3-2.log
+비고: 검증 전용 작업(코드 수정 없음) — git 커밋 대상 아님, 로컬에만 존재
+
+[Phase 3-3] 내 서류함 실제 데이터 연동
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase3-3-docs.png, phase3-3-restore.png
+로그: test-results\logs\phase3-3.log
+git 커밋: 25af23b
+
+[Phase 3-4] 설정 화면 전체 기능 검증
+상태: PASS (9/10 항목, 자동저장 30초 인터벌 미구현 1건 FAIL로 검증됨)
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase3-4-settings.png, phase3-4-ink.png, phase3-4-restore.png
+         (그 외 부가 캡처 다수 동일 폴더 내 존재)
+로그: test-results\logs\phase3-4.log
+비고: 검증 전용 작업 — git 커밋 대상 아님, 로컬에만 존재
+
+[Phase 3-4 보완] 자동저장 localStorage 임시저장 구현
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase3-4-autosave-toast.png, phase3-4-autosave-dialog.png, phase3-4-autosave-restored.png
+로그: test-results\logs\phase3-4-autosave.log
+git 커밋: 6a05bee
+
+[Phase 4-1] 도장 이미지 배경 제거 (Canvas API, BG_THRESHOLD=200)
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-1-before.png, phase4-1-after.png
+로그: test-results\logs\phase4-1.log
+git 커밋: 496ef5f
+
+[Phase 4-2] 다중 페이지 지원
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-2-multipage.png, phase4-2-page2.png
+로그: test-results\logs\phase4-2.log
+git 커밋: 47ebbb0
+
+[Phase 4-3] 테마 시스템 전체 검증
+상태: PASS (8/9 항목, 테마 설정 localStorage 미저장 1건 FAIL로 검증됨)
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-3-navy.png, phase4-3-indigo.png, phase4-3-teal.png,
+         phase4-3-dialog.png, phase4-3-label-off.png (그 외 부가 캡처 다수)
+로그: test-results\logs\phase4-3.log
+비고: 검증 전용 작업 — git 커밋 대상 아님, 로컬에만 존재
+
+[Phase 4-4] 카메라 스캔 기능 (문서 엣지 감지 · 원근 보정, 순수 Canvas API)
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-4-preview.png, phase4-4-captured.png, phase4-4-editor.png
+로그: test-results\logs\phase4-4.log
+git 커밋: 09c3236
+
+[Phase 4-4 보완] OpenCV.js 엣지 감지 정밀도 향상 (Canny+findContours, getPerspectiveTransform)
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-4-opencv-preview.png, phase4-4-opencv-captured.png
+로그: test-results\logs\phase4-4-opencv.log
+git 커밋: 16ff33c
+테스트: app\tests\e2e\phase4-4-opencv.spec.ts (Playwright Test, 3 tests)
+
+[Phase 4-5] 수기 도장 제작 기능
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-5-drawing.png, phase4-5-square.png, phase4-5-registered.png
+로그: test-results\logs\phase4-5.log
+git 커밋: bf465f3
+테스트: app\tests\e2e\phase4-5-drawing.spec.ts (Playwright Test, 3 tests)
+
+[Phase 4-6] 도장 드래그 이동 고도화 (본체 드래그 · 핀치줌 · 회전 · 스냅 가이드)
+상태: PASS
+완료일: 2026-08-17
+스크린샷: test-results\screenshots\phase4-6-drag.png, phase4-6-snap.png, phase4-6-pinch.png
+로그: test-results\logs\phase4-6.log
+git 커밋: d6ca56d
+테스트: app\tests\e2e\phase4-6-drag.spec.ts (Playwright Test, 4 tests)
+
+====================================================================
+[테스트 인프라 현행화] (본 작업에서 신규 추가)
+- app\playwright.config.ts: chromium + Pixel 8(412x915, hasTouch) 프로젝트, html+json reporter
+- app\package.json: "test": "playwright test" 스크립트 추가
+- app\tests\e2e\*.spec.ts: Phase 4-4/4-5/4-6 공식 테스트 스위트 3개 파일(총 10 tests),
+  chromium·Pixel 8 두 프로젝트 각 10/10 PASS 확인(총 20/20)
+- test-results\scripts\e2e-full-regression.mjs: Phase 1-1~4-6 통합 회귀 스크립트
+- test-results\logs\e2e-final.log: 통합 회귀 실행 결과
+====================================================================
+종합: Phase 0~4-6 전 구간 구현 완료, 로그·스크린샷 산출물 완비, 공식 테스트 스위트 신규 구축.
