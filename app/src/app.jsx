@@ -31,10 +31,117 @@ const saveState = (s) => { try { localStorage.setItem(LS_KEY, JSON.stringify(s))
 const AUTOSAVE_KEY = 'docstamp_autosave';
 const loadAutosave = () => { try { return JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (e) { return null; } };
 
+/* 밝기 임계값 기반 문서 윤곽(바운딩 박스) 추정 — 다운샘플된 프레임의 그레이스케일 평균보다
+   밝은 픽셀들의 최소·최대 좌표로 문서 사각형을 근사한다. */
+function estimateDocEdges(data, w, h) {
+  const n = w * h;
+  const lum = new Float32Array(n);
+  let sum = 0;
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    const l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    lum[p] = l;
+    sum += l;
+  }
+  const threshold = sum / n + 12;
+  let minX = w, minY = h, maxX = 0, maxY = 0, count = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (lum[y * w + x] >= threshold) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        count++;
+      }
+    }
+  }
+  if (count < n * 0.05 || minX >= maxX || minY >= maxY) return null;
+  return { x0: minX / w, y0: minY / h, x1: maxX / w, y1: maxY / h };
+}
+
+/* 사각형(quad) 4점을 직사각형으로 매핑하는 원근 보정 근사 — 두 개의 삼각형으로 분할해
+   각각을 캔버스 2D affine transform(clip + transform + drawImage)으로 워프한다. */
+function warpQuadToRect(srcCanvas, corners) {
+  const [tl, tr, br, bl] = corners;
+  const outW = Math.round(Math.max(Math.hypot(tr.x - tl.x, tr.y - tl.y), Math.hypot(br.x - bl.x, br.y - bl.y)));
+  const outH = Math.round(Math.max(Math.hypot(bl.x - tl.x, bl.y - tl.y), Math.hypot(br.x - tr.x, br.y - tr.y)));
+  if (!outW || !outH || outW < 20 || outH < 20) return null;
+  const out = document.createElement('canvas');
+  out.width = outW; out.height = outH;
+  const ctx = out.getContext('2d');
+
+  const drawTriangle = ([s0, s1, s2], [d0, d1, d2]) => {
+    const dx1 = s1.x - s0.x, dy1 = s1.y - s0.y;
+    const dx2 = s2.x - s0.x, dy2 = s2.y - s0.y;
+    const denom = dx1 * dy2 - dy1 * dx2;
+    if (!denom) return;
+    const D1x = d1.x - d0.x, D2x = d2.x - d0.x;
+    const D1y = d1.y - d0.y, D2y = d2.y - d0.y;
+    const axx = (D1x * dy2 - D2x * dy1) / denom;
+    const axy = (dx1 * D2x - dx2 * D1x) / denom;
+    const ayx = (D1y * dy2 - D2y * dy1) / denom;
+    const ayy = (dx1 * D2y - dx2 * D1y) / denom;
+    const tx = d0.x - axx * s0.x - axy * s0.y;
+    const ty = d0.y - ayx * s0.x - ayy * s0.y;
+    // 클립 폴리곤을 자신의 무게중심 기준으로 살짝 부풀려 인접 삼각형과 겹치게 해
+    // 공유 대각선에서 생기는 서브픽셀 이음선(seam)을 없앤다.
+    const cx = (d0.x + d1.x + d2.x) / 3, cy = (d0.y + d1.y + d2.y) / 3;
+    const INFLATE = 1.01;
+    const inflate = (p) => ({ x: cx + (p.x - cx) * INFLATE, y: cy + (p.y - cy) * INFLATE });
+    const [c0, c1, c2] = [d0, d1, d2].map(inflate);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(c0.x, c0.y); ctx.lineTo(c1.x, c1.y); ctx.lineTo(c2.x, c2.y);
+    ctx.closePath(); ctx.clip();
+    ctx.transform(axx, ayx, axy, ayy, tx, ty);
+    ctx.drawImage(srcCanvas, 0, 0);
+    ctx.restore();
+  };
+
+  const dTL = { x: 0, y: 0 }, dTR = { x: outW, y: 0 }, dBR = { x: outW, y: outH }, dBL = { x: 0, y: outH };
+  drawTriangle([tl, tr, bl], [dTL, dTR, dBL]);
+  drawTriangle([tr, br, bl], [dTR, dBR, dBL]);
+  return out;
+}
+
+/* 휘도 채널 히스토그램 평활화 — 색조는 유지한 채 밝기·대비만 보정해 스캔한 듯한 느낌을 낸다. */
+function equalizeHistogram(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+  const n = w * h;
+  const lumArr = new Uint8ClampedArray(n);
+  const hist = new Uint32Array(256);
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    const l = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+    lumArr[p] = l;
+    hist[l]++;
+  }
+  const cdf = new Uint32Array(256);
+  let acc = 0;
+  for (let i = 0; i < 256; i++) { acc += hist[i]; cdf[i] = acc; }
+  let cdfMin = 0;
+  for (let i = 0; i < 256; i++) { if (cdf[i] > 0) { cdfMin = cdf[i]; break; } }
+  const denom = n - cdfMin;
+  const map = new Uint8ClampedArray(256);
+  for (let i = 0; i < 256; i++) map[i] = denom > 0 ? Math.round(((cdf[i] - cdfMin) / denom) * 255) : i;
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    const oldL = lumArr[p];
+    const scale = oldL > 0 ? map[oldL] / oldL : 1;
+    data[i] = Math.min(255, data[i] * scale);
+    data[i + 1] = Math.min(255, data[i + 1] * scale);
+    data[i + 2] = Math.min(255, data[i + 2] * scale);
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
 function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const fileRef = useR(null);
   const videoRef = useR(null);
   const streamRef = useR(null);
+  const overlayRef = useR(null);
+  const boxRef = useR(null);
   const [cameraOpen, setCameraOpen] = useS(false);
   const onFile = (e) => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
@@ -59,13 +166,83 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   useE(() => {
     if (cameraOpen && videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current;
   }, [cameraOpen]);
+
+  const drawOverlay = () => {
+    const canvas = overlayRef.current, video = videoRef.current;
+    if (!canvas || !video) return;
+    const w = video.clientWidth, h = video.clientHeight;
+    if (!w || !h) return;
+    if (canvas.width !== w) canvas.width = w;
+    if (canvas.height !== h) canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    const b = boxRef.current;
+    if (!b) return;
+    const pts = [
+      { x: b.x0 * w, y: b.y0 * h }, { x: b.x1 * w, y: b.y0 * h },
+      { x: b.x1 * w, y: b.y1 * h }, { x: b.x0 * w, y: b.y1 * h },
+    ];
+    ctx.strokeStyle = '#2B6CE6';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle = '#2B6CE6';
+    pts.forEach((p) => { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill(); });
+  };
+
+  // 카메라가 열려 있는 동안 실시간으로 프레임을 다운샘플해 문서 윤곽을 추정하고 오버레이에 그린다.
+  useE(() => {
+    if (!cameraOpen) { boxRef.current = null; return; }
+    const AW = 96, AH = 128;
+    const analysisCanvas = document.createElement('canvas');
+    analysisCanvas.width = AW; analysisCanvas.height = AH;
+    const actx = analysisCanvas.getContext('2d', { willReadFrequently: true });
+    let raf, lastRun = 0;
+    const tick = (ts) => {
+      const video = videoRef.current;
+      if (video && video.videoWidth) {
+        if (ts - lastRun > 120) {
+          lastRun = ts;
+          try {
+            actx.drawImage(video, 0, 0, AW, AH);
+            const { data } = actx.getImageData(0, 0, AW, AH);
+            boxRef.current = estimateDocEdges(data, AW, AH);
+          } catch (e) { /* 프레임 미준비 등 일시적 오류는 다음 tick에서 재시도 */ }
+        }
+        drawOverlay();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [cameraOpen]);
+
   const capturePhoto = () => {
     const video = videoRef.current; if (!video) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 720;
-    canvas.height = video.videoHeight || 1280;
-    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    const vw = video.videoWidth || 720, vh = video.videoHeight || 1280;
+    const raw = document.createElement('canvas');
+    raw.width = vw; raw.height = vh;
+    raw.getContext('2d').drawImage(video, 0, 0, vw, vh);
+
+    let outCanvas = raw;
+    try {
+      const b = boxRef.current;
+      if (b) {
+        const corners = [
+          { x: b.x0 * vw, y: b.y0 * vh }, { x: b.x1 * vw, y: b.y0 * vh },
+          { x: b.x1 * vw, y: b.y1 * vh }, { x: b.x0 * vw, y: b.y1 * vh },
+        ];
+        const warped = warpQuadToRect(raw, corners);
+        if (warped) outCanvas = warped;
+      }
+      equalizeHistogram(outCanvas);
+    } catch (e) {
+      outCanvas = raw; // 원근 보정·밝기 보정 실패 시 원본 프레임 그대로 사용
+    }
+
+    const dataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
     closeCamera();
     onLoadImage(dataUrl, '촬영 서류');
   };
@@ -119,8 +296,12 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
             <span className="preview-name"><Icon name="camera" size={18} /> 카메라 촬영</span>
             <button className="iconbtn" onClick={closeCamera} aria-label="닫기"><Icon name="close" size={22} /></button>
           </div>
-          <video ref={videoRef} autoPlay playsInline muted
-            style={{ flex: 1, width: '100%', objectFit: 'cover', background: '#000' }} />
+          <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+            <video ref={videoRef} autoPlay playsInline muted
+              style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000' }} />
+            <canvas ref={overlayRef}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />
+          </div>
           <div className="preview-bar">
             <button className="btn solid wide" onClick={capturePhoto}>촬영</button>
           </div>
