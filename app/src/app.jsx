@@ -47,8 +47,21 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const DEFAULT_SETTINGS = {
-  ink: '주홍', size: 0.10, opacity: 1, autoSelect: true,
+  ink: '주홍', size: 0.10, opacity: 1, autoSelect: false,
   format: 'PDF', hq: false, autosave: true, pw: false, localOnly: true,
+};
+
+// settings.size 등 기본값이 바뀔 때, 이미 localStorage에 저장된 구버전 설정이 새 기본값을
+// 영구히 덮어쓰는 것을 막기 위한 1회성 마이그레이션 버전 — SETTINGS_VERSION 미만으로 저장된
+// 상태라면 size를 새 DEFAULT_SETTINGS.size로 강제 초기화한다(다른 설정은 유지).
+const SETTINGS_VERSION = '0.2.0';
+const compareVersions = (a, b) => {
+  const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d;
+  }
+  return 0;
 };
 
 const LS_KEY = 'docstamp_v2';
@@ -851,7 +864,12 @@ function App() {
   const [library, setLibrary] = useS(init.library || SAMPLE_LIBRARY);
   const [recent, setRecent] = useS(init.recent || []);
   const [favId, setFavId] = useS(init.favId || null);
-  const [settings, setSettings] = useS({ ...DEFAULT_SETTINGS, ...(init.settings || {}) });
+  const needsSizeMigration = compareVersions(init.settingsVersion || '0.0.0', SETTINGS_VERSION) < 0;
+  const [settings, setSettings] = useS({
+    ...DEFAULT_SETTINGS,
+    ...(init.settings || {}),
+    ...(needsSizeMigration ? { size: DEFAULT_SETTINGS.size } : {}),
+  });
   const [drawer, setDrawer] = useS(false);
   const [addFromMenu, setAddFromMenu] = useS(false);
   const [past, setPast] = useS([]);
@@ -863,7 +881,7 @@ function App() {
 
   const sealInk = SEAL_INKS[settings.ink] || SEAL_INKS['주홍'];
 
-  useE(() => { saveState({ screen, pages, currentPage, docName, docs, library, recent, favId, settings }); },
+  useE(() => { saveState({ screen, pages, currentPage, docName, docs, library, recent, favId, settings, settingsVersion: SETTINGS_VERSION }); },
     [screen, pages, currentPage, docName, docs, library, recent, favId, settings]);
 
   // onOpen이 있으면(예: 저장 완료 후 "파일 열기") 5초간, 없으면 기존과 동일하게 2.2초간 노출한다.

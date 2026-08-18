@@ -20,6 +20,9 @@ async function placeStamp(page) {
   const pageBox = await page.locator('.page').boundingBox();
   await page.mouse.click(pageBox.x + pageBox.width * 0.5, pageBox.y + pageBox.height * 0.5);
   await page.waitForTimeout(150);
+  // v0.2.0: 배치 직후 자동 선택되지 않으므로(autoSelect=false) 핸들을 조작하려면 탭해서 선택해야 한다.
+  await page.locator('.placed').click();
+  await page.waitForTimeout(150);
   return pageBox;
 }
 

@@ -685,3 +685,34 @@ versionCode: 19
       adb logcat FATAL/AndroidRuntime 크래시 없음.
 GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.9
 상태: PASS
+
+====================================================================
+[Release v0.2.0]
+빌드일: 2026-08-18
+APK: filmcommando-coating-moblie-v0.2.0.apk
+크기: 17.44MB (18291518 bytes)
+versionCode: 20
+수정: 배치직후실제크기·재선택시확대·localStorage마이그레이션·스캔화질레벨보정
+  - [수정1] app.jsx DEFAULT_SETTINGS.autoSelect true→false. editor.jsx onPageClick의 배치
+    커밋 로직을 "배치 모드 종료(항상 실행)"와 "자동 선택(autoSelect일 때만)"으로 분리(필수
+    companion — 분리 없이 autoSelect만 끄면 배치 모드가 영원히 안 끝나는 버그 발생, 직전 시도에서
+    발견). renderPlaced()의 MIN_SEL_SCALE(0.22) 기반 displayScale 로직은 코드 변경 없이 유지 —
+    배치 직후 isSel=false라 자연히 실제 크기(0.10)로 보이고, 재선택 시에만 확대됨.
+  - [수정2] app.jsx에 SETTINGS_VERSION='0.2.0' 마이그레이션 추가 — 저장된 settingsVersion이
+    0.2.0 미만이면 settings.size를 새 기본값(0.10)으로 강제 초기화, 다른 설정은 유지.
+  - [수정3] editor.jsx toScanCanvas()를 Otsu 완전 이진화에서 그레이스케일 레벨 보정(80↓검정,
+    200↑흰색, 사이 선형보간)으로 교체 — 회색조 유지.
+  - companion: Playwright 5개 파일 갱신(phase14-1 전면 개정 4건, phase13-2·phase6-2·phase7-2
+    탭-선택 반영, phase9-2 레벨보정 기대값 반영).
+테스트: Playwright E2E 106/106 PASS (chromium+Pixel 8 각 53건, 신규 핸들 겹침/재선택 검증
+      phase14-1 4건 포함, 1차 실행 시 companion 미반영 16건 실패 → 수정 후 재실행 100% 통과)
+검증: 빌드 전 필수 게이트(phase14-1) — 배치 직후 미선택+실제크기, 배치모드 정상종료(연속 탭해도
+      1개), 재선택 시 MIN_SEL_SCALE 확대+핸들 4개 전수 겹침 0건, 해제 후 저장값 보존 모두 확인.
+      실기기(에뮬레이터 emulator-5554, release APK) CDP 기반 검증 — 구버전 size=0.15 저장값이
+      0.10으로 마이그레이션됨 확인, 배치 직후 렌더 폭 9.4px(실제크기)·재선택 시 20.68px(확대)+
+      핸들 겹침 없음 실측 확인, 스캔 저장 시 흰 배경은 255 유지·진한 빨강은 레벨보정 예측값과
+      정확히 일치하는 37(중간 회색, 완전이진화 아님) 확인. 스크린샷 test-results/screenshots/
+      v0.2.0-stamp-placed.png · v0.2.0-stamp-sel.png · v0.2.0-scan.png. adb logcat
+      FATAL/AndroidRuntime 크래시 없음.
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.2.0
+상태: PASS

@@ -57,13 +57,11 @@ test.describe('Phase 13-2: 도장 초기 크기', () => {
 
     const imgWidth = await page.locator('.placed img').first().evaluate((el) => el.getBoundingClientRect().width);
     const placed = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2')).pages[0].placed[0]);
-    // visuals.jsx: width = (stamp.w || 94) * displayScale, editor.jsx가 이제 w:94로 저장하므로 seal의
-    // 94*displayScale 기준과 동일해야 한다. v0.1.9: 배치 직후 자동 선택 상태라 editor.jsx의
-    // MIN_SEL_SCALE(0.22) 이하로는 표시 배율이 클램프되어 커진다(저장 scale 자체는 영향 없음) —
-    // 허용 오차: 렌더 반올림 대비 ±1px.
-    const MIN_SEL_SCALE = 0.22;
-    const displayScale = Math.max(placed.scale, MIN_SEL_SCALE);
-    expect(imgWidth).toBeGreaterThan(94 * displayScale - 1);
-    expect(imgWidth).toBeLessThan(94 * displayScale + 1);
+    // visuals.jsx: width = (stamp.w || 94) * scale, editor.jsx가 이제 w:94로 저장하므로 seal의
+    // 94*scale 기준과 동일해야 한다. v0.2.0: 배치 직후에는 자동 선택되지 않아(autoSelect=false)
+    // MIN_SEL_SCALE 클램프가 적용되지 않은 실제 저장 scale 그대로 렌더링된다 — 허용 오차: 렌더
+    // 반올림 대비 ±1px.
+    expect(imgWidth).toBeGreaterThan(94 * placed.scale - 1);
+    expect(imgWidth).toBeLessThan(94 * placed.scale + 1);
   });
 });

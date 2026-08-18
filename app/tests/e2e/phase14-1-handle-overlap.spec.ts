@@ -1,4 +1,5 @@
-// Phase 14-1: 도장 선택 시 자동 확대(v0.1.9)로 핸들 겹침이 방지되는지 + 해제 후 저장 scale 보존 검증.
+// Phase 14-1(v0.2.0 개정): 배치 직후에는 자동 선택하지 않아 실제 크기(0.10)로 보이고, 사용자가
+// 탭해서 재선택하면 MIN_SEL_SCALE로 확대되어 핸들이 겹치지 않는지 검증.
 import { test, expect } from '@playwright/test';
 
 async function loadEditor(page) {
@@ -27,11 +28,34 @@ function rectsOverlap(a, b) {
   return !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
 }
 
-test.describe('Phase 14-1: 도장 선택 시 자동 확대', () => {
-  test('기본 크기(0.10)로 배치해 선택한 도장의 핸들 4개가 서로 겹치지 않는다', async ({ page }) => {
+test.describe('Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대', () => {
+  test('배치 직후에는 자동 선택되지 않고 실제 크기(0.10)로 표시된다', async ({ page }) => {
     await loadEditor(page);
     await placeDefaultStamp(page);
-    // 배치 직후 곧바로 선택된 상태이므로 별도 클릭 없이 핸들이 노출된다.
+    await expect(page.locator('.placed.sel')).toHaveCount(0);
+    const width = (await page.locator('.placed').boundingBox()).width;
+    expect(width).toBeCloseTo(94 * 0.10, 0);
+  });
+
+  test('배치 모드는 항상 종료되어 이후 탭이 새 도장을 계속 찍지 않는다', async ({ page }) => {
+    await loadEditor(page);
+    await placeDefaultStamp(page);
+    const pageBox = await page.locator('.page').boundingBox();
+    // 배치 직후 다른 빈 영역을 한 번 더 탭해도(예: 실수로) 새 도장이 추가로 찍히면 안 된다.
+    await page.mouse.click(pageBox.x + pageBox.width * 0.1, pageBox.y + pageBox.height * 0.1);
+    await page.waitForTimeout(150);
+    await expect(page.locator('.placed')).toHaveCount(1);
+  });
+
+  test('도장을 탭해서 선택하면 MIN_SEL_SCALE로 확대되어 핸들 4개가 겹치지 않는다', async ({ page }) => {
+    await loadEditor(page);
+    await placeDefaultStamp(page);
+    await page.locator('.placed').click();
+    await expect(page.locator('.placed.sel')).toBeVisible();
+
+    const selectedWidth = (await page.locator('.placed').boundingBox()).width;
+    expect(selectedWidth).toBeCloseTo(94 * 0.22, 0); // MIN_SEL_SCALE=0.22 적용 확인
+
     const selectors = ['.h-del', '.h-lock', '.h-res', '.h-mn'];
     const boxes = {};
     for (const sel of selectors) boxes[sel] = await page.locator(sel).boundingBox();
@@ -43,18 +67,15 @@ test.describe('Phase 14-1: 도장 선택 시 자동 확대', () => {
     }
   });
 
-  test('선택 해제하면 저장된 scale(0.10)은 그대로이고 화면 표시만 원래 크기로 돌아간다', async ({ page }) => {
+  test('선택 해제하면 저장된 scale(0.10)은 그대로이고 화면 표시만 실제 크기로 돌아간다', async ({ page }) => {
     await loadEditor(page);
     await placeDefaultStamp(page);
-
-    const placed = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2')).pages[0].placed[0]);
-    expect(placed.scale).toBeCloseTo(0.10, 2);
-
+    await page.locator('.placed').click();
+    await expect(page.locator('.placed.sel')).toBeVisible();
     const selectedWidth = (await page.locator('.placed').boundingBox()).width;
 
-    // 빈 캔버스 영역을 클릭해 선택 해제.
     const canvasBox = await page.locator('.canvas').boundingBox();
-    await page.mouse.click(canvasBox.x + canvasBox.width * 0.1, canvasBox.y + canvasBox.height * 0.1);
+    await page.mouse.click(canvasBox.x + canvasBox.width * 0.1, canvasBox.y + canvasBox.height * 0.15);
     await page.waitForTimeout(150);
     await expect(page.locator('.placed.sel')).toHaveCount(0);
 

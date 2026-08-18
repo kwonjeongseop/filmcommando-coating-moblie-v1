@@ -500,63 +500,22 @@ function EditorScreen({ store }) {
     if (switched) setCurrentPage(originalPage);
     return doc;
   };
-  // 그레이스케일 변환 + 가우시안 블러(반경 3px, 노이즈 제거) + Otsu 전역 이진화로 흑백 스캔 이미지를
-  // 만든다. 이전의 블록 평균 기반 적응형 임계값은 배경이 복잡할 때 과반응해 화질이 저하되는 문제가
-  // 있어, 전역 임계값(Otsu)으로 교체했다.
+  // 그레이스케일 변환 + 레벨 보정(밝은 픽셀은 흰색으로, 어두운 픽셀은 검정으로 강조하되 완전
+  // 이진화는 하지 않음)으로 스캔 이미지를 만든다. 이전의 Otsu 전역 이진화(완전 흑백)는 html2canvas
+  // 재렌더링 과정의 리샘플링 손실과 맞물려 텍스트 경계가 거칠어지는 문제가 있어, 회색조를 유지하는
+  // 레벨 보정으로 교체했다.
+  const LEVEL_LOW = 80, LEVEL_HIGH = 200; // 80 이하는 완전 검정, 200 이상은 완전 흰색, 사이는 선형 보간
   const toScanCanvas = (canvas) => {
     const w = canvas.width, h = canvas.height;
     const ctx = canvas.getContext('2d');
     const img = ctx.getImageData(0, 0, w, h);
     const d = img.data;
-    const n = w * h;
-    const gray = new Float32Array(n);
-    for (let i = 0, p = 0; i < d.length; i += 4, p++) gray[p] = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-
-    const RADIUS = 3;
-    const sigma = RADIUS / 2;
-    const kernel = new Float32Array(RADIUS * 2 + 1);
-    let kSum = 0;
-    for (let i = -RADIUS; i <= RADIUS; i++) {
-      const v = Math.exp(-(i * i) / (2 * sigma * sigma));
-      kernel[i + RADIUS] = v;
-      kSum += v;
-    }
-    for (let i = 0; i < kernel.length; i++) kernel[i] /= kSum;
-    const blurH = new Float32Array(n);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        let sum = 0;
-        for (let k = -RADIUS; k <= RADIUS; k++) sum += gray[y * w + clamp(x + k, 0, w - 1)] * kernel[k + RADIUS];
-        blurH[y * w + x] = sum;
-      }
-    }
-    const blurred = new Uint8ClampedArray(n);
-    for (let x = 0; x < w; x++) {
-      for (let y = 0; y < h; y++) {
-        let sum = 0;
-        for (let k = -RADIUS; k <= RADIUS; k++) sum += blurH[clamp(y + k, 0, h - 1) * w + x] * kernel[k + RADIUS];
-        blurred[y * w + x] = sum;
-      }
-    }
-
-    const hist = new Uint32Array(256);
-    for (let p = 0; p < n; p++) hist[blurred[p]]++;
-    let sumAll = 0;
-    for (let i = 0; i < 256; i++) sumAll += i * hist[i];
-    let sumB = 0, wB = 0, maxVar = 0, threshold = 128;
-    for (let t = 0; t < 256; t++) {
-      wB += hist[t];
-      if (wB === 0) continue;
-      const wF = n - wB;
-      if (wF === 0) break;
-      sumB += t * hist[t];
-      const mB = sumB / wB, mF = (sumAll - sumB) / wF;
-      const varBetween = wB * wF * (mB - mF) * (mB - mF);
-      if (varBetween > maxVar) { maxVar = varBetween; threshold = t; }
-    }
-
-    for (let p = 0, i = 0; p < n; p++, i += 4) {
-      const v = blurred[p] < threshold ? 0 : 255;
+    for (let i = 0; i < d.length; i += 4) {
+      const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+      let v;
+      if (gray <= LEVEL_LOW) v = 0;
+      else if (gray >= LEVEL_HIGH) v = 255;
+      else v = Math.round((gray - LEVEL_LOW) / (LEVEL_HIGH - LEVEL_LOW) * 255);
       d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
@@ -598,7 +557,8 @@ function EditorScreen({ store }) {
       pushHistory();
       const id = makeId();
       setPlacedLive((arr) => [...arr, { id, stampId: placing.id, x: p.x, y: p.y, scale: placing._opts.size, opacity: placing._opts.opacity, rot: 0, locked: false }]);
-      if (settings.autoSelect) { setPlacing(null); setGhost(null); setSel(id); }
+      setPlacing(null); setGhost(null); // 배치 모드는 autoSelect 여부와 무관하게 항상 종료 — 아니면 이후 탭마다 도장이 계속 찍힌다
+      if (settings.autoSelect) setSel(id);
       return;
     }
     setSel(null);
