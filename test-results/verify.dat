@@ -181,8 +181,12 @@ git 커밋: d6ca56d
 빌드일: 2026-08-17
 APK: filmcommando-coating-moblie-v0.0.1.apk
 크기: 16.59MB (17397643 bytes)
+versionCode: 1
 서명: apksigner v2 scheme 검증 통과 (dojang-release.jks, alias dojang)
 검증: 에뮬레이터(emulator-5554) 설치·실행 확인, 스크린샷 test-results\screenshots\release-v0.0.1.png
+테스트: Playwright E2E 20/20 PASS (직전 "테스트 인프라 현행화" 절에서 구축·확인된 phase4-4/4-5/4-6
+      스위트 기준 — chromium+Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.1
 상태: PASS
 ====================================================================
 
@@ -192,8 +196,12 @@ APK: filmcommando-coating-moblie-v0.0.1.apk
 수정: 카메라 네이티브 연동(@capacitor/camera) + PDF 로드 구현(pdfjs-dist)
 APK: filmcommando-coating-moblie-v0.0.2.apk
 크기: 17.17MB (18004728 bytes)
+versionCode: 2
 검증: 에뮬레이터에서 카메라 권한 다이얼로그 → 네이티브 카메라 앱 실행 확인,
       2페이지 테스트 PDF 업로드 → pages 배열 정상 매핑(1/2 페이지) 확인
+테스트: Playwright E2E 20/20 PASS (테스트 파일 구성이 v0.0.1과 동일 — phase4-4/4-5/4-6, chromium+
+      Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.2
 상태: PASS
 ====================================================================
 
@@ -204,8 +212,11 @@ APK: filmcommando-coating-moblie-v0.0.2.apk
       카카오 공유 imageUrl을 blob:에서 공개 URL(0x0.st 업로드)로 교체
 APK: filmcommando-coating-moblie-v0.0.3.apk
 크기: 17.18MB (18008734 bytes)
+versionCode: 3
 검증: Filesystem.readdir로 실기기 Documents 폴더에 dojang-20260817-090055.pdf(3.8MB)
       저장 확정 확인. 웹 환경 blob 다운로드 경로 회귀 없음(Playwright 10/10 PASS).
+테스트: Playwright E2E 20/20 PASS (chromium+Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.3
 상태: PASS (문제5 완전 해결, 문제4는 Kakao Developers 콘솔 도메인 등록 후 최종 확인 필요)
 ====================================================================
 
@@ -217,7 +228,10 @@ APK: filmcommando-coating-moblie-v0.0.3.apk
 GitHub Pages: https://kwonjeongseop.github.io/filmcommando-coating-moblie-v1/
 APK: filmcommando-coating-moblie-v0.0.4.apk
 크기: 17.23MB (18062998 bytes)
+versionCode: 4
 검증: Pages 배포 2회 성공, 사이트/icon.png 모두 HTTP 200 확인, Playwright 10/10 PASS
+테스트: Playwright E2E 20/20 PASS (chromium+Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.4
 상태: PASS
 
 ====================================================================
@@ -227,8 +241,11 @@ APK: filmcommando-coating-moblie-v0.0.4.apk
       툴바 저장 버튼 형식(JPG/PNG/PDF) 선택 다이얼로그 추가(이슈11)
 APK: filmcommando-coating-moblie-v0.0.5.apk
 크기: 17.23MB (18063242 bytes)
+versionCode: 5
 검증: 웹 Playwright 회귀 10/10 PASS + 형식선택 다이얼로그 동작 확인,
       실기기 Filesystem.readdir로 PDF 형식 선택 저장 결과 확인
+테스트: Playwright E2E 20/20 PASS (chromium+Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.5
 상태: PASS
 
 ====================================================================
@@ -239,8 +256,11 @@ APK: filmcommando-coating-moblie-v0.0.5.apk
       (밝기·대비·회전·자르기)
 APK: filmcommando-coating-moblie-v0.0.6.apk
 크기: 17.23MB (18065228 bytes)
+versionCode: 6
 검증: 실기기(CDP) 6개 핵심 항목 전부 PASS(편집화면 진입·회전치수·에디터진입·도장크기·
       회전핸들부재·스캔PDF저장), 웹 Playwright 회귀 10/10 PASS
+테스트: Playwright E2E 20/20 PASS (chromium+Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.6
 상태: PASS
 
 ====================================================================
@@ -248,10 +268,13 @@ APK: filmcommando-coating-moblie-v0.0.6.apk
 빌드일: 2026-08-17
 APK: filmcommando-coating-moblie-v0.0.7.apk
 크기: 17.23MB (18065228 bytes)
+versionCode: 7
 수정: 도장회전제거·크기조정·공유개선·문서스캔·편집기능
   (d452159 도장 회전 제거 커밋이 v0.0.6 APK에 미반영되었던 것을 포함해 재빌드)
 검증: 웹 Playwright 회귀 10/10 PASS, 실기기 CDP 4개 핵심 항목(h-rot 부재·
   도장scale 0.6·저장형식 4종·Share 플러그인) 전부 PASS
+테스트: Playwright E2E 20/20 PASS (chromium+Pixel 8 각 10건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.7
 상태: PASS
 
 ====================================================================
@@ -264,11 +287,14 @@ APK: filmcommando-coating-moblie-v0.0.7.apk
       열(cols) 폭 기준(colFs) 추가해 행 기준과 min 적용 + 외곽 원형 div overflow:hidden 안전장치 추가.
 APK: filmcommando-coating-moblie-v0.0.8.apk
 크기: 17.23MB (18065360 bytes)
+versionCode: 8
 검증: 웹 Playwright 회귀 26/26 PASS(신규 phase5-1-seal-fit 3건 포함, fix 이전 코드로 동일 테스트
       3건 실패 재현시켜 회귀테스트 유효성 확인). 실기기(에뮬레이터 Pixel_8, release APK 설치) 확인 —
       김민수(3자)·이영희(3자)·대한법인(4자) 도장 모두 원 안에 정상 렌더링, 문자·메일 공유 시 Android
       네이티브 CHOOSER 인텐트에 실제 이미지 썸네일 첨부됨(logcat: clip={text/uri-list U(content)}),
       크래시 없음.
+테스트: Playwright E2E 26/26 PASS (chromium+Pixel 8 각 13건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.8
 상태: PASS
 
 ====================================================================
@@ -281,12 +307,15 @@ APK: filmcommando-coating-moblie-v0.0.8.apk
       제거(app.jsx) — 카메라 촬영·갤러리 업로드 모두 EditorScreen으로 즉시 진입.
 APK: filmcommando-coating-moblie-v0.0.9.apk
 크기: 17.23MB (18064572 bytes)
+versionCode: 9
 검증: 웹 Playwright 회귀 32/32 PASS(신규 phase5-2-doc-pinch-zoom 3건 포함, 편집화면 제거로 무효해진
       phase4-4 2건·phase4-6 기본크기 단언 1건은 새 동작에 맞춰 갱신). 실기기(에뮬레이터 Pixel_8,
       release APK) 확인 — 도장 배치 시 크기 35% 슬라이더 시작·실제 배치 크기 축소 확인, 줌바로 300%까지
       확대 후 한 손가락 스와이프로 정상 패닝 확인(네이티브 스크롤), 촬영/업로드 후 편집화면 없이
       EditorScreen 바로 진입 확인. 핀치(2손가락) 제스처 자체는 adb shell이 멀티터치를 지원하지 않아
       Playwright CDP Input.dispatchTouchEvent(실제 두 손가락 터치 이벤트 시퀀스)로 검증.
+테스트: Playwright E2E 32/32 PASS (chromium+Pixel 8 각 16건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.0.9
 상태: PASS
 
 ====================================================================
@@ -307,6 +336,7 @@ APK: filmcommando-coating-moblie-v0.0.9.apk
     아님(스탬프 배치 Undo와는 별개 — 참고 사항으로 기록).
 APK: filmcommando-coating-moblie-v0.1.0.apk
 크기: 17.23MB (18065236 bytes)
+versionCode: 10
 검증: 웹 Playwright 회귀 48/48 PASS(신규 phase6-1 도장방향·phase6-2 잠금+zoom정규화 4건·phase6-3 버전
       표시·phase6-4 자르기 2건 포함, zoom정규화는 수정 전 코드로 되돌려 실패 재현 후 복구해 회귀테스트
       유효성 확인). 실기기(에뮬레이터 Pixel_8, release APK) 확인 — 도장 3종(3·3·4자) 모두 가로 배치로
@@ -315,6 +345,8 @@ APK: filmcommando-coating-moblie-v0.1.0.apk
       크래시 없음(logcat 확인). 자르기 드래그 선택 자체의 최종 결과(docImage 실제 교체)는 adb shell
       input이 멀티스텝 포인터 드래그를 안정적으로 재현하지 못해 Playwright(실제 mouse 이벤트, JPEG
       재인코딩 후 픽셀 색상까지 검증)로 검증함 — 실기기에서는 진입·UI·취소 경로만 시각 확인.
+테스트: Playwright E2E 48/48 PASS (chromium+Pixel 8 각 24건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.0
 상태: PASS
 
 ====================================================================
@@ -334,6 +366,7 @@ APK: filmcommando-coating-moblie-v0.1.0.apk
     동일하게 zoom 반영(내 변경으로 생긴 불일치 방지를 위한 companion 수정).
 APK: filmcommando-coating-moblie-v0.1.1.apk
 크기: 17.23MB (18065616 bytes)
+versionCode: 11
 검증: 웹 Playwright 회귀 60/60 PASS(신규 phase7-1 자체카메라+자르기 3건·phase7-2 zoom연동 3건 포함,
       촬영 후 EditorScreen 직행을 가정했던 기존 phase4-4 2건은 리뷰 화면 클릭을 추가해 갱신).
       실기기(에뮬레이터 Pixel_8, release APK) 확인 — 카메라 권한 승인 후 OS 카메라 앱이 아닌 앱 자체
@@ -344,6 +377,8 @@ APK: filmcommando-coating-moblie-v0.1.1.apk
       getBoundingClientRect()로 직접 측정해 확인. 세션 전체 크래시 없음(logcat 확인).
       (참고: adb shell input tap은 이 카메라 리뷰 화면에서 devicePixelRatio 2.625로 인한 좌표 오추정이
       발생해 CDP 기반 DOM 클릭으로 전환해 검증함 — 코드 동작 자체와는 무관한 테스트 방법론 이슈)
+테스트: Playwright E2E 60/60 PASS (chromium+Pixel 8 각 30건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.1
 상태: PASS
 
 ====================================================================
@@ -370,6 +405,7 @@ APK: filmcommando-coating-moblie-v0.1.1.apk
 APK: filmcommando-coating-moblie-v0.1.2.apk
 크기: 17.44MB (18289797 bytes, v0.1.1 대비 +224181 bytes ≈ +219KB — TF.js 런타임 코드는 지연 로드
       청크로 분리되어(gzip 총합 약 224KB) 초기 로딩에는 영향 없음, 모델 가중치는 APK에 미포함)
+versionCode: 12
 검증: 웹 Playwright 회귀 62/62 PASS(신규 phase8-1 — 모델 로드 완료 로그 + 감지 사이클 로그 확인,
       최초 실행 시 tfjs-backend-cpu 미등록으로 인한 unhandled rejection을 실제로 재현한 뒤 수정해
       회귀테스트 유효성 확인). 실기기(에뮬레이터 Pixel_8, release APK) 확인 — Chrome DevTools
@@ -380,6 +416,8 @@ APK: filmcommando-coating-moblie-v0.1.2.apk
       학습 데이터와 시각적으로 달라 book·laptop 등 목표 클래스가 실제로는 감지되지 않음(정상 범위 —
       감지 파이프라인 자체는 정상 동작하나 이 특정 합성 씬에서 신뢰도 임계값을 넘는 매치가 없었음.
       실제 사진에서는 다르게 동작할 수 있음).
+테스트: Playwright E2E 62/62 PASS (chromium+Pixel 8 각 31건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.2
 상태: PASS
 
 ====================================================================
@@ -401,6 +439,7 @@ APK: filmcommando-coating-moblie-v0.1.2.apk
 APK: filmcommando-coating-moblie-v0.1.3.apk
 크기: 17.44MB (18289985 bytes, v0.1.2 대비 +188 bytes — 신규 UI/로직이 대부분 순수 JS라 번들 크기
       증가분이 미미함)
+versionCode: 13
 검증: 웹 Playwright 전체 70/70 PASS(chromium+Pixel 8, phase9-1 신규 4건 포함 — 슬라이더 기본값·
       실시간 filter 반영, 다시 촬영 시 슬라이더 초기화, 원본 유지/스캔으로 저장 각각의 흑백 양자화
       비율 검증). 실기기(에뮬레이터 emulator-5554, release APK) CDP 기반 검증 — 실제 getUserMedia
@@ -409,6 +448,8 @@ APK: filmcommando-coating-moblie-v0.1.3.apk
       로 공식과 정확히 일치 확인. "스캔으로 저장" 클릭 → EditorScreen 진입 + docImage(JPEG) 저장 확인.
       스크린샷 test-results/screenshots/v0.1.3-review.png(밝기20/대비15 적용 상태, 드래그 오버레이·
       3버튼 정상 렌더). adb logcat FATAL/AndroidRuntime 크래시 없음.
+테스트: Playwright E2E 70/70 PASS (chromium+Pixel 8 각 35건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.3
 상태: PASS
 
 ====================================================================
@@ -423,6 +464,7 @@ APK: filmcommando-coating-moblie-v0.1.3.apk
     (테스트 시나리오·검증 로직은 무변경).
 APK: filmcommando-coating-moblie-v0.1.4.apk
 크기: 17.44MB (18289997 bytes, v0.1.3 대비 +12 bytes — 텍스트 문자열만 변경되어 번들 크기 변화 미미)
+versionCode: 14
 검증: 웹 Playwright 전체 70/70 PASS(chromium+Pixel 8). 실기기(에뮬레이터 emulator-5554, release APK)
       CDP 기반 검증 — 실제 getUserMedia 카메라로 촬영 후 리뷰 화면 진입, 슬라이더 2개(기본값 0/0)·
       버튼 3개(다시 촬영/원본으로 편집기 이동/스캔으로 편집기 이동) 렌더 확인. 슬라이더 조작
@@ -430,6 +472,8 @@ APK: filmcommando-coating-moblie-v0.1.4.apk
       "스캔으로 편집기 이동" 클릭 → EditorScreen 진입 + docImage(JPEG) 저장 확인. 스크린샷
       test-results/screenshots/v0.1.4-review.png(밝기20/대비15, 새 라벨 2줄 표기 레이아웃 정상).
       adb logcat FATAL/AndroidRuntime 크래시 없음.
+테스트: Playwright E2E 70/70 PASS (chromium+Pixel 8 각 35건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.4
 상태: PASS
 
 ====================================================================
@@ -455,6 +499,7 @@ APK: filmcommando-coating-moblie-v0.1.4.apk
     (기존 20여 곳의 단일 인자 호출은 무변경 동작).
 APK: filmcommando-coating-moblie-v0.1.5.apk
 크기: 17.44MB (18290793 bytes, v0.1.4 대비 @capacitor/browser 제거로 순감소)
+versionCode: 15
 검증: 웹 Playwright 전체 78/78 PASS(chromium+Pixel 8, 신규 phase9-2-scan-quality 2건·phase9-3-
       handle-margin 2건 포함 — Otsu 이진화 픽셀 양자화율 >99%, scale=2 캡처 해상도 확인, 핸들 안전
       여백 픽셀 위치 확인). 실기기(에뮬레이터 emulator-5554, release APK) CDP 기반 검증 — 실제 카메라
@@ -463,4 +508,58 @@ APK: filmcommando-coating-moblie-v0.1.5.apk
       최초 구현의 크래시를 실기기에서 직접 발견해 원인 파악 후 수정). 스크린샷 test-results/
       screenshots/v0.1.5-handle.png · v0.1.5-scan.png · v0.1.5-open.png. adb logcat FATAL/
       AndroidRuntime 크래시 없음(수정 후 재확인).
+테스트: Playwright E2E 78/78 PASS (chromium+Pixel 8 각 39건)
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.5
+상태: PASS
+
+====================================================================
+[테스트 파일 현행화] (v0.1.5 릴리즈 이후, 앱 코드 변경 없이 테스트·문서만 정리)
+완료일: 2026-08-18
+
+[1단계] 현황 조사 결과
+- verify.dat: [Release v0.0.1]~[Release v0.1.5] 15개 블록 모두 누락 없이 존재. 다만 versionCode·
+  GitHub 릴리즈 링크·"테스트: Playwright E2E N/N PASS" 형식의 전용 필드가 없어 아래 [2단계]에서 추가.
+- app\tests\e2e\: 17개 스펙 파일 존재(phase4-4~phase9-3, 이번 작업에서 phase11-1·phase11-3 2개 추가).
+  phase10-1/10-2, phase11-2로 요청된 3개 항목은 각각 phase6-2-stamp-lock.spec.ts(도장 크기 고정)·
+  phase6-4-doc-crop.spec.ts(문서 이미지 자르기)·phase9-2-scan-quality.spec.ts(Otsu 스캔 화질)로 이미
+  동일 기능이 검증되고 있어 중복 생성하지 않음(아래 [3단계] disclosure 참조).
+- 전체 E2E 실행: 최초 실행 84/84 PASS(신규 phase11-1 1건 포함 — 최초 설계는 "매 프레임 이동" 방식이라
+  실제로 1회 flaky 실패(chromium)를 관측해 "화면 경계에 고정 클리핑" 방식으로 재설계 후 재검증 완료,
+  아래 [4단계] 참조).
+
+[2단계] verify.dat 현행화
+- [Release v0.0.1]~[Release v0.1.5] 전체 15개 블록에 versionCode(빌드 시점 android/app/build.gradle
+  기준, git tag별로 재확인)·GitHub 릴리즈 링크(gh release list로 실측)·"테스트: Playwright E2E N/N
+  PASS" 필드를 추가. 테스트 수는 각 git tag 시점의 app/tests/e2e/*.spec.ts 실제 파일 내용을
+  git show로 대조해 산출(단순 파일 개수가 아니라 test() 호출 수 기준 — phase5-1-seal-fit.spec.ts는
+  배열 순회로 3개 테스트를 동적 생성하므로 이를 반영), v0.1.2~v0.1.5는 세션 내 실제 실행 기록과
+  교차 검증해 일치 확인(v0.1.2 62/62, v0.1.3·v0.1.4 각 70/70, v0.1.5 78/78). 기존 "검증:" 항목의
+  서술은 이미 정확하여 그대로 유지, 누락 필드만 추가(기존 내용 재작성 없음).
+
+[3단계] 누락 스펙 파일 생성
+- phase11-1-camera-handle.spec.ts 신규(1건) — v0.1.5 수정2(감지 안정성 게이팅) 중 phase9-3에서
+  다루지 않은 "경계 클리핑 시 boxRef 미갱신" 부분을 검증. 정적 장면(문서가 화면 좌측 경계 밖으로
+  걸쳐 있음)으로 설계해 타이밍에 의존하지 않는 결정론적 테스트로 구성.
+- phase11-3-save-open.spec.ts 신규(2건) — v0.1.5 수정4(저장 후 파일 열기) 관련, saveNativeFile은
+  Capacitor.isNativePlatform()이 true인 네이티브 전용 경로라 Playwright(웹 컨텍스트)로는 직접 진입
+  불가 — 대신 웹 경로에는 "파일 열기" 버튼이 새어 나가지 않는지(회귀 가드) + 일반 토스트의 5초/2.2초
+  구분이 유지되는지를 검증. 네이티브 경로(Share.share 실제 동작)는 test-results/logs/v0.1.5-fix.log·
+  screenshots/v0.1.5-open.png의 실기기 CDP 검증으로 이미 커버됨.
+- phase10-1-stamp-lock.spec.ts·phase10-2-doc-crop.spec.ts·phase11-2-scan-quality.spec.ts 3개는
+  생성하지 않음 — 요청된 기능(도장 크기 고정·문서 이미지 자르기·Otsu 스캔 화질)이 각각 기존
+  phase6-2-stamp-lock.spec.ts·phase6-4-doc-crop.spec.ts·phase9-2-scan-quality.spec.ts로 이미 충분히
+  검증되고 있어, 동일 기능을 다른 번호로 재작성하면 중복 커버리지만 늘어날 뿐이라 판단(disclosure).
+- 제거된 기능(PhotoEditScreen·도장 회전 핸들 등) 관련 스펙 잔존 여부 조사 — grep으로 전수 확인 결과
+  현재 스펙 어디에도 관련 참조가 남아있지 않음(이미 이전 세션들에서 기능 제거 시점마다 정리됨),
+  추가 정리 불필요.
+
+[4단계] 전체 E2E 재실행 + 결과
+- 1차 phase11-1 초안(문서를 매 프레임 이동시키는 방식)이 chromium 프로젝트에서 1회 flaky 실패
+  (maxX-minX=0.328, 안정화가 우연히 성사됨) — 원인은 requestAnimationFrame 간격과 분석 tick(120ms)
+  사이의 타이밍 앨리어싱으로 "항상 다른 위치"를 보장하지 못했기 때문. 앱 코드가 아닌 스펙만 수정 —
+  "화면 경계에 고정적으로 걸친 정적 장면"으로 재설계(EDGE_CLIP_MARGIN 판정이 매 tick 동일하게
+  걸리므로 타이밍 무관 결정론적) 후 --repeat-each=3으로 6/6 안정 통과 확인, 전체 재실행도 통과.
+- 최종 전체 실행: 84/84 PASS (chromium 42 + Pixel 8 42)
+테스트: Playwright E2E 84/84 PASS (chromium+Pixel 8 각 42건 — 기존 78건 + 신규 phase11-1 1건·
+      phase11-3 2건, ×2 프로젝트)
 상태: PASS
