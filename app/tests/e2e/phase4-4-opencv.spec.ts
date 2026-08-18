@@ -78,10 +78,8 @@ test.describe('Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정', () =
     await page.locator('video').waitFor({ state: 'visible' });
     await page.waitForTimeout(6000);
 
-    await page.getByText('촬영', { exact: true }).click();
-    await page.waitForTimeout(800);
-    await page.getByText('편집 완료', { exact: true }).click(); // 수정7: 촬영 후 편집 화면을 거쳐야 EditorScreen 진입
-    await page.waitForTimeout(300);
+    await page.getByText('촬영', { exact: true }).click(); // v0.0.9: 편집 화면 제거 — 촬영 즉시 EditorScreen 진입
+    await page.waitForTimeout(500);
 
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
     const docImage = ls.pages?.[0]?.docImage;
@@ -117,10 +115,8 @@ test.describe('Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정', () =
     });
     expect(overlayDrawn).toBe(true); // Canvas API 폴백도 오버레이를 그림
 
-    await page.getByText('촬영', { exact: true }).click();
+    await page.getByText('촬영', { exact: true }).click(); // v0.0.9: 편집 화면 제거 — 촬영 즉시 EditorScreen 진입
     await page.waitForTimeout(500);
-    await page.getByText('편집 완료', { exact: true }).click(); // 수정7: 촬영 후 편집 화면을 거쳐야 EditorScreen 진입
-    await page.waitForTimeout(300);
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
     expect(ls.pages?.[0]?.docImage).toBeTruthy();
   });

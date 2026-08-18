@@ -24,7 +24,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const DEFAULT_SETTINGS = {
-  ink: '주홍', size: 0.6, opacity: 1, autoSelect: true,
+  ink: '주홍', size: 0.35, opacity: 1, autoSelect: true,
   format: 'PDF', hq: false, autosave: true, pw: false, localOnly: true,
 };
 
@@ -263,123 +263,6 @@ async function pdfToImages(file) {
   return images;
 }
 
-// 촬영·업로드 직후 EditorScreen 진입 전 밝기·대비·자르기·회전을 조정하는 편집 화면.
-// crop은 원본(회전 적용 후) 이미지 기준 정규화 좌표(0~1)로 누적 저장해 여러 번 잘라도 정확히 합성된다.
-function PhotoEditScreen({ srcImage, onDone, onCancel }) {
-  const [brightness, setBrightness] = useS(0);
-  const [contrast, setContrast] = useS(0);
-  const [rotation, setRotation] = useS(0);
-  const [crop, setCrop] = useS(null);
-  const [selRect, setSelRect] = useS(null);
-  const canvasRef = useR(null);
-  const imgRef = useR(null);
-  const dragRef = useR(null);
-
-  const render = () => {
-    const img = imgRef.current, canvas = canvasRef.current;
-    if (!img || !canvas) return;
-    const rad = (rotation * Math.PI) / 180;
-    const swapped = rotation % 180 !== 0;
-    const bw = swapped ? img.height : img.width, bh = swapped ? img.width : img.height;
-    const rc = document.createElement('canvas');
-    rc.width = bw; rc.height = bh;
-    const rctx = rc.getContext('2d');
-    rctx.save();
-    rctx.translate(bw / 2, bh / 2);
-    rctx.rotate(rad);
-    rctx.drawImage(img, -img.width / 2, -img.height / 2);
-    rctx.restore();
-
-    let sx = 0, sy = 0, sw = bw, sh = bh;
-    if (crop) { sx = crop.x * bw; sy = crop.y * bh; sw = crop.w * bw; sh = crop.h * bh; }
-    canvas.width = Math.max(1, sw); canvas.height = Math.max(1, sh);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(rc, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-    if (brightness !== 0 || contrast !== 0) {
-      const factor = 1 + contrast / 50;
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const d = imgData.data;
-      for (let i = 0; i < d.length; i += 4) {
-        d[i] = clamp((d[i] - 128) * factor + 128 + brightness, 0, 255);
-        d[i + 1] = clamp((d[i + 1] - 128) * factor + 128 + brightness, 0, 255);
-        d[i + 2] = clamp((d[i + 2] - 128) * factor + 128 + brightness, 0, 255);
-      }
-      ctx.putImageData(imgData, 0, 0);
-    }
-  };
-
-  useE(() => {
-    const img = new Image();
-    img.onload = () => { imgRef.current = img; render(); };
-    img.src = srcImage;
-  }, [srcImage]);
-  useE(render, [rotation, crop, brightness, contrast]);
-
-  const startCrop = (e) => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    e.preventDefault();
-    const r = canvas.getBoundingClientRect();
-    const x = clamp((e.clientX - r.left) / r.width, 0, 1), y = clamp((e.clientY - r.top) / r.height, 0, 1);
-    dragRef.current = { x0: x, y0: y };
-    setSelRect({ x, y, w: 0, h: 0 });
-    window.addEventListener('pointermove', moveCrop);
-    window.addEventListener('pointerup', upCrop);
-  };
-  const moveCrop = (e) => {
-    const d = dragRef.current, canvas = canvasRef.current; if (!d || !canvas) return;
-    const r = canvas.getBoundingClientRect();
-    const x = clamp((e.clientX - r.left) / r.width, 0, 1), y = clamp((e.clientY - r.top) / r.height, 0, 1);
-    setSelRect({ x: Math.min(d.x0, x), y: Math.min(d.y0, y), w: Math.abs(x - d.x0), h: Math.abs(y - d.y0) });
-  };
-  const upCrop = () => {
-    dragRef.current = null;
-    window.removeEventListener('pointermove', moveCrop);
-    window.removeEventListener('pointerup', upCrop);
-  };
-  const applyCrop = () => {
-    if (!selRect || selRect.w < 0.03 || selRect.h < 0.03) { setSelRect(null); return; }
-    setCrop((prev) => !prev ? selRect
-      : { x: prev.x + selRect.x * prev.w, y: prev.y + selRect.y * prev.h, w: selRect.w * prev.w, h: selRect.h * prev.h });
-    setSelRect(null);
-  };
-  const resetAll = () => { setBrightness(0); setContrast(0); setRotation(0); setCrop(null); setSelRect(null); };
-
-  return (
-    <div className="sub-screen">
-      <div className="appbar">
-        <button className="iconbtn" onClick={onCancel} aria-label="닫기"><Icon name="close" size={22} /></button>
-        <div className="appbar-title"><span className="apptitle">사진 편집</span></div>
-        <button className="btn solid" onClick={() => onDone(canvasRef.current.toDataURL('image/jpeg', 0.92))}>편집 완료</button>
-      </div>
-      <div style={{ position: 'relative', flex: 1, overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
-        <div style={{ position: 'relative', maxWidth: '100%' }}>
-          <canvas ref={canvasRef} onPointerDown={startCrop} style={{ maxWidth: '100%', maxHeight: '55vh', display: 'block', touchAction: 'none' }} />
-          {selRect && (
-            <div style={{ position: 'absolute', border: '2px dashed #2B6CE6', background: 'rgba(43,108,230,0.15)',
-              left: selRect.x * 100 + '%', top: selRect.y * 100 + '%', width: selRect.w * 100 + '%', height: selRect.h * 100 + '%' }} />
-          )}
-        </div>
-      </div>
-      <div className="st-scroll" style={{ padding: '12px 16px', flexShrink: 0 }}>
-        <div style={{ marginBottom: 10 }}>
-          <div className="st-glabel">밝기 {brightness}</div>
-          <input className="rng" type="range" min="-50" max="50" value={brightness} onChange={(e) => setBrightness(+e.target.value)} />
-        </div>
-        <div style={{ marginBottom: 10 }}>
-          <div className="st-glabel">대비 {contrast}</div>
-          <input className="rng" type="range" min="-50" max="50" value={contrast} onChange={(e) => setContrast(+e.target.value)} />
-        </div>
-        <div className="sheet-actions">
-          <button className="btn ghost" onClick={() => setRotation((r) => (r + 90) % 360)}>90° 회전</button>
-          {selRect && <button className="btn solid" onClick={applyCrop}>자르기 적용</button>}
-          <button className="btn ghost" onClick={resetAll}>원본으로</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const fileRef = useR(null);
   const videoRef = useR(null);
@@ -392,8 +275,6 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const dragCornerRef = useR(null); // 'tl' | 'tr' | 'br' | 'bl' | null
   const [cameraOpen, setCameraOpen] = useS(false);
   const [manualMode, setManualMode] = useS(false);
-  const [editImage, setEditImage] = useS(null); // 촬영·업로드한 단일 이미지 — 편집 화면을 거친 뒤 onLoadImage 호출
-  const [editName, setEditName] = useS('');
   const onFile = async (e) => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
     const name = f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '업로드 서류';
@@ -403,7 +284,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
       return;
     }
     const r = new FileReader();
-    r.onload = () => { setEditImage(r.result); setEditName(name); };
+    r.onload = () => onLoadImage(r.result, name);
     r.readAsDataURL(f);
   };
 
@@ -416,7 +297,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     if (Capacitor.isNativePlatform()) {
       try {
         const photo = await Camera.getPhoto({ resultType: CameraResultType.DataUrl, source: CameraSource.Camera, quality: 90 });
-        setEditImage(photo.dataUrl); setEditName('촬영 서류');
+        onLoadImage(photo.dataUrl, '촬영 서류');
       } catch (e) {} // 사용자가 네이티브 카메라 촬영을 취소한 경우
       return;
     }
@@ -562,7 +443,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
 
     const dataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
     closeCamera();
-    setEditImage(dataUrl); setEditName('촬영 서류');
+    onLoadImage(dataUrl, '촬영 서류');
   };
 
   return (
@@ -624,13 +505,6 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
             {manualMode && <button className="btn ghost" onClick={resetAutoDetect}>자동</button>}
             <button className="btn solid wide" onClick={capturePhoto}>촬영</button>
           </div>
-        </div>
-      )}
-      {editImage && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 50 }}>
-          <PhotoEditScreen srcImage={editImage}
-            onCancel={() => setEditImage(null)}
-            onDone={(dataUrl) => { onLoadImage(dataUrl, editName); setEditImage(null); }} />
         </div>
       )}
     </div>

@@ -10,6 +10,8 @@ import { OverflowMenu, StampContextMenu, PromptDialog, ConfirmDialog } from './m
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const BG_THRESHOLD = 200;
+const DOC_ZOOM_MIN = 0.5;
+const DOC_ZOOM_MAX = 3.0;
 
 function ToolBtn({ name, label, onClick, active, primary, disabled, showLabel, badge }) {
   return (
@@ -132,7 +134,7 @@ function StampPopup({ open, onClose, library, recent, sealInk, defaults, onConfi
         <div className="pop-block-h">찍기 옵션</div>
         <div className="opt-row">
           <span className="opt-l">크기</span>
-          <input className="rng" type="range" min="0.6" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
+          <input className="rng" type="range" min="0.2" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
           <span className="opt-v">{Math.round(size * 100)}%</span>
         </div>
         <div className="opt-row">
@@ -426,6 +428,8 @@ function EditorScreen({ store }) {
   const dragRef = useRef(null);
   const lpRef = useRef(null);
   const pinchRef = useRef(null);
+  const docPinchRef = useRef(null); // 문서 배경 핀치줌 — 도장 위 핀치(pinchRef)와는 별개
+  const tapRef = useRef({ time: 0, x: 0, y: 0 }); // 문서 배경 더블탭 감지(원본 크기로 리셋)
 
   const stampById = (id) => library.find((s) => s.id === id);
   const captureThumb = async () => {
@@ -632,6 +636,39 @@ function EditorScreen({ store }) {
   };
   const onStampTouchEnd = (e) => {
     if (e.touches.length < 2) pinchRef.current = null;
+  };
+
+  // 문서 배경 핀치줌 — 두 손가락 거리 비율로 zoom 상태(줌바와 공유)를 갱신한다.
+  // 한 손가락 드래그(패닝)는 .canvas의 기본 스크롤(overflow:auto)에 맡기고 개입하지 않는다.
+  const onCanvasTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      tapRef.current.x = t.clientX; tapRef.current.y = t.clientY;
+      return;
+    }
+    if (e.touches.length !== 2 || pinchRef.current) return; // 도장 위 핀치(크기 조절)는 그대로 둔다
+    e.preventDefault();
+    const [t0, t1] = e.touches;
+    docPinchRef.current = {
+      startDist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY) || 1,
+      startZoom: zoom,
+    };
+  };
+  const onCanvasTouchMove = (e) => {
+    const p = docPinchRef.current; if (!p || e.touches.length !== 2) return;
+    e.preventDefault();
+    const [t0, t1] = e.touches;
+    const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    setZoom(clamp(+(p.startZoom * (dist / p.startDist)).toFixed(2), DOC_ZOOM_MIN, DOC_ZOOM_MAX));
+  };
+  const onCanvasTouchEnd = (e) => {
+    if (e.touches.length < 2) docPinchRef.current = null;
+    if (placing || e.touches.length !== 0 || !e.changedTouches.length) return;
+    const t = e.changedTouches[0];
+    if (Math.hypot(t.clientX - tapRef.current.x, t.clientY - tapRef.current.y) > 10) return; // 드래그(패닝)는 탭이 아님
+    const now = Date.now();
+    if (now - tapRef.current.time < 300) { setZoom(1); tapRef.current.time = 0; }
+    else tapRef.current.time = now;
   };
 
   const ctxAction = (k) => {
@@ -886,9 +923,9 @@ function EditorScreen({ store }) {
 
       {zoomBar && (
         <div className="zoombar">
-          <button className="rbtn" onClick={() => setZoom((z) => clamp(+(z - 0.2).toFixed(2), 0.6, 2.6))}>−</button>
-          <input className="rng" type="range" min="0.6" max="2.6" step="0.1" value={zoom} onChange={(e) => setZoom(+e.target.value)} />
-          <button className="rbtn" onClick={() => setZoom((z) => clamp(+(z + 0.2).toFixed(2), 0.6, 2.6))}>+</button>
+          <button className="rbtn" onClick={() => setZoom((z) => clamp(+(z - 0.2).toFixed(2), DOC_ZOOM_MIN, DOC_ZOOM_MAX))}>−</button>
+          <input className="rng" type="range" min={DOC_ZOOM_MIN} max={DOC_ZOOM_MAX} step="0.1" value={zoom} onChange={(e) => setZoom(+e.target.value)} />
+          <button className="rbtn" onClick={() => setZoom((z) => clamp(+(z + 0.2).toFixed(2), DOC_ZOOM_MIN, DOC_ZOOM_MAX))}>+</button>
           <span className="zoom-val">{Math.round(zoom * 100)}%</span>
           <button className="btn ghost sm" onClick={() => setZoom(1)}>맞춤</button>
         </div>
@@ -902,7 +939,7 @@ function EditorScreen({ store }) {
         </div>
       )}
 
-      <div className="canvas">
+      <div className="canvas" onTouchStart={onCanvasTouchStart} onTouchMove={onCanvasTouchMove} onTouchEnd={onCanvasTouchEnd}>
         <div className={'page-wrap' + (placing ? ' placing' : '')}>
           <div className="page" ref={pageRef} onMouseMove={onPageMove} onClick={onPageClick}
             style={{ width: PAGE_W * zoom, height: PAGE_W * 1.414 * zoom, rotate: docRot + 'deg' }}>
