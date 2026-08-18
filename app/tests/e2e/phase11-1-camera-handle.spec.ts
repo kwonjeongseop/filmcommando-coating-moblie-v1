@@ -31,7 +31,13 @@ async function installEdgeClippedDocCamera(page) {
 async function openCamera(page) {
   await page.getByText('카메라로 촬영').click();
   await page.locator('video').waitFor({ state: 'visible' });
-  await page.waitForTimeout(3000); // OpenCV.js 로드+초기화 + 여러 분석 tick 누적 대기
+  // v0.2.3: STABLE_TIMEOUT_MS(app.jsx, 5000ms)이 카메라가 열린 시점부터 흐르는데, 고정 시간을
+  // 대기하는 방식은 시스템 부하로 실제 대기 시간이 요청값의 2~4배까지 늘어날 수 있어(측정 결과
+  // waitForTimeout(1500)이 실제로 3~4초 이상 걸리는 사례 확인) 5000ms 컷오프를 넘겨 "차단"이 아닌
+  // "경고 후 촬영 허용" 분기로 흘러 flaky하게 실패했다(EDGE_CLIP_MARGIN과 무관한 순수 타이밍 문제).
+  // 이 테스트가 검증하는 차단 조건(stableRef.count < STABLE_FRAMES_REQUIRED)은 카메라를 연 직후
+  // 초기값(count=0)만으로 이미 충족되므로 분석 tick을 기다릴 필요가 없다 — 대기 없이 곧바로
+  // 촬영을 시도해 5000ms 컷오프 노출 자체를 최소화한다.
 }
 
 test.describe('Phase 11-1: 문서 영역 자동 감지 안정성 게이팅', () => {
@@ -47,9 +53,13 @@ test.describe('Phase 11-1: 문서 영역 자동 감지 안정성 게이팅', () 
     await page.getByText('촬영', { exact: true }).click();
 
     // 경계 클리핑으로 판단되어(boxRef 미갱신) 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면에
-    // 남아야 하며, 사용자에게 안내 토스트가 표시되어야 한다.
+    // 남아야 하며, 사용자에게 안내 토스트가 표시되어야 한다. 토스트는 2.2초 후 자동으로 사라지므로
+    // (app.jsx showToast) 가장 시간에 민감한 토스트 확인을 먼저 하고, 계속 유지되는 상태(리뷰 화면
+    // 미진입·비디오 노출)는 그 뒤에 확인한다 — v0.2.3: 순서가 반대였을 때 두 상태 확인에 걸리는
+    // 시간만으로 토스트가 이미 사라져 flaky하게 실패하는 문제가 있었다(EDGE_CLIP_MARGIN 자체 결함은
+    // 아님 — 차단은 매번 정상 동작했음).
+    await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
     await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
     await expect(page.locator('video')).toBeVisible();
-    await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
   });
 });

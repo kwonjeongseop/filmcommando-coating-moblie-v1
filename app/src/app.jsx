@@ -25,7 +25,8 @@ const clampQuad = (q) => (q ? {
 // 전(계속 움직이는 중)에는 좌표가 매 프레임 크게 바뀌므로 이 조건을 만족하지 못해 반영되지 않는다.
 const STABLE_FRAMES_REQUIRED = 2;
 const STABLE_FRAME_DELTA = 0.10; // 실기기 자동초점·노출 미세 변동을 허용하기 위해 0.05→0.10로 완화
-const EDGE_CLIP_MARGIN = 0.00; // 문서를 프레임 가득 채우는 정상 촬영까지 막지 않도록 0.02→0.00로 완화
+const EDGE_CLIP_MARGIN = 0.01; // 0.00은 경계선(x=0/1) 클리핑 판정이 부등식상 항상 false가 되어 감지 자체가
+// 무력화되는 회귀였음 — 1% 여백으로 판정 가능성을 복원하면서 0.02보다는 정상 촬영 오탐을 줄인다.
 const STABLE_TIMEOUT_MS = 5000; // 이 시간 안에 안정화되지 않아도 차단 없이 촬영을 허용한다(경고만 표시)
 const quadClippedAtEdge = (q) => ['tl', 'tr', 'br', 'bl'].some((k) =>
   q[k].x < EDGE_CLIP_MARGIN || q[k].x > 1 - EDGE_CLIP_MARGIN || q[k].y < EDGE_CLIP_MARGIN || q[k].y > 1 - EDGE_CLIP_MARGIN);

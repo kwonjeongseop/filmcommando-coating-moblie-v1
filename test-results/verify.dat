@@ -779,3 +779,41 @@ versionCode: 22
       FATAL/AndroidRuntime 크래시 없음(ConsumerBase/WifiDataStall 등 무관한 시스템 로그만 존재).
 GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.2.2
 상태: PASS
+
+====================================================================
+[Release v0.2.3]
+빌드일: 2026-08-18
+APK: filmcommando-coating-moblie-v0.2.3.apk
+크기: 17.44MB (18291058 bytes)
+versionCode: 23
+수정: EDGE_CLIP_MARGIN0.01회귀수정·테스트현행화
+  - [수정1] app.jsx:28 EDGE_CLIP_MARGIN 0.00→0.01. v0.2.1에서 0.02→0.00으로 완화했을 때 경계 좌표가
+    정확히 0.0/1.0으로 감지되는데(부등식 q[k].x<0.00, q[k].x>1-0.00) margin이 정확히 0이면 두 부등식이
+    항상 false가 되어 "경계에 걸쳐 잘린 문서" 감지 자체가 완전히 무력화되는 회귀였음을 진단 로그로
+    실측 확인(candidate.tl.x=0, bl.x=0 매 프레임 고정 — 흐림·다운샘플에 의한 미세 오차조차 없이 정확히
+    0). 0.01로 복원하면 0<0.01이 성립해 감지가 정상 동작하며, 0.02보다는 여전히 완화된 값이라 v0.2.1이
+    의도한 "문서가 프레임 가득 찬 정상 촬영까지 막지 않는" 목적도 유지된다. quadClippedAtEdge·
+    STABLE_FRAME_DELTA·STABLE_TIMEOUT_MS 등 기존 촬영 차단 로직 구조는 변경 없음(상수값 1개만 수정).
+  - [수정2] phase11-1-camera-handle.spec.ts·phase9-3-handle-margin.spec.ts flaky 원인을 진단 로그로
+    확정 — 두 스펙 모두 앱 코드 결함이 아니라 openCamera() 헬퍼의 고정 시간 대기(각각 3000ms·2500ms)가
+    시스템 부하 시 요청값의 2~4배까지 실제로 걸려(page.waitForTimeout(1500) 실측 3.0~4.3초, click()
+    실측 최대 1.7초) STABLE_TIMEOUT_MS(5000ms) 컷오프를 넘기면서 "차단" 대신 "경고 후 촬영 허용"
+    분기로 새 flaky하게 실패한 것으로 확인됨. 두 테스트가 검증하는 차단 조건(stableRef.count <
+    STABLE_FRAMES_REQUIRED)은 카메라를 연 직후 초기값(count=0)만으로 이미 충족되므로(phase9-3의
+    수동 조정 테스트는 manualRef=true로 차단 조건 자체를 우회) 분석 tick 누적을 기다릴 필요가 없음을
+    확인하고, 두 스펙의 openCamera()에서 고정 대기를 제거해 5000ms 컷오프 노출 자체를 최소화했다.
+    phase11-1은 추가로 토스트(2.2초 후 자동 소멸, app.jsx showToast) 확인 순서를 리뷰 화면 부재·비디오
+    노출 확인보다 먼저로 재배치해 시간에 민감한 단언부터 처리하도록 했다. 진단에 사용한 임시
+    console.log·임시 스펙 파일은 검증 후 전량 원복·삭제해 최종 코드에 남지 않음.
+테스트: Playwright E2E 100/100 PASS (chromium+Pixel 8 각 50건). phase11-1·phase9-3 안정성 별도 확정 —
+      수정 전 상수·타이밍으로는 5회 반복 중 각각 1~4회 실패(EDGE_CLIP_MARGIN=0.00 상태에서 phase11-1
+      결정론적 실패, 고정 대기 상태에서 양쪽 다 간헐적 flaky 실패)했으나, 수정 후에는 phase11-1
+      5회(양쪽 프로젝트) 전수 통과·phase9-3 5회(양쪽 프로젝트, 테스트 4건씩) 전수 통과 확인.
+검증: 실기기(에뮬레이터 emulator-5554, release APK) 재설치·재실행 확인 — 홈 화면 정상 렌더링
+      (screenshot v0.2.3-home.png), adb logcat FATAL/AndroidRuntime 크래시 없음(TransitionChain 등
+      무관한 시스템 전환 로그만 존재). 부수적으로 이번 진단 과정에서 장시간(수 시간) 켜져 있던
+      에뮬레이터 프로세스(qemu-system-x86_64, CPU 900+초 누적)가 Playwright 테스트 타이밍(waitForTimeout
+      요청값 대비 2~4배 지연)에 실측 영향을 준 것을 확인 — 에뮬레이터 재시작으로 일부 개선되었으나
+      완전히 해소되지는 않아, 근본 대응은 테스트 자체를 고정 대기 비의존으로 만드는 것으로 판단.
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.2.3
+상태: PASS

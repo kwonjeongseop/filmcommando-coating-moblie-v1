@@ -21,7 +21,10 @@ async function installBlankCamera(page) {
 async function openCamera(page) {
   await page.getByText('카메라로 촬영').click();
   await page.locator('video').waitFor({ state: 'visible' });
-  await page.waitForTimeout(2500); // OpenCV.js 로드+초기화 대기(엣지감지)
+  // v0.2.3: 고정 시간 대기는 시스템 부하 시 요청값의 2~4배까지 늘어나 STABLE_TIMEOUT_MS(app.jsx,
+  // 5000ms) 컷오프를 넘겨 flaky하게 실패했다. 아래 두 테스트 모두 이 대기가 필요 없다 — "감지 실패
+  // 차단" 테스트는 카메라를 연 직후 초기값(stableRef.count=0)만으로 차단 조건이 이미 충족되고,
+  // "수동 조정" 테스트는 manualRef=true로 차단 조건 자체를 우회하므로 안정화 시간과 무관하다.
 }
 
 // 리뷰 화면 오버레이 캔버스에서 파란색(#2B6CE6) 핸들 점들의 정규화 좌표 범위를 읽어낸다.
