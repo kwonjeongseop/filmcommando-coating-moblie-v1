@@ -1,0 +1,80 @@
+[조사만] v0.2.0 촬영 차단 과도 발동 원인 조사 로그
+(코드 수정 없음 — 소스 열람만 수행, 실기기 재현은 이번 조사 범위 밖)
+
+## 1. capturePhoto() 차단 조건 전체 코드
+
+✅ 확인 — app/src/app.jsx
+- STABLE_FRAMES_REQUIRED = 2 (app.jsx:26)
+- STABLE_FRAME_DELTA = 0.05 (app.jsx:27, 정규화 0..1 좌표계 기준 — 4개 꼭짓점 x/y 전부 이 이내여야
+  "직전 프레임과 가깝다"고 판정)
+- EDGE_CLIP_MARGIN = 0.02 (app.jsx:28 — 꼭짓점이 프레임 가장자리에서 2% 이내면 "잘렸다"고 판단해
+  즉시 전체 리셋)
+- MIN_MANUAL_DRAG_PX = 20 (app.jsx:527)
+- 차단 발동 조건(capturePhoto, app.jsx:607):
+  `if (!manualRef.current && stableRef.current.count < STABLE_FRAMES_REQUIRED)` → 토스트 표시 후
+  return. 즉 "사용자가 실제로 20px 이상 드래그해 수동 조정한 적이 있다" 또는 "자동 감지가 2프레임
+  연속으로 안정적이었다" 둘 중 하나를 만족해야만 촬영이 진행된다.
+
+## 2. dPR(고해상도 화면) 영향 여부
+
+❌ 근거 없음 — 코드상 devicePixelRatio를 참조하는 곳이 프로젝트 전체에 없음(grep 결과 0건).
+- MIN_MANUAL_DRAG_PX는 `Math.hypot(e.clientX - dragStartRef.current.x, e.clientY -
+  dragStartRef.current.y)`(app.jsx:556)에 대해 비교되는데, PointerEvent.clientX/clientY는
+  W3C 표준상 항상 CSS px 기준이며 devicePixelRatio와 무관하다(Android WebView 포함 모든 주요
+  브라우저 엔진에서 동일). 즉 MIN_MANUAL_DRAG_PX=20은 이미 명시적으로 "CSS px 기준"이며, S25
+  Ultra(dPR≈3)에서도 같은 CSS px 단위로 정확히 해석된다.
+- 오버레이 캔버스 좌표 변환(overlayPointerDown app.jsx:537-538, overlayPointerMove app.jsx:
+  559-561)도 전부 `canvas.getBoundingClientRect()`(CSS px 기준)로 나눠 0..1 비율로 정규화하므로
+  일관되게 dPR 비의존적이다.
+- 결론: dPR/고해상도 화면 자체가 차단 과다 발동의 원인일 가능성은 낮다. (드래그 임계값 경로는
+  코드상 정상)
+
+## 3. stableRef 안정성 게이팅이 2프레임 연속 통과하기 어려운 이유
+
+❌(과도 발동의 실질적 원인으로 판단) — app.jsx:437-482
+- 감지 파이프라인: 카메라 프레임을 96×128(AW/AH, app.jsx:431)로 다운샘플 → OpenCV Canny(50,150
+  고정 임계값, app.jsx:146) 또는 폴백 밝기 임계값(sum/n+12, app.jsx:85) → 120ms 주기(app.jsx:451
+  `ts - lastRun > 120`)로 재실행.
+- `quadsAreClose`(app.jsx:31-32)는 4개 꼭짓점 x/y 전부가 직전 프레임 대비 0.05(정규화) 이내여야
+  "가깝다"고 인정하고, 그렇지 않으면 카운트가 1로 리셋된다(연속 2회 필요 — 1회라도 어긋나면
+  처음부터 다시 세야 함).
+- 실기기 카메라는 연속 자동초점(AF)·자동노출(AE)·화이트밸런스가 계속 미세 조정되며, 이 변화가
+  Canny의 고정 임계값(50/150) 기반 엣지 검출 결과를 프레임마다 흔들 수 있다(엣지로 판정되는
+  픽셀이 바뀌면 findContours가 고르는 최대 4각형 컨투어 자체가 바뀌거나 흔들릴 수 있음) — 이는
+  조명이 고정된 에뮬레이터 합성 화면에서는 재현되지 않는, 실기기 고유의 노이즈원이다.
+- 추가로 EDGE_CLIP_MARGIN=0.02(app.jsx:28, `quadClippedAtEdge` app.jsx:29-30)는 꼭짓점이 프레임
+  가장자리 2% 이내로만 들어와도 stableRef를 완전히 `{quad:null,count:0}`으로 리셋시킨다(app.jsx:
+  438-441). 실제 사용자가 해상도를 확보하려고 문서를 프레임 가득 채워 촬영하는 경우(일반적인
+  촬영 습관) 꼭짓점이 자주 가장자리에 가깝게 위치하게 되어, 이 리셋 조건에 반복적으로 걸릴
+  가능성이 높다 — 카메라 노이즈와 무관하게 "문서를 화면 가득 채우는" 정상적인 촬영 스타일
+  자체가 안정화를 방해할 수 있다.
+- 종합: STABLE_FRAMES_REQUIRED=2는 이상적인 조건(정지된 대상, 안정된 조명, 여백 있는 프레이밍)
+  에서는 충분하지만, 실기기의 AF/AE 노이즈 + "프레임 가득 채우기" 촬영 습관이 겹치면 연속 2회
+  달성 자체가 어려워질 수 있다.
+
+## 4. 해결 방향(조사만 — 미실행)
+
+- MIN_MANUAL_DRAG_PX를 dPR 기준으로 바꿀 필요는 없음(이미 CSS px 기준으로 정상 동작) — 이 축은
+  수정 불필요.
+- STABLE_FRAMES_REQUIRED 완화: 2 → 유지하되 `quadsAreClose`의 허용 오차(STABLE_FRAME_DELTA)를
+  0.05→0.08~0.10 정도로 완화하거나, "완전히 같은 프레임 2연속" 대신 "최근 N프레임의 평균/중앙값이
+  일정 범위 안에 수렴"하는 방식으로 바꾸면 AF/AE 노이즈에 덜 민감해질 수 있음.
+- EDGE_CLIP_MARGIN 완화 또는 제거 검토: 현재 2%는 "문서 전체가 화면 안에 있는지" 확인이 목적인데,
+  사용자가 의도적으로 프레임 가득 채워 촬영하는 정상 케이스까지 차단하는 부작용이 있어 보임 —
+  여백 기준을 완화(예: 0.01)하거나, "잘림"을 판단하는 별도의 더 관대한 로직으로 교체 검토.
+  단, 이 값은 v0.1.6에서 "배경이 섞여 들어가는 촬영을 막기 위해" 추가된 것이므로, 완화 시 원래
+  목적(배경 오검출 방지)과의 균형을 재검토해야 함.
+- 타임아웃 기반 폴백: 안정성 게이팅이 일정 시간(예: 2~3초) 동안 통과하지 못하면 마지막 후보
+  quad를 자동으로 boxRef에 반영(= 완화된 신뢰 기준)하거나, "그래도 촬영" 버튼을 노출해 경고만
+  하고 진행을 허용하는 방식 — 사용자가 "조정해 주세요" 안내를 계속 보면서도 실제로 조정할 방법이
+  막막해지는 상황을 방지.
+- 위 방향들은 모두 v0.1.6/v0.1.7에서 이 차단 로직이 원래 막으려 했던 문제(허점 있는 상태로
+  배경 섞인 촬영이 통과되던 문제, v0.1.6-issues-audit.log 참조)를 다시 열지 않도록 균형 있게
+  조정해야 하며, 어느 한쪽으로 치우치면 다른 기존 회귀 테스트(phase11-1, phase9-3)가 깨질 수
+  있어 별도 [범위제한] 턴에서 신중히 다뤄야 함.
+
+## 예상 수정 파일·범위(다음 턴 참고용, 이번 턴은 미실행)
+- app/src/app.jsx: STABLE_FRAME_DELTA·EDGE_CLIP_MARGIN 값 조정 및/또는 stableRef 판정 로직
+  개선(평균/중앙값 방식 또는 타임아웃 폴백 추가).
+- 영향받을 기존 테스트: tests/e2e/phase11-1-camera-handle.spec.ts, phase9-3-handle-margin.spec.ts
+  (현재 차단 로직을 검증하는 스펙 — 완화 시 함께 갱신 필요).

@@ -1,0 +1,56 @@
+[v0.2.1] 촬영 차단 조건 완화 — 수정/검증 로그
+
+## 수정 대상
+- app/src/app.jsx (상수 3개 + capturePhoto() 타임아웃 조건) — 외과적 수정
+
+## 수정 내용
+
+[수정 1] 안정성 판정 상수 완화
+- STABLE_FRAME_DELTA: 0.05 → 0.10(app.jsx:27) — 실기기 자동초점·노출 미세 변동 허용 범위 확대.
+- EDGE_CLIP_MARGIN: 0.02 → 0.00(app.jsx:28) — 문서를 프레임 가득 채우는 정상 촬영이 반복
+  리셋되던 문제 해결. quadClippedAtEdge가 사실상 항상 false를 반환하게 됨(정규화 좌표는 이미
+  0..1로 클램프되어 있어 마진 0에서는 이 조건이 발동하지 않음).
+- STABLE_FRAMES_REQUIRED: 2 유지(지시대로 미변경).
+
+[수정 2] 타임아웃 기반 폴백
+- stableTimeoutRef 신규 ref 추가 — 카메라가 열릴 때(cameraOpen useEffect의 `!cameraOpen` 조기
+  반환 이후) `Date.now()`로 초기화.
+- capturePhoto()의 차단 조건을 `unstable = !manualRef.current && stableRef.current.count <
+  STABLE_FRAMES_REQUIRED` 로 추출한 뒤, `Date.now() - stableTimeoutRef.current <
+  STABLE_TIMEOUT_MS(5000)` 일 때만 실제로 차단(토스트 "문서 전체가 보이도록...")하고 return.
+  5초가 지났으면 차단하지 않고 그대로 촬영을 진행하되, `unstable`이면 경고 토스트("감지가
+  불안정합니다. 범위를 확인해 주세요")만 띄운다.
+- MIN_MANUAL_DRAG_PX(20)·stableRef 판정 로직(quadsAreClose 등) 자체는 지시대로 변경하지 않음.
+
+## 검증 결과
+
+### 1. 코드 품질
+- pnpm lint: 통과(신규 warning 없음)
+- pnpm build: 통과
+
+### 2. Playwright E2E (전체 106개)
+- 106 passed — chromium + Pixel 8 프로파일 각각, companion 테스트 수정 불필요(기존 스펙
+  phase11-1-camera-handle.spec.ts·phase9-3-handle-margin.spec.ts 포함 전부 그대로 통과 —
+  EDGE_CLIP_MARGIN 완화가 이 스펙들이 검증하는 시나리오(완전히 감지 실패한 빈 배경 등)에는
+  영향을 주지 않음을 확인).
+
+### 3. 실기기(에뮬레이터 emulator-5554) 검증 — CDP 기반
+- 카메라 화면 진입 확인, 자동 감지 사각형이 프레임 대부분(에뮬레이터 가상 씬 기준)을 덮도록
+  표시됨을 확인. 스크린샷 test-results/screenshots/v0.2.1-camera.png.
+- 5.5초 대기(STABLE_TIMEOUT_MS=5000 경과) 후 촬영 버튼 클릭 → 차단 토스트 없이 곧바로
+  "촬영 확인·범위 조정" 리뷰 화면으로 전환됨을 확인(카메라 화면이 사라지고 리뷰 화면의 밝기/대비
+  슬라이더·"다시 촬영"/"원본으로 편집기 이동"/"스캔으로 편집기 이동" 버튼이 노출됨).
+- ⚠️ 참고: 에뮬레이터 가상 카메라 씬은 정적(조명·초점 변화 없음)이라 실제 실기기의 AF/AE 노이즈로
+  인한 "안정화 실패 → 5초 타임아웃 경고" 경로까지는 이번 검증에서 강제 재현하지 못했다 — 이번
+  캡처는 정상 안정화 경로(또는 완화된 EDGE_CLIP_MARGIN 덕분에 즉시 통과)로 진행된 것으로 보이며,
+  타임아웃 분기 자체는 코드 검토와 상수값 확인으로 검증했다(정확한 5초 강제 재현은 실기기에서
+  카메라를 가리거나 빠르게 움직이는 등의 실제 불안정 조건이 필요해 조사 범위를 벗어남).
+- adb logcat FATAL/AndroidRuntime 크래시 없음.
+
+## 빌드/릴리즈
+- app/package.json version: 0.2.0 → 0.2.1
+- android/app/build.gradle: versionCode 20→21, versionName "0.2.0"→"0.2.1"
+- pnpm build → npx cap sync android → gradlew assembleRelease: 전부 성공
+- apksigner verify: v2 scheme true, Number of signers: 1
+- APK: filmcommando-coating-moblie-v0.2.1.apk (18,291,578 bytes / 17.44MB)
+- adb install -r 성공, pm clear 후 정상 기동 확인

@@ -24,8 +24,9 @@ const clampQuad = (q) => (q ? {
 // 자동 감지 결과를 몇 프레임 연속 안정적으로 감지해야 boxRef에 반영할지 — 물체가 프레임에 다 들어오기
 // 전(계속 움직이는 중)에는 좌표가 매 프레임 크게 바뀌므로 이 조건을 만족하지 못해 반영되지 않는다.
 const STABLE_FRAMES_REQUIRED = 2;
-const STABLE_FRAME_DELTA = 0.05;
-const EDGE_CLIP_MARGIN = 0.02; // 꼭짓점이 이 여백보다 화면 가장자리에 가까우면 문서가 잘렸다고 판단
+const STABLE_FRAME_DELTA = 0.10; // 실기기 자동초점·노출 미세 변동을 허용하기 위해 0.05→0.10로 완화
+const EDGE_CLIP_MARGIN = 0.00; // 문서를 프레임 가득 채우는 정상 촬영까지 막지 않도록 0.02→0.00로 완화
+const STABLE_TIMEOUT_MS = 5000; // 이 시간 안에 안정화되지 않아도 차단 없이 촬영을 허용한다(경고만 표시)
 const quadClippedAtEdge = (q) => ['tl', 'tr', 'br', 'bl'].some((k) =>
   q[k].x < EDGE_CLIP_MARGIN || q[k].x > 1 - EDGE_CLIP_MARGIN || q[k].y < EDGE_CLIP_MARGIN || q[k].y > 1 - EDGE_CLIP_MARGIN);
 const quadsAreClose = (a, b) => ['tl', 'tr', 'br', 'bl'].every((k) =>
@@ -321,6 +322,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
   const overlayRef = useR(null);
   const boxRef = useR(null);
   const stableRef = useR({ quad: null, count: 0 }); // 안정성 게이팅용 — 직전 후보 quad와 연속 안정 프레임 수
+  const stableTimeoutRef = useR(0); // 카메라를 연 시각(ms) — STABLE_TIMEOUT_MS 경과 시 안정화 실패해도 촬영 허용
   const cvRef = useR(null);
   const cvFailedRef = useR(false);
   const tfModelRef = useR(null);
@@ -425,6 +427,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
   // OpenCV.js가 로드·초기화되면 Canny+findContours로, 아니면(로드 중·실패) Canvas API 폴백으로 감지한다.
   useE(() => {
     if (!cameraOpen) { boxRef.current = null; stableRef.current = { quad: null, count: 0 }; return; }
+    stableTimeoutRef.current = Date.now();
     if (!cvRef.current && !cvFailedRef.current) {
       loadOpenCv().then((cv) => { cvRef.current = cv; }).catch(() => { cvFailedRef.current = true; });
     }
@@ -604,10 +607,12 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
     // boxRef.current는 overlayPointerDown이 터치만 해도 폴백으로 시드되므로(위 참조) 그 존재만으로는
     // "의미 있게 조정됨"을 보장하지 못한다 — 자동 감지가 실제로 안정화됐는지(stableRef.count)
     // 또는 사용자가 실제로 MIN_MANUAL_DRAG_PX 이상 옮겼는지(manualRef)로 판단한다.
-    if (!manualRef.current && stableRef.current.count < STABLE_FRAMES_REQUIRED) {
+    const unstable = !manualRef.current && stableRef.current.count < STABLE_FRAMES_REQUIRED;
+    if (unstable && Date.now() - stableTimeoutRef.current < STABLE_TIMEOUT_MS) {
       showToast('문서 전체가 보이도록 카메라를 조정해 주세요');
       return;
     }
+    if (unstable) showToast('감지가 불안정합니다. 범위를 확인해 주세요'); // 5초 경과 후에는 차단 없이 경고만
     const vw = video.videoWidth || 720, vh = video.videoHeight || 1280;
     const raw = document.createElement('canvas');
     raw.width = vw; raw.height = vh;
