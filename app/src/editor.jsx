@@ -500,46 +500,6 @@ function EditorScreen({ store }) {
     if (switched) setCurrentPage(originalPage);
     return doc;
   };
-  // 그레이스케일 변환 + 레벨 보정(밝은 픽셀은 흰색으로, 어두운 픽셀은 검정으로 강조하되 완전
-  // 이진화는 하지 않음)으로 스캔 이미지를 만든다. 이전의 Otsu 전역 이진화(완전 흑백)는 html2canvas
-  // 재렌더링 과정의 리샘플링 손실과 맞물려 텍스트 경계가 거칠어지는 문제가 있어, 회색조를 유지하는
-  // 레벨 보정으로 교체했다.
-  const LEVEL_LOW = 80, LEVEL_HIGH = 200; // 80 이하는 완전 검정, 200 이상은 완전 흰색, 사이는 선형 보간
-  const toScanCanvas = (canvas) => {
-    const w = canvas.width, h = canvas.height;
-    const ctx = canvas.getContext('2d');
-    const img = ctx.getImageData(0, 0, w, h);
-    const d = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-      let v;
-      if (gray <= LEVEL_LOW) v = 0;
-      else if (gray >= LEVEL_HIGH) v = 255;
-      else v = Math.round((gray - LEVEL_LOW) / (LEVEL_HIGH - LEVEL_LOW) * 255);
-      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-    return canvas;
-  };
-  const buildScanPdf = async () => {
-    const originalPage = currentPage;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    let switched = false;
-    for (let i = 0; i < pages.length; i++) {
-      if (i !== originalPage) { setCurrentPage(i); switched = true; await new Promise((r) => requestAnimationFrame(r)); }
-      const canvas = await capturePageCanvas('#ffffff', 2); // scale=2 — 그레이스케일+블러+Otsu 이진화 전 고해상도 확보
-      toScanCanvas(canvas);
-      const imgData = canvas.toDataURL('image/png');
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const w = canvas.width * ratio, h = canvas.height * ratio;
-      if (i > 0) doc.addPage();
-      doc.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
-    }
-    if (switched) setCurrentPage(originalPage);
-    return doc;
-  };
   const pctFromEvent = (e) => {
     const r = pageRef.current.getBoundingClientRect();
     return { x: clamp(((e.clientX - r.left) / r.width) * 100, 0, 100), y: clamp(((e.clientY - r.top) / r.height) * 100, 0, 100) };
@@ -1087,39 +1047,19 @@ function EditorScreen({ store }) {
           <div className="dialog sm" onClick={(e) => e.stopPropagation()}>
             <div className="cf-title">저장 형식 선택</div>
             <div className="sheet-actions">
-              {['JPG', 'PNG', 'PDF', 'SCAN'].map((f) => (
+              {['JPG', 'PNG', 'PDF'].map((f) => (
                 <button key={f} className={'btn ' + (f === saveFmt ? 'solid' : 'ghost')}
-                  onClick={() => { setSaveFmt(f); setFmtPick(false); setConfirm({ key: 'save' }); }}>{f === 'SCAN' ? '스캔(PDF)' : f}</button>
+                  onClick={() => { setSaveFmt(f); setFmtPick(false); setConfirm({ key: 'save' }); }}>{f}</button>
               ))}
             </div>
           </div>
         </div>
       )}
       <ConfirmDialog open={confirm && confirm.key === 'save'} title="이 서류를 저장할까요?"
-        body={'도장 ' + placed.length + '개가 합쳐져 ' + (saveFmt === 'SCAN' ? '스캔(PDF)' : saveFmt) + '로 저장됩니다.'} confirmLabel="저장"
+        body={'도장 ' + placed.length + '개가 합쳐져 ' + saveFmt + '로 저장됩니다.'} confirmLabel="저장"
         onClose={() => setConfirm(null)} onConfirm={async () => {
           captureThumb().then((thumb) => saveDoc(thumb));
           const fmt = saveFmt;
-          if (fmt === 'SCAN') {
-            const prevSel = sel;
-            setSel(null);
-            const doc = await buildScanPdf();
-            if (prevSel) setSel(prevSel);
-            if (Capacitor.isNativePlatform()) {
-              await saveNativeFile(doc.output('datauristring'), `dojang-scan-${saveTimestamp()}.pdf`);
-              return;
-            }
-            const url = URL.createObjectURL(doc.output('blob'));
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = docName + '-scan.pdf';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-            showToast('스캔(PDF)으로 저장했습니다' + (pages.length > 1 ? ` (${pages.length}페이지)` : ''));
-            return;
-          }
           if (fmt === 'PDF') {
             const prevSel = sel;
             setSel(null);

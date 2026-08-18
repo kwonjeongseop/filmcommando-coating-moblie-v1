@@ -1,0 +1,189 @@
+$ playwright test
+
+Running 100 tests using 1 worker
+
+  ok   1 [chromium] › tests\e2e\phase11-1-camera-handle.spec.ts:45:3 › Phase 11-1: 문서 영역 자동 감지 안정성 게이팅 › 문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) (4.7s)
+  ok   2 [chromium] › tests\e2e\phase11-3-save-open.spec.ts:31:3 › Phase 11-3: 저장 완료 토스트 파일 열기(웹 경로 회귀 가드) › 웹 환경(Capacitor 비-네이티브)에서는 저장 토스트에 "파일 열기" 버튼이 없다 (1.7s)
+  ok   3 [chromium] › tests\e2e\phase11-3-save-open.spec.ts:44:3 › Phase 11-3: 저장 완료 토스트 파일 열기(웹 경로 회귀 가드) › 일반 토스트(도장 삭제 등)는 여전히 2.2초 내외로 자동 사라진다(5초 토스트와 구분됨) (4.6s)
+  ok   4 [chromium] › tests\e2e\phase12-1-recent-docs.spec.ts:18:3 › Phase 12-1: 홈 화면 최근 서류 위젯 › 저장된 서류가 없으면 "최근 서류" 섹션 자체가 표시되지 않는다 (864ms)
+  ok   5 [chromium] › tests\e2e\phase12-1-recent-docs.spec.ts:23:3 › Phase 12-1: 홈 화면 최근 서류 위젯 › 저장된 서류가 있으면 최신순 최대 3개까지 실제 이름·도장 개수로 표시된다 (865ms)
+  ok   6 [chromium] › tests\e2e\phase12-1-recent-docs.spec.ts:43:3 › Phase 12-1: 홈 화면 최근 서류 위젯 › 최근 서류 항목을 클릭하면 해당 서류가 에디터에서 열린다 (968ms)
+  ok   7 [chromium] › tests\e2e\phase13-1-drawing-guide.spec.ts:68:3 › Phase 13-1: 수기 도장 가이드 합성 › 원형 가이드로 그린 도장을 등록하면 저장 이미지에 원형 경계선이 포함된다 (2.3s)
+  ok   8 [chromium] › tests\e2e\phase13-1-drawing-guide.spec.ts:77:3 › Phase 13-1: 수기 도장 가이드 합성 › 사각형 가이드로 전환해 등록해도 여전히 배경 대부분은 투명하다(가이드 선만 추가됨) (2.4s)
+  ok   9 [chromium] › tests\e2e\phase13-2-stamp-size.spec.ts:27:3 › Phase 13-2: 도장 초기 크기 › 설정을 건드리지 않고 새 도장을 배치하면 기본 scale이 0.10이다(DEFAULT_SETTINGS.size 축소) (1.6s)
+  ok  10 [chromium] › tests\e2e\phase13-2-stamp-size.spec.ts:34:3 › Phase 13-2: 도장 초기 크기 › 수기 도장(image kind)과 인감(seal kind)이 같은 scale에서 같은 폭으로 렌더링된다(기준폭 94 통일) (2.9s)
+  ok  11 [chromium] › tests\e2e\phase14-1-handle-overlap.spec.ts:32:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 배치 직후에는 자동 선택되지 않고 실제 크기(0.10)로 표시된다 (1.5s)
+  ok  12 [chromium] › tests\e2e\phase14-1-handle-overlap.spec.ts:40:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 배치 모드는 항상 종료되어 이후 탭이 새 도장을 계속 찍지 않는다 (1.7s)
+  ok  13 [chromium] › tests\e2e\phase14-1-handle-overlap.spec.ts:50:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 도장을 탭해서 선택하면 MIN_SEL_SCALE로 확대되어 핸들 4개가 겹치지 않는다 (1.6s)
+  ok  14 [chromium] › tests\e2e\phase14-1-handle-overlap.spec.ts:70:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 선택 해제하면 저장된 scale(0.10)은 그대로이고 화면 표시만 실제 크기로 돌아간다 (1.7s)
+  ok  15 [chromium] › tests\e2e\phase4-4-opencv.spec.ts:35:3 › Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정 › Canny+findContours가 합성 문서 사각형을 정확히 감지한다 (8.3s)
+  ok  16 [chromium] › tests\e2e\phase4-4-opencv.spec.ts:76:3 › Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정 › 원근 보정 결과 이미지가 감지 영역 크기로 캡처된다 (8.9s)
+  ok  17 [chromium] › tests\e2e\phase4-4-opencv.spec.ts:104:3 › Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정 › OpenCV.js 로드 실패 시 Canvas API 폴백으로 정상 동작한다 (3.6s)
+  ok  18 [chromium] › tests\e2e\phase4-5-drawing.spec.ts:35:3 › Phase 4-5: 수기 도장 제작 › 기본 가이드는 원형이고, 그리면 흰색이 아닌 픽셀이 생긴다 (2.1s)
+  ok  19 [chromium] › tests\e2e\phase4-5-drawing.spec.ts:51:3 › Phase 4-5: 수기 도장 제작 › 사각형 가이드로 전환해도 이미 그린 내용은 유지된다 (2.1s)
+  ok  20 [chromium] › tests\e2e\phase4-5-drawing.spec.ts:74:3 › Phase 4-5: 수기 도장 제작 › 등록 버튼은 그리기 전까지 비활성화되고, 등록 시 배경이 제거된 PNG가 library에 추가된다 (2.5s)
+  ok  21 [chromium] › tests\e2e\phase4-6-drag.spec.ts:32:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 핸들 없이 본체를 눌러 바로 드래그 이동할 수 있다 (1.9s)
+  ok  22 [chromium] › tests\e2e\phase4-6-drag.spec.ts:52:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 캔버스 중앙 근접 시 스냅 가이드라인이 표시되고 정확히 50%로 스냅된다 (2.0s)
+  ok  23 [chromium] › tests\e2e\phase4-6-drag.spec.ts:70:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 두 손가락 핀치 제스처로 scale이 변하고 rot은 0으로 고정된다 (2.1s)
+  ok  24 [chromium] › tests\e2e\phase4-6-drag.spec.ts:98:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 제스처 이후 되돌리기(undo)로 직전 상태가 복원된다 (2.1s)
+  ok  25 [chromium] › tests\e2e\phase5-1-seal-fit.spec.ts:35:5 › Phase 5-1: 원형 도장 텍스트 fit (이슈 8) › "金民洙"(3자) 글자가 원 밖으로 넘치지 않는다 (1.7s)
+  ok  26 [chromium] › tests\e2e\phase5-1-seal-fit.spec.ts:35:5 › Phase 5-1: 원형 도장 텍스트 fit (이슈 8) › "이영희"(3자) 글자가 원 밖으로 넘치지 않는다 (1.6s)
+  ok  27 [chromium] › tests\e2e\phase5-1-seal-fit.spec.ts:35:5 › Phase 5-1: 원형 도장 텍스트 fit (이슈 8) › "대한법인"(4자) 글자가 원 밖으로 넘치지 않는다 (1.6s)
+  ok  28 [chromium] › tests\e2e\phase5-2-doc-pinch-zoom.spec.ts:29:3 › Phase 5-2: 문서 배경 핀치줌 › 두 손가락으로 벌리면 문서가 확대되고, 모으면 축소된다 (1.6s)
+  ok  29 [chromium] › tests\e2e\phase5-2-doc-pinch-zoom.spec.ts:59:3 › Phase 5-2: 문서 배경 핀치줌 › 배경을 더블탭하면 편집기 기본 배율(v0.1.8: 140%)로 리셋된다 (1.6s)
+  ok  30 [chromium] › tests\e2e\phase5-2-doc-pinch-zoom.spec.ts:87:3 › Phase 5-2: 문서 배경 핀치줌 › 줌바 슬라이더 범위가 0.5x~3.0x로 확장되어 핀치 결과와 어긋나지 않는다 (1.1s)
+  ok  31 [chromium] › tests\e2e\phase6-1-seal-direction.spec.ts:5:3 › Phase 6-1: 원형 도장 텍스트 가로 배치 › 3자 이름이 왼쪽→오른쪽, 위→아래 순서로 배치된다(세로 배치 아님) (1.6s)
+  ok  32 [chromium] › tests\e2e\phase6-2-stamp-lock.spec.ts:35:3 › Phase 6-2: 도장 크기 고정 버튼 › 잠금 버튼을 누르면 크기 핸들이 사라지고, 다시 누르면 돌아온다 (1.9s)
+  ok  33 [chromium] › tests\e2e\phase6-2-stamp-lock.spec.ts:53:3 › Phase 6-2: 도장 크기 고정 버튼 › 하단 선택바의 잠금/해제 버튼도 동일하게 동작한다 (1.8s)
+  ok  34 [chromium] › tests\e2e\phase6-2-stamp-lock.spec.ts:62:3 › Phase 6-2: 도장 크기 고정 버튼 › 잠긴 도장은 두 손가락 핀치로 크기가 변하지 않는다 (2.8s)
+  ok  35 [chromium] › tests\e2e\phase6-2-stamp-lock.spec.ts:84:3 › Phase 6-2: 도장 크기 고정 버튼 › 문서를 확대(zoom)한 상태에서 리사이즈해도 zoom을 되돌리면 같은 상대 크기로 저장된다 (2.3s)
+  ok  36 [chromium] › tests\e2e\phase6-3-version.spec.ts:8:3 › Phase 6-3: 버전 정보 자동 연동 › 드로어 하단에 package.json의 실제 버전이 표시된다(하드코딩 아님) (954ms)
+  ok  37 [chromium] › tests\e2e\phase6-4-doc-crop.spec.ts:27:3 › Phase 6-4: 서류 이미지 자르기 › 빨간 사분면을 피해 자르면 docImage가 더 작은 흰색 이미지로 교체된다 (1.4s)
+  ok  38 [chromium] › tests\e2e\phase6-4-doc-crop.spec.ts:70:3 › Phase 6-4: 서류 이미지 자르기 › 취소를 누르면 docImage가 바뀌지 않는다 (1.3s)
+  ok  39 [chromium] › tests\e2e\phase7-1-native-camera-crop.spec.ts:40:3 › Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰 › 촬영 즉시 EditorScreen이 아니라 자르기 리뷰 화면이 먼저 뜬다 (5.5s)
+  ok  40 [chromium] › tests\e2e\phase7-1-native-camera-crop.spec.ts:49:3 › Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰 › 다시 촬영을 누르면 카메라 프리뷰로 돌아간다 (6.0s)
+  ok  41 [chromium] › tests\e2e\phase7-1-native-camera-crop.spec.ts:56:3 › Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰 › 편집기로 이동을 누르면 EditorScreen으로 진입하고 문서 영역만 크롭된다 (6.0s)
+  ok  42 [chromium] › tests\e2e\phase7-2-stamp-zoom-scale.spec.ts:47:3 › Phase 7-2: 도장 크기와 문서 zoom 연동 › 배경을 확대하면 도장도 같은 비율로 커진다 (2.3s)
+  ok  43 [chromium] › tests\e2e\phase7-2-stamp-zoom-scale.spec.ts:57:3 › Phase 7-2: 도장 크기와 문서 zoom 연동 › 잠긴 도장도 배경 확대·축소에 비례해 화면 크기가 따라간다 (2.3s)
+  ok  44 [chromium] › tests\e2e\phase7-2-stamp-zoom-scale.spec.ts:74:3 › Phase 7-2: 도장 크기와 문서 zoom 연동 › zoom 2배 상태에서 리사이즈 후 zoom 1배로 복귀해도 화면 크기가 저장된 scale과 일관된다 (2.6s)
+  ok  45 [chromium] › tests\e2e\phase8-1-tfjs-detect.spec.ts:27:3 › Phase 8-1: TF.js coco-ssd 실시간 물체 감지 › 카메라를 열면 coco-ssd 모델이 로드되고 감지 루프가 콘솔에 로그를 남긴다 (7.8s)
+  ok  46 [chromium] › tests\e2e\phase9-1-review-edit.spec.ts:40:3 › Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택 › 밝기·대비 슬라이더가 기본값 0으로 표시되고 조정 시 실시간 미리보기에 반영된다 (5.6s)
+  ok  47 [chromium] › tests\e2e\phase9-1-review-edit.spec.ts:52:3 › Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택 › 다시 촬영을 누르면 슬라이더가 0으로 초기화된다 (8.5s)
+  ok  48 [chromium] › tests\e2e\phase9-1-review-edit.spec.ts:66:3 › Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택 › 편집기로 이동은 컬러를 그대로 저장한다(흑백 변환 없음) (5.8s)
+  ok  49 [chromium] › tests\e2e\phase9-3-handle-margin.spec.ts:58:3 › Phase 9-3: 촬영 확인 화면 핸들 안전 여백 › 감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) (4.1s)
+  ok  50 [chromium] › tests\e2e\phase9-3-handle-margin.spec.ts:68:3 › Phase 9-3: 촬영 확인 화면 핸들 안전 여백 › 라이브 화면에서 수동으로 꼭짓점을 조정하면 감지 실패 상태에서도 촬영이 허용되고, 핸들은 안전 여백 밖으로 나가지 않는다 (5.8s)
+  x   51 [Pixel 8] › tests\e2e\phase11-1-camera-handle.spec.ts:45:3 › Phase 11-1: 문서 영역 자동 감지 안정성 게이팅 › 문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) (11.7s)
+  ok  52 [Pixel 8] › tests\e2e\phase11-3-save-open.spec.ts:31:3 › Phase 11-3: 저장 완료 토스트 파일 열기(웹 경로 회귀 가드) › 웹 환경(Capacitor 비-네이티브)에서는 저장 토스트에 "파일 열기" 버튼이 없다 (1.9s)
+  ok  53 [Pixel 8] › tests\e2e\phase11-3-save-open.spec.ts:44:3 › Phase 11-3: 저장 완료 토스트 파일 열기(웹 경로 회귀 가드) › 일반 토스트(도장 삭제 등)는 여전히 2.2초 내외로 자동 사라진다(5초 토스트와 구분됨) (4.6s)
+  ok  54 [Pixel 8] › tests\e2e\phase12-1-recent-docs.spec.ts:18:3 › Phase 12-1: 홈 화면 최근 서류 위젯 › 저장된 서류가 없으면 "최근 서류" 섹션 자체가 표시되지 않는다 (944ms)
+  ok  55 [Pixel 8] › tests\e2e\phase12-1-recent-docs.spec.ts:23:3 › Phase 12-1: 홈 화면 최근 서류 위젯 › 저장된 서류가 있으면 최신순 최대 3개까지 실제 이름·도장 개수로 표시된다 (1.0s)
+  ok  56 [Pixel 8] › tests\e2e\phase12-1-recent-docs.spec.ts:43:3 › Phase 12-1: 홈 화면 최근 서류 위젯 › 최근 서류 항목을 클릭하면 해당 서류가 에디터에서 열린다 (1.3s)
+  ok  57 [Pixel 8] › tests\e2e\phase13-1-drawing-guide.spec.ts:68:3 › Phase 13-1: 수기 도장 가이드 합성 › 원형 가이드로 그린 도장을 등록하면 저장 이미지에 원형 경계선이 포함된다 (2.3s)
+  ok  58 [Pixel 8] › tests\e2e\phase13-1-drawing-guide.spec.ts:77:3 › Phase 13-1: 수기 도장 가이드 합성 › 사각형 가이드로 전환해 등록해도 여전히 배경 대부분은 투명하다(가이드 선만 추가됨) (2.5s)
+  ok  59 [Pixel 8] › tests\e2e\phase13-2-stamp-size.spec.ts:27:3 › Phase 13-2: 도장 초기 크기 › 설정을 건드리지 않고 새 도장을 배치하면 기본 scale이 0.10이다(DEFAULT_SETTINGS.size 축소) (1.5s)
+  ok  60 [Pixel 8] › tests\e2e\phase13-2-stamp-size.spec.ts:34:3 › Phase 13-2: 도장 초기 크기 › 수기 도장(image kind)과 인감(seal kind)이 같은 scale에서 같은 폭으로 렌더링된다(기준폭 94 통일) (3.0s)
+  ok  61 [Pixel 8] › tests\e2e\phase14-1-handle-overlap.spec.ts:32:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 배치 직후에는 자동 선택되지 않고 실제 크기(0.10)로 표시된다 (1.5s)
+  ok  62 [Pixel 8] › tests\e2e\phase14-1-handle-overlap.spec.ts:40:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 배치 모드는 항상 종료되어 이후 탭이 새 도장을 계속 찍지 않는다 (1.8s)
+  ok  63 [Pixel 8] › tests\e2e\phase14-1-handle-overlap.spec.ts:50:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 도장을 탭해서 선택하면 MIN_SEL_SCALE로 확대되어 핸들 4개가 겹치지 않는다 (1.6s)
+  ok  64 [Pixel 8] › tests\e2e\phase14-1-handle-overlap.spec.ts:70:3 › Phase 14-1: 배치 직후 실제 크기 + 재선택 시 확대 › 선택 해제하면 저장된 scale(0.10)은 그대로이고 화면 표시만 실제 크기로 돌아간다 (1.9s)
+  ok  65 [Pixel 8] › tests\e2e\phase4-4-opencv.spec.ts:35:3 › Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정 › Canny+findContours가 합성 문서 사각형을 정확히 감지한다 (7.0s)
+  ok  66 [Pixel 8] › tests\e2e\phase4-4-opencv.spec.ts:76:3 › Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정 › 원근 보정 결과 이미지가 감지 영역 크기로 캡처된다 (7.5s)
+  ok  67 [Pixel 8] › tests\e2e\phase4-4-opencv.spec.ts:104:3 › Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정 › OpenCV.js 로드 실패 시 Canvas API 폴백으로 정상 동작한다 (5.7s)
+  ok  68 [Pixel 8] › tests\e2e\phase4-5-drawing.spec.ts:35:3 › Phase 4-5: 수기 도장 제작 › 기본 가이드는 원형이고, 그리면 흰색이 아닌 픽셀이 생긴다 (2.2s)
+  ok  69 [Pixel 8] › tests\e2e\phase4-5-drawing.spec.ts:51:3 › Phase 4-5: 수기 도장 제작 › 사각형 가이드로 전환해도 이미 그린 내용은 유지된다 (2.1s)
+  ok  70 [Pixel 8] › tests\e2e\phase4-5-drawing.spec.ts:74:3 › Phase 4-5: 수기 도장 제작 › 등록 버튼은 그리기 전까지 비활성화되고, 등록 시 배경이 제거된 PNG가 library에 추가된다 (2.4s)
+  ok  71 [Pixel 8] › tests\e2e\phase4-6-drag.spec.ts:32:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 핸들 없이 본체를 눌러 바로 드래그 이동할 수 있다 (2.0s)
+  ok  72 [Pixel 8] › tests\e2e\phase4-6-drag.spec.ts:52:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 캔버스 중앙 근접 시 스냅 가이드라인이 표시되고 정확히 50%로 스냅된다 (1.9s)
+  ok  73 [Pixel 8] › tests\e2e\phase4-6-drag.spec.ts:70:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 두 손가락 핀치 제스처로 scale이 변하고 rot은 0으로 고정된다 (2.0s)
+  ok  74 [Pixel 8] › tests\e2e\phase4-6-drag.spec.ts:98:3 › Phase 4-6: 도장 드래그 · 핀치줌 · 회전 › 제스처 이후 되돌리기(undo)로 직전 상태가 복원된다 (2.1s)
+  ok  75 [Pixel 8] › tests\e2e\phase5-1-seal-fit.spec.ts:35:5 › Phase 5-1: 원형 도장 텍스트 fit (이슈 8) › "金民洙"(3자) 글자가 원 밖으로 넘치지 않는다 (1.5s)
+  ok  76 [Pixel 8] › tests\e2e\phase5-1-seal-fit.spec.ts:35:5 › Phase 5-1: 원형 도장 텍스트 fit (이슈 8) › "이영희"(3자) 글자가 원 밖으로 넘치지 않는다 (1.6s)
+  ok  77 [Pixel 8] › tests\e2e\phase5-1-seal-fit.spec.ts:35:5 › Phase 5-1: 원형 도장 텍스트 fit (이슈 8) › "대한법인"(4자) 글자가 원 밖으로 넘치지 않는다 (1.6s)
+  ok  78 [Pixel 8] › tests\e2e\phase5-2-doc-pinch-zoom.spec.ts:29:3 › Phase 5-2: 문서 배경 핀치줌 › 두 손가락으로 벌리면 문서가 확대되고, 모으면 축소된다 (1.7s)
+  ok  79 [Pixel 8] › tests\e2e\phase5-2-doc-pinch-zoom.spec.ts:59:3 › Phase 5-2: 문서 배경 핀치줌 › 배경을 더블탭하면 편집기 기본 배율(v0.1.8: 140%)로 리셋된다 (1.6s)
+  ok  80 [Pixel 8] › tests\e2e\phase5-2-doc-pinch-zoom.spec.ts:87:3 › Phase 5-2: 문서 배경 핀치줌 › 줌바 슬라이더 범위가 0.5x~3.0x로 확장되어 핀치 결과와 어긋나지 않는다 (943ms)
+  ok  81 [Pixel 8] › tests\e2e\phase6-1-seal-direction.spec.ts:5:3 › Phase 6-1: 원형 도장 텍스트 가로 배치 › 3자 이름이 왼쪽→오른쪽, 위→아래 순서로 배치된다(세로 배치 아님) (1.6s)
+  ok  82 [Pixel 8] › tests\e2e\phase6-2-stamp-lock.spec.ts:35:3 › Phase 6-2: 도장 크기 고정 버튼 › 잠금 버튼을 누르면 크기 핸들이 사라지고, 다시 누르면 돌아온다 (1.8s)
+  ok  83 [Pixel 8] › tests\e2e\phase6-2-stamp-lock.spec.ts:53:3 › Phase 6-2: 도장 크기 고정 버튼 › 하단 선택바의 잠금/해제 버튼도 동일하게 동작한다 (1.8s)
+  ok  84 [Pixel 8] › tests\e2e\phase6-2-stamp-lock.spec.ts:62:3 › Phase 6-2: 도장 크기 고정 버튼 › 잠긴 도장은 두 손가락 핀치로 크기가 변하지 않는다 (2.0s)
+  ok  85 [Pixel 8] › tests\e2e\phase6-2-stamp-lock.spec.ts:84:3 › Phase 6-2: 도장 크기 고정 버튼 › 문서를 확대(zoom)한 상태에서 리사이즈해도 zoom을 되돌리면 같은 상대 크기로 저장된다 (2.4s)
+  ok  86 [Pixel 8] › tests\e2e\phase6-3-version.spec.ts:8:3 › Phase 6-3: 버전 정보 자동 연동 › 드로어 하단에 package.json의 실제 버전이 표시된다(하드코딩 아님) (1.2s)
+  ok  87 [Pixel 8] › tests\e2e\phase6-4-doc-crop.spec.ts:27:3 › Phase 6-4: 서류 이미지 자르기 › 빨간 사분면을 피해 자르면 docImage가 더 작은 흰색 이미지로 교체된다 (1.4s)
+  ok  88 [Pixel 8] › tests\e2e\phase6-4-doc-crop.spec.ts:70:3 › Phase 6-4: 서류 이미지 자르기 › 취소를 누르면 docImage가 바뀌지 않는다 (1.3s)
+  ok  89 [Pixel 8] › tests\e2e\phase7-1-native-camera-crop.spec.ts:40:3 › Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰 › 촬영 즉시 EditorScreen이 아니라 자르기 리뷰 화면이 먼저 뜬다 (7.1s)
+  ok  90 [Pixel 8] › tests\e2e\phase7-1-native-camera-crop.spec.ts:49:3 › Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰 › 다시 촬영을 누르면 카메라 프리뷰로 돌아간다 (6.3s)
+  ok  91 [Pixel 8] › tests\e2e\phase7-1-native-camera-crop.spec.ts:56:3 › Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰 › 편집기로 이동을 누르면 EditorScreen으로 진입하고 문서 영역만 크롭된다 (6.4s)
+  ok  92 [Pixel 8] › tests\e2e\phase7-2-stamp-zoom-scale.spec.ts:47:3 › Phase 7-2: 도장 크기와 문서 zoom 연동 › 배경을 확대하면 도장도 같은 비율로 커진다 (2.2s)
+  ok  93 [Pixel 8] › tests\e2e\phase7-2-stamp-zoom-scale.spec.ts:57:3 › Phase 7-2: 도장 크기와 문서 zoom 연동 › 잠긴 도장도 배경 확대·축소에 비례해 화면 크기가 따라간다 (2.2s)
+  ok  94 [Pixel 8] › tests\e2e\phase7-2-stamp-zoom-scale.spec.ts:74:3 › Phase 7-2: 도장 크기와 문서 zoom 연동 › zoom 2배 상태에서 리사이즈 후 zoom 1배로 복귀해도 화면 크기가 저장된 scale과 일관된다 (2.6s)
+  ok  95 [Pixel 8] › tests\e2e\phase8-1-tfjs-detect.spec.ts:27:3 › Phase 8-1: TF.js coco-ssd 실시간 물체 감지 › 카메라를 열면 coco-ssd 모델이 로드되고 감지 루프가 콘솔에 로그를 남긴다 (6.9s)
+  ok  96 [Pixel 8] › tests\e2e\phase9-1-review-edit.spec.ts:40:3 › Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택 › 밝기·대비 슬라이더가 기본값 0으로 표시되고 조정 시 실시간 미리보기에 반영된다 (6.0s)
+  ok  97 [Pixel 8] › tests\e2e\phase9-1-review-edit.spec.ts:52:3 › Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택 › 다시 촬영을 누르면 슬라이더가 0으로 초기화된다 (8.8s)
+  ok  98 [Pixel 8] › tests\e2e\phase9-1-review-edit.spec.ts:66:3 › Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택 › 편집기로 이동은 컬러를 그대로 저장한다(흑백 변환 없음) (6.3s)
+  x   99 [Pixel 8] › tests\e2e\phase9-3-handle-margin.spec.ts:58:3 › Phase 9-3: 촬영 확인 화면 핸들 안전 여백 › 감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) (11.6s)
+  ok 100 [Pixel 8] › tests\e2e\phase9-3-handle-margin.spec.ts:68:3 › Phase 9-3: 촬영 확인 화면 핸들 안전 여백 › 라이브 화면에서 수동으로 꼭짓점을 조정하면 감지 실패 상태에서도 촬영이 허용되고, 핸들은 안전 여백 밖으로 나가지 않는다 (6.4s)
+
+
+  1) [Pixel 8] › tests\e2e\phase11-1-camera-handle.spec.ts:45:3 › Phase 11-1: 문서 영역 자동 감지 안정성 게이팅 › 문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByText('촬영 확인 · 범위 조정')
+    Expected: 0
+    Received: 1
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for getByText('촬영 확인 · 범위 조정')
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      49 |     // 경계 클리핑으로 판단되어(boxRef 미갱신) 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면에
+      50 |     // 남아야 하며, 사용자에게 안내 토스트가 표시되어야 한다.
+    > 51 |     await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
+         |                                                   ^
+      52 |     await expect(page.locator('video')).toBeVisible();
+      53 |     await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
+      54 |   });
+        at C:\claude\filmcommando-coating-moblie-v1\app\tests\e2e\phase11-1-camera-handle.spec.ts:51:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\logs\playwright-artifacts\phase11-1-camera-handle-Ph-9fadb-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\logs\playwright-artifacts\phase11-1-camera-handle-Ph-9fadb-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\logs\playwright-artifacts\phase11-1-camera-handle-Ph-9fadb-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ..\test-results\logs\playwright-artifacts\phase11-1-camera-handle-Ph-9fadb-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [Pixel 8] › tests\e2e\phase9-3-handle-margin.spec.ts:58:3 › Phase 9-3: 촬영 확인 화면 핸들 안전 여백 › 감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByText('촬영 확인 · 범위 조정')
+    Expected: 0
+    Received: 1
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for getByText('촬영 확인 · 범위 조정')
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      61 |
+      62 |     // 차단되었으므로 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면 그대로 남아야 한다.
+    > 63 |     await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
+         |                                                   ^
+      64 |     await expect(page.locator('video')).toBeVisible();
+      65 |     await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
+      66 |   });
+        at C:\claude\filmcommando-coating-moblie-v1\app\tests\e2e\phase9-3-handle-margin.spec.ts:63:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\logs\playwright-artifacts\phase9-3-handle-margin-Pha-7a246-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\logs\playwright-artifacts\phase9-3-handle-margin-Pha-7a246-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\test-results\logs\playwright-artifacts\phase9-3-handle-margin-Pha-7a246-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ..\test-results\logs\playwright-artifacts\phase9-3-handle-margin-Pha-7a246-되고-안내-토스트가-표시된다-v0-1-6-수정2--Pixel-8\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [Pixel 8] › tests\e2e\phase11-1-camera-handle.spec.ts:45:3 › Phase 11-1: 문서 영역 자동 감지 안정성 게이팅 › 문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) 
+    [Pixel 8] › tests\e2e\phase9-3-handle-margin.spec.ts:58:3 › Phase 9-3: 촬영 확인 화면 핸들 안전 여백 › 감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2) 
+  98 passed (5.4m)
+[ELIFECYCLE] Test failed. See above for more details.

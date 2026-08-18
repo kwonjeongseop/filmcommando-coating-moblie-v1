@@ -248,7 +248,7 @@ function warpQuadToRect(srcCanvas, corners) {
   return out;
 }
 
-/* 밝기·대비 슬라이더 값을 캔버스 픽셀에 반영한다 — 리뷰 화면 "원본으로 편집기 이동"·"스캔으로 편집기 이동" 공통 전처리. */
+/* 밝기·대비 슬라이더 값을 캔버스 픽셀에 반영한다 — 리뷰 화면 "편집기로 이동" 전처리. */
 function applyBrightnessContrast(canvas, brightness, contrast) {
   if (!brightness && !contrast) return;
   const ctx = canvas.getContext('2d');
@@ -261,38 +261,6 @@ function applyBrightnessContrast(canvas, brightness, contrast) {
     d[i + 2] = clamp((d[i + 2] - 128) * factor + 128 + brightness, 0, 255);
   }
   ctx.putImageData(imgData, 0, 0);
-}
-
-/* 그레이스케일 변환 + 적응형 임계값(블록 평균 대비 C만큼 어두우면 검정)으로 흑백 고대비 스캔 이미지를
-   만든다 — editor.jsx의 toScanCanvas와 동일한 알고리즘. */
-function applyScanEffect(canvas) {
-  const w = canvas.width, h = canvas.height;
-  const ctx = canvas.getContext('2d');
-  const img = ctx.getImageData(0, 0, w, h);
-  const d = img.data;
-  const gray = new Uint8ClampedArray(w * h);
-  for (let i = 0, p = 0; i < d.length; i += 4, p++) gray[p] = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
-  const BLOCK = 15, C = 8, half = BLOCK >> 1;
-  const integral = new Float64Array((w + 1) * (h + 1));
-  for (let y = 0; y < h; y++) {
-    let rowSum = 0;
-    for (let x = 0; x < w; x++) {
-      rowSum += gray[y * w + x];
-      integral[(y + 1) * (w + 1) + (x + 1)] = integral[y * (w + 1) + (x + 1)] + rowSum;
-    }
-  }
-  const sumRect = (x0, y0, x1, y1) => integral[y1 * (w + 1) + x1] - integral[y0 * (w + 1) + x1] - integral[y1 * (w + 1) + x0] + integral[y0 * (w + 1) + x0];
-  for (let y = 0; y < h; y++) {
-    const y0 = Math.max(0, y - half), y1 = Math.min(h, y + half + 1);
-    for (let x = 0; x < w; x++) {
-      const x0 = Math.max(0, x - half), x1 = Math.min(w, x + half + 1);
-      const mean = sumRect(x0, y0, x1, y1) / ((x1 - x0) * (y1 - y0));
-      const v = gray[y * w + x] < mean - C ? 0 : 255;
-      const i = (y * w + x) * 4;
-      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
-    }
-  }
-  ctx.putImageData(img, 0, 0);
 }
 
 // PDF 각 페이지를 canvas에 렌더링해 PNG dataURL 배열로 변환한다 (scale 2.0 고해상도)
@@ -573,8 +541,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
   };
   const resetAutoDetect = () => { manualRef.current = false; setManualMode(false); stableRef.current = { quad: null, count: 0 }; };
 
-  // 원근 보정만 수행해 캔버스를 반환한다 — 리뷰 화면 "원본으로 편집기 이동"·"스캔으로 편집기 이동" 양쪽에서 공통으로
-  // 재사용한 뒤, 이어서 밝기·대비·스캔 처리를 각자 다르게 적용한다.
+  // 원근 보정만 수행해 캔버스를 반환한다 — 리뷰 화면 "편집기로 이동"에서 재사용한 뒤, 이어서 밝기·대비를 적용한다.
   const warpToDocument = (rawCanvas, quad) => {
     let outCanvas = rawCanvas;
     try {
@@ -683,7 +650,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
 
   const retakePhoto = () => { setCaptured(null); setReviewQuad(null); setReviewBrightness(0); setReviewContrast(0); openCamera(); };
 
-  // "원본으로 편집기 이동"·"스캔으로 편집기 이동" 공통 전처리 — 원근 보정 후 밝기·대비 슬라이더 값을 캔버스에 반영한다.
+  // "편집기로 이동" 전처리 — 원근 보정 후 밝기·대비 슬라이더 값을 캔버스에 반영한다.
   const buildReviewCanvas = () => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -701,15 +668,9 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
     setCaptured(null); setReviewQuad(null); setReviewBrightness(0); setReviewContrast(0);
     onLoadImage(dataUrl, '촬영 서류');
   };
-  const applyReviewColor = async () => { // 원본으로 편집기 이동 — 컬러 그대로, 밝기·대비만 반영
+  const applyReviewColor = async () => { // 편집기로 이동 — 컬러 그대로, 밝기·대비만 반영
     if (!captured) return;
     finishReview(await buildReviewCanvas());
-  };
-  const applyReviewScan = async () => { // 스캔으로 편집기 이동 — 흑백 고대비 적응형 임계값 적용
-    if (!captured) return;
-    const canvas = await buildReviewCanvas();
-    applyScanEffect(canvas);
-    finishReview(canvas);
   };
 
   return (
@@ -809,8 +770,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
           </div>
           <div className="preview-bar">
             <button className="btn ghost" onClick={retakePhoto}>다시 촬영</button>
-            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewColor}>원본으로 편집기 이동</button>
-            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewScan}>스캔으로 편집기 이동</button>
+            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewColor}>편집기로 이동</button>
           </div>
         </div>
       )}

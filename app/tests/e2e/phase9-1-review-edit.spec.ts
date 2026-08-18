@@ -1,4 +1,4 @@
-// Phase 9-1: 촬영 확인 화면 밝기·대비 편집 + 원본으로 편집기 이동·스캔으로 편집기 이동 분기 E2E.
+// Phase 9-1: 촬영 확인 화면 밝기·대비 편집 + 편집기로 이동 E2E.
 import { test, expect } from '@playwright/test';
 
 const FAKE_DOC_RECT = { x: 120, y: 90, w: 400, h: 300 }; // 640x480 프레임 기준
@@ -63,9 +63,9 @@ test.describe('Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택', (
     await expect(slidersAfter.nth(1)).toHaveValue('0');
   });
 
-  test('원본으로 편집기 이동은 컬러를 그대로 저장한다(흑백 변환 없음)', async ({ page }) => {
+  test('편집기로 이동은 컬러를 그대로 저장한다(흑백 변환 없음)', async ({ page }) => {
     await openCameraAndCapture(page);
-    await page.getByRole('button', { name: '원본으로 편집기 이동' }).click();
+    await page.getByRole('button', { name: '편집기로 이동' }).click();
     await page.waitForTimeout(300);
     await expect(page.locator('.apptitle')).toHaveText('촬영 서류');
 
@@ -90,38 +90,7 @@ test.describe('Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택', (
       };
       img.src = src;
     }), docImage);
-    // "원본으로 편집기 이동"은 적응형 임계값(흑백 양자화)을 거치지 않으므로 순수 흑/백(0 또는 255) 픽셀 비율이
-    // 스캔 결과(아래 테스트에서 0.9 초과)보다 뚜렷이 낮아야 한다.
+    // "편집기로 이동"은 적응형 임계값(흑백 양자화)을 거치지 않으므로 순수 흑/백(0 또는 255) 픽셀 비율이 낮아야 한다.
     expect(quantizedRatio).toBeLessThan(0.5);
-  });
-
-  test('스캔으로 편집기 이동은 흑백 고대비 이미지로 변환한다(픽셀이 0 또는 255로 양자화)', async ({ page }) => {
-    await openCameraAndCapture(page);
-    await page.getByRole('button', { name: '스캔으로 편집기 이동' }).click();
-    await page.waitForTimeout(300);
-    await expect(page.locator('.apptitle')).toHaveText('촬영 서류');
-
-    const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
-    const docImage = ls.pages?.[0]?.docImage;
-    expect(docImage).toBeTruthy();
-
-    const quantizedRatio = await page.evaluate((src) => new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const c = document.createElement('canvas');
-        c.width = img.naturalWidth; c.height = img.naturalHeight;
-        const ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const { data } = ctx.getImageData(0, 0, c.width, c.height);
-        let quantized = 0, total = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          total++;
-          if ((data[i] <= 5 || data[i] >= 250) && data[i] === data[i + 1] && data[i + 1] === data[i + 2]) quantized++;
-        }
-        resolve(quantized / total);
-      };
-      img.src = src;
-    }), docImage);
-    expect(quantizedRatio).toBeGreaterThan(0.9); // 적응형 임계값으로 대부분의 픽셀이 흑(0) 또는 백(255)으로 양자화됨
   });
 });

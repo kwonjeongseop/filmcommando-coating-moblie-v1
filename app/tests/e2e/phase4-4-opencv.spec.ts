@@ -79,7 +79,7 @@ test.describe('Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정', () =
     await page.waitForTimeout(6000);
 
     await page.getByText('촬영', { exact: true }).click();
-    await page.getByRole('button', { name: '원본으로 편집기 이동' }).click(); // v0.1.4: 버튼 라벨이 원본으로 편집기 이동/스캔으로 편집기 이동으로 변경됨
+    await page.getByRole('button', { name: '편집기로 이동' }).click(); // v0.2.2: 버튼 라벨이 편집기로 이동으로 통합됨(스캔 버튼 제거)
     await page.waitForTimeout(500);
 
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
@@ -117,7 +117,7 @@ test.describe('Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정', () =
     expect(overlayDrawn).toBe(true); // Canvas API 폴백도 오버레이를 그림
 
     await page.getByText('촬영', { exact: true }).click();
-    await page.getByRole('button', { name: '원본으로 편집기 이동' }).click(); // v0.1.4: 버튼 라벨이 원본으로 편집기 이동/스캔으로 편집기 이동으로 변경됨
+    await page.getByRole('button', { name: '편집기로 이동' }).click(); // v0.2.2: 버튼 라벨이 편집기로 이동으로 통합됨(스캔 버튼 제거)
     await page.waitForTimeout(500);
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
     expect(ls.pages?.[0]?.docImage).toBeTruthy();
