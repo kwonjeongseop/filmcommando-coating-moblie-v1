@@ -381,3 +381,32 @@ APK: filmcommando-coating-moblie-v0.1.2.apk
       감지 파이프라인 자체는 정상 동작하나 이 특정 합성 씬에서 신뢰도 임계값을 넘는 매치가 없었음.
       실제 사진에서는 다르게 동작할 수 있음).
 상태: PASS
+
+====================================================================
+[Release v0.1.3]
+빌드일: 2026-08-18
+수정: feat: v0.1.3 촬영확인화면 편집기능 + 원본/스캔 선택
+  - app.jsx CaptureScreen 촬영 확인·범위 조정 화면 하단에 밝기·대비 슬라이더(-50~+50, 기본 0) 추가.
+    <img> style="filter: brightness()/contrast()"로 실시간 미리보기 반영. 기존 4꼭짓점 드래그 로직은
+    무변경.
+  - "자르기 적용" 버튼 1개를 "원본 유지"(컬러 그대로, 밝기·대비만 반영) / "스캔으로 저장"(흑백 고대비
+    적응형 임계값) 2개 버튼으로 분리. warpToDocument()에서 무조건 실행되던 equalizeHistogram()(색조
+    유지 밝기평활화 — 사용자가 "자동 흑백"으로 인지하던 동작)을 제거해 원근 보정만 수행하도록 재구성.
+    applyBrightnessContrast()는 v0.0.9에서 제거된 PhotoEditScreen의 픽셀 공식을 재사용, applyScanEffect()
+    는 editor.jsx의 비-export 함수 toScanCanvas와 동일한 그레이스케일+적응형임계값 알고리즘을 app.jsx
+    내부에 재구현(editor.jsx는 EditorScreen/Sheet/AddStampSheet만 export하므로 직접 import 불가).
+  - companion 수정: equalizeHistogram() 유일한 호출부가 사라져 orphan이 되어 함께 삭제(원칙7).
+    기존 phase4-4/phase7-1 테스트가 "자르기 적용" 버튼 텍스트에 의존해 클릭 대상만 "원본 유지"로
+    업데이트(테스트 시나리오·의도는 무변경). 신규 phase9-1-review-edit.spec.ts 4건 추가.
+APK: filmcommando-coating-moblie-v0.1.3.apk
+크기: 17.44MB (18289985 bytes, v0.1.2 대비 +188 bytes — 신규 UI/로직이 대부분 순수 JS라 번들 크기
+      증가분이 미미함)
+검증: 웹 Playwright 전체 70/70 PASS(chromium+Pixel 8, phase9-1 신규 4건 포함 — 슬라이더 기본값·
+      실시간 filter 반영, 다시 촬영 시 슬라이더 초기화, 원본 유지/스캔으로 저장 각각의 흑백 양자화
+      비율 검증). 실기기(에뮬레이터 emulator-5554, release APK) CDP 기반 검증 — 실제 getUserMedia
+      카메라로 촬영 후 리뷰 화면 진입, 슬라이더 2개(기본값 0/0)·버튼 3개(다시 촬영/원본 유지/스캔으로
+      저장) 렌더 확인. 슬라이더 조작(밝기25/대비-10) 시 computed filter="brightness(1.25) contrast(0.8)"
+      로 공식과 정확히 일치 확인. "스캔으로 저장" 클릭 → EditorScreen 진입 + docImage(JPEG) 저장 확인.
+      스크린샷 test-results/screenshots/v0.1.3-review.png(밝기20/대비15 적용 상태, 드래그 오버레이·
+      3버튼 정상 렌더). adb logcat FATAL/AndroidRuntime 크래시 없음.
+상태: PASS

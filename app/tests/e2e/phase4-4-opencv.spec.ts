@@ -79,7 +79,7 @@ test.describe('Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정', () =
     await page.waitForTimeout(6000);
 
     await page.getByText('촬영', { exact: true }).click();
-    await page.getByRole('button', { name: '자르기 적용' }).click(); // v0.1.1: 촬영 후 자르기 리뷰 화면을 거쳐 EditorScreen 진입
+    await page.getByRole('button', { name: '원본 유지' }).click(); // v0.1.3: 자르기 적용이 원본 유지/스캔으로 저장으로 분리됨
     await page.waitForTimeout(500);
 
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
@@ -117,7 +117,7 @@ test.describe('Phase 4-4 보완: OpenCV.js 엣지 감지 · 원근 보정', () =
     expect(overlayDrawn).toBe(true); // Canvas API 폴백도 오버레이를 그림
 
     await page.getByText('촬영', { exact: true }).click();
-    await page.getByRole('button', { name: '자르기 적용' }).click(); // v0.1.1: 촬영 후 자르기 리뷰 화면을 거쳐 EditorScreen 진입
+    await page.getByRole('button', { name: '원본 유지' }).click(); // v0.1.3: 자르기 적용이 원본 유지/스캔으로 저장으로 분리됨
     await page.waitForTimeout(500);
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
     expect(ls.pages?.[0]?.docImage).toBeTruthy();
