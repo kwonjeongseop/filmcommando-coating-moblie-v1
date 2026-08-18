@@ -275,6 +275,11 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const dragCornerRef = useR(null); // 'tl' | 'tr' | 'br' | 'bl' | null
   const [cameraOpen, setCameraOpen] = useS(false);
   const [manualMode, setManualMode] = useS(false);
+  const [captured, setCaptured] = useS(null); // { dataUrl, w, h } — 촬영 직후 자르기 리뷰용 원본 프레임
+  const [reviewQuad, setReviewQuad] = useS(null); // {tl,tr,br,bl} 정규화 좌표 — captured 기준 사각형
+  const reviewImgRef = useR(null);
+  const reviewOverlayRef = useR(null);
+  const reviewDragCornerRef = useR(null);
   const onFile = async (e) => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
     const name = f.name.replace(/\.[^.]+$/, '').slice(0, 20) || '업로드 서류';
@@ -293,7 +298,17 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     manualRef.current = false; setManualMode(false);
     setCameraOpen(false);
   };
+  // 플랫폼 무관 자체 카메라(getUserMedia) 우선 시도 — 실시간 문서 엣지감지 오버레이·촬영 후 자르기까지
+  // 앱 안에서 처리할 수 있다. WebView가 getUserMedia를 지원하지 않거나 권한이 거부되면(네이티브에서는
+  // Capacitor의 BridgeWebChromeClient가 카메라 권한 요청을 자동 처리하므로 대개 여기까지 오지 않음)
+  // 네이티브는 OS 카메라 앱(Camera.getPhoto)으로, 웹은 갤러리 선택으로 폴백한다.
   const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      streamRef.current = stream;
+      setCameraOpen(true);
+      return;
+    } catch (e) {} // getUserMedia 미지원/거부 — 아래 폴백으로 진행
     if (Capacitor.isNativePlatform()) {
       try {
         const photo = await Camera.getPhoto({ resultType: CameraResultType.DataUrl, source: CameraSource.Camera, quality: 90 });
@@ -301,13 +316,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
       } catch (e) {} // 사용자가 네이티브 카메라 촬영을 취소한 경우
       return;
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      streamRef.current = stream;
-      setCameraOpen(true);
-    } catch (e) {
-      fileRef.current && fileRef.current.click(); // getUserMedia 미지원/거부 시 갤러리 선택으로 폴백
-    }
+    fileRef.current && fileRef.current.click(); // 웹에서 getUserMedia도 실패 시 갤러리 선택으로 폴백
   };
   useE(() => {
     if (cameraOpen && videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current;
@@ -413,37 +422,115 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   };
   const resetAutoDetect = () => { manualRef.current = false; setManualMode(false); };
 
+  // 원근 보정 + 밝기 보정 + JPEG 인코딩 — 촬영 직후(quad 자동감지)와 리뷰 화면 "자르기 적용"(quad
+  // 수동조정) 양쪽에서 동일하게 재사용한다.
+  const warpToDocument = (rawCanvas, quad) => {
+    let outCanvas = rawCanvas;
+    try {
+      if (quad) {
+        const w = rawCanvas.width, h = rawCanvas.height;
+        const quadPx = {
+          tl: { x: quad.tl.x * w, y: quad.tl.y * h }, tr: { x: quad.tr.x * w, y: quad.tr.y * h },
+          br: { x: quad.br.x * w, y: quad.br.y * h }, bl: { x: quad.bl.x * w, y: quad.bl.y * h },
+        };
+        let warped = null;
+        if (cvRef.current) {
+          try { warped = warpQuadToRectCV(cvRef.current, rawCanvas, quadPx); }
+          catch (e) { warped = null; } // OpenCV 워프 실패 시 Canvas 어파인 폴백으로 재시도
+        }
+        if (!warped) warped = warpQuadToRect(rawCanvas, [quadPx.tl, quadPx.tr, quadPx.br, quadPx.bl]);
+        if (warped) outCanvas = warped;
+      }
+      equalizeHistogram(outCanvas);
+    } catch (e) {
+      outCanvas = rawCanvas; // 원근 보정·밝기 보정 실패 시 원본 프레임 그대로 사용
+    }
+    return outCanvas.toDataURL('image/jpeg', 0.92);
+  };
+
+  // 촬영 버튼 — 원본 프레임과 자동 감지된 사각형을 그대로 리뷰 화면으로 넘긴다(즉시 확정하지 않음).
   const capturePhoto = () => {
     const video = videoRef.current; if (!video) return;
     const vw = video.videoWidth || 720, vh = video.videoHeight || 1280;
     const raw = document.createElement('canvas');
     raw.width = vw; raw.height = vh;
     raw.getContext('2d').drawImage(video, 0, 0, vw, vh);
-
-    let outCanvas = raw;
-    try {
-      const b = boxRef.current;
-      if (b) {
-        const quadPx = {
-          tl: { x: b.tl.x * vw, y: b.tl.y * vh }, tr: { x: b.tr.x * vw, y: b.tr.y * vh },
-          br: { x: b.br.x * vw, y: b.br.y * vh }, bl: { x: b.bl.x * vw, y: b.bl.y * vh },
-        };
-        let warped = null;
-        if (cvRef.current) {
-          try { warped = warpQuadToRectCV(cvRef.current, raw, quadPx); }
-          catch (e) { warped = null; } // OpenCV 워프 실패 시 Canvas 어파인 폴백으로 재시도
-        }
-        if (!warped) warped = warpQuadToRect(raw, [quadPx.tl, quadPx.tr, quadPx.br, quadPx.bl]);
-        if (warped) outCanvas = warped;
-      }
-      equalizeHistogram(outCanvas);
-    } catch (e) {
-      outCanvas = raw; // 원근 보정·밝기 보정 실패 시 원본 프레임 그대로 사용
-    }
-
-    const dataUrl = outCanvas.toDataURL('image/jpeg', 0.92);
+    const quad = boxRef.current || { tl: { x: 0.06, y: 0.06 }, tr: { x: 0.94, y: 0.06 }, br: { x: 0.94, y: 0.94 }, bl: { x: 0.06, y: 0.94 } };
+    setCaptured({ dataUrl: raw.toDataURL('image/png'), w: vw, h: vh });
+    setReviewQuad(quad);
     closeCamera();
-    onLoadImage(dataUrl, '촬영 서류');
+  };
+
+  // 리뷰 화면 사각형 오버레이 — 라이브 카메라의 drawOverlay와 동일한 방식으로 그리되, 정적 이미지
+  // (reviewImgRef) 기준으로 그린다.
+  const drawReviewOverlay = () => {
+    const canvas = reviewOverlayRef.current, img = reviewImgRef.current;
+    if (!canvas || !img) return;
+    const w = img.clientWidth, h = img.clientHeight;
+    if (!w || !h) return;
+    if (canvas.width !== w) canvas.width = w;
+    if (canvas.height !== h) canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    const b = reviewQuad;
+    if (!b) return;
+    const pts = [b.tl, b.tr, b.br, b.bl].map((p) => ({ x: p.x * w, y: p.y * h }));
+    ctx.strokeStyle = '#2B6CE6';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle = '#2B6CE6';
+    pts.forEach((p) => { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill(); });
+  };
+  useE(() => { drawReviewOverlay(); }, [reviewQuad, captured]);
+
+  // 리뷰 화면 꼭짓점 핸들 드래그 — 라이브 카메라의 overlayPointerDown/Move/Up과 동일한 방식.
+  const reviewPointerDown = (e) => {
+    const canvas = reviewOverlayRef.current, b = reviewQuad;
+    if (!canvas || !b) return;
+    const r = canvas.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    let best = null, bestDist = HANDLE_HIT_PX;
+    for (const k of ['tl', 'tr', 'br', 'bl']) {
+      const hx = b[k].x * r.width, hy = b[k].y * r.height;
+      const d = Math.hypot(px - hx, py - hy);
+      if (d < bestDist) { bestDist = d; best = k; }
+    }
+    if (!best) return;
+    e.preventDefault();
+    reviewDragCornerRef.current = best;
+    window.addEventListener('pointermove', reviewPointerMove);
+    window.addEventListener('pointerup', reviewPointerUp);
+  };
+  const reviewPointerMove = (e) => {
+    const canvas = reviewOverlayRef.current, k = reviewDragCornerRef.current;
+    if (!canvas || !k) return;
+    const r = canvas.getBoundingClientRect();
+    const x = clamp((e.clientX - r.left) / r.width, 0, 1);
+    const y = clamp((e.clientY - r.top) / r.height, 0, 1);
+    setReviewQuad((q) => ({ ...q, [k]: { x, y } }));
+  };
+  const reviewPointerUp = () => {
+    reviewDragCornerRef.current = null;
+    window.removeEventListener('pointermove', reviewPointerMove);
+    window.removeEventListener('pointerup', reviewPointerUp);
+  };
+
+  const retakePhoto = () => { setCaptured(null); setReviewQuad(null); openCamera(); };
+  const applyReviewCrop = () => {
+    if (!captured) return;
+    const img = new Image();
+    img.onload = () => {
+      const raw = document.createElement('canvas');
+      raw.width = captured.w; raw.height = captured.h;
+      raw.getContext('2d').drawImage(img, 0, 0);
+      const dataUrl = warpToDocument(raw, reviewQuad);
+      setCaptured(null); setReviewQuad(null);
+      onLoadImage(dataUrl, '촬영 서류');
+    };
+    img.src = captured.dataUrl;
   };
 
   return (
@@ -504,6 +591,24 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
           <div className="preview-bar">
             {manualMode && <button className="btn ghost" onClick={resetAutoDetect}>자동</button>}
             <button className="btn solid wide" onClick={capturePhoto}>촬영</button>
+          </div>
+        </div>
+      )}
+      {captured && (
+        <div className="preview-modal">
+          <div className="preview-top">
+            <span className="preview-name"><Icon name="camera" size={18} /> 촬영 확인 · 범위 조정</span>
+            <button className="iconbtn" onClick={retakePhoto} aria-label="닫기"><Icon name="close" size={22} /></button>
+          </div>
+          <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+            <img ref={reviewImgRef} src={captured.dataUrl} alt="" onLoad={drawReviewOverlay}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <canvas ref={reviewOverlayRef} onPointerDown={reviewPointerDown}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none' }} />
+          </div>
+          <div className="preview-bar">
+            <button className="btn ghost" onClick={retakePhoto}>다시 촬영</button>
+            <button className="btn solid wide" onClick={applyReviewCrop}>자르기 적용</button>
           </div>
         </div>
       )}

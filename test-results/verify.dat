@@ -316,3 +316,32 @@ APK: filmcommando-coating-moblie-v0.1.0.apk
       input이 멀티스텝 포인터 드래그를 안정적으로 재현하지 못해 Playwright(실제 mouse 이벤트, JPEG
       재인코딩 후 픽셀 색상까지 검증)로 검증함 — 실기기에서는 진입·UI·취소 경로만 시각 확인.
 상태: PASS
+
+====================================================================
+[Release v0.1.1]
+빌드일: 2026-08-18
+수정: 자체카메라앱+촬영후자르기·도장zoom연동
+  - 조사2·3: app.jsx openCamera()를 플랫폼 무관 getUserMedia 우선 시도로 재구성 —
+    성공 시 기존 웹 전용이던 자체 WebView 카메라 UI(OpenCV.js 실시간 문서 엣지감지 오버레이 포함,
+    Capacitor의 BridgeWebChromeClient가 카메라 권한을 자동 처리)를 네이티브에서도 그대로 사용.
+    실패 시에만 네이티브는 Camera.getPhoto(), 웹은 갤러리 선택으로 폴백(기존 동작 유지).
+    촬영 버튼은 더 이상 즉시 확정하지 않고 원본 프레임+감지된 사각형을 리뷰 화면으로 넘김 —
+    리뷰 화면에서 4개 꼭짓점을 드래그로 재조정 가능, "자르기 적용"(원근보정 재적용→EditorScreen
+    진입) 또는 "다시 촬영"(카메라 프리뷰로 복귀) 선택. warpToDocument() 헬퍼로 촬영 즉시·리뷰 적용
+    양쪽의 원근보정 로직 통합.
+  - 조사4: editor.jsx renderPlaced()의 StampVisual scale prop을 `p.scale * zoom`으로 변경(1줄) —
+    문서 zoom과 도장 화면 크기가 항상 비례하도록 함(잠금 여부 무관). placing 중 ghost 미리보기도
+    동일하게 zoom 반영(내 변경으로 생긴 불일치 방지를 위한 companion 수정).
+APK: filmcommando-coating-moblie-v0.1.1.apk
+크기: 17.23MB (18065616 bytes)
+검증: 웹 Playwright 회귀 60/60 PASS(신규 phase7-1 자체카메라+자르기 3건·phase7-2 zoom연동 3건 포함,
+      촬영 후 EditorScreen 직행을 가정했던 기존 phase4-4 2건은 리뷰 화면 클릭을 추가해 갱신).
+      실기기(에뮬레이터 Pixel_8, release APK) 확인 — 카메라 권한 승인 후 OS 카메라 앱이 아닌 앱 자체
+      카메라 프리뷰(실시간 OpenCV 엣지감지 오버레이 표시)가 뜸을 스크린샷으로 확인, 촬영→자르기
+      리뷰 화면 진입→적용→EditorScreen 진입까지 전체 플로우를 Chrome DevTools Protocol(webview
+      devtools 소켓 포워딩)로 실제 DOM 상태(apptitle·docstamp_v2.docImage) 확인, 도장을 배치한 뒤
+      zoom 100%→200%로 변경 시 .placed 렌더 크기가 32.9px→65.8px로 정확히 2배가 됨을
+      getBoundingClientRect()로 직접 측정해 확인. 세션 전체 크래시 없음(logcat 확인).
+      (참고: adb shell input tap은 이 카메라 리뷰 화면에서 devicePixelRatio 2.625로 인한 좌표 오추정이
+      발생해 CDP 기반 DOM 클릭으로 전환해 검증함 — 코드 동작 자체와는 무관한 테스트 방법론 이슈)
+상태: PASS

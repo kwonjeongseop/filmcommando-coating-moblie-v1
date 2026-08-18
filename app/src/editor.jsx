@@ -932,7 +932,7 @@ function EditorScreen({ store }) {
         onTouchStart={(e) => onStampTouchStart(e, p.id)}
         onTouchMove={onStampTouchMove}
         onTouchEnd={onStampTouchEnd}>
-        <StampVisual stamp={stamp} scale={p.scale} />
+        <StampVisual stamp={stamp} scale={p.scale * zoom} />
         {isSel && (
           <React.Fragment>
             <span className="h-del" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); ctxAction('del'); }}><Icon name="close" size={13} sw={2.6} /></span>
@@ -1017,7 +1017,7 @@ function EditorScreen({ store }) {
             )}
             {placing && ghost && (
               <div className="stamp-ghost" style={{ left: ghost.x + '%', top: ghost.y + '%', opacity: placing._opts.opacity * 0.75 }}>
-                <StampVisual stamp={{ ...placing, color: placing.kind === 'seal' ? (placing.color || sealInk) : placing.color }} scale={placing._opts.size} />
+                <StampVisual stamp={{ ...placing, color: placing.kind === 'seal' ? (placing.color || sealInk) : placing.color }} scale={placing._opts.size * zoom} />
               </div>
             )}
           </div>
