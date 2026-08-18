@@ -41,8 +41,8 @@ test.describe('Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰', () => {
     await openCameraAndCapture(page);
     await expect(page.getByText('촬영 확인 · 범위 조정')).toBeVisible();
     await expect(page.getByRole('button', { name: '다시 촬영' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '원본 유지' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '스캔으로 저장' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '원본으로 편집기 이동' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '스캔으로 편집기 이동' })).toBeVisible();
     const ls = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2') || '{}'));
     expect(ls.pages?.[0]?.docImage).toBeFalsy(); // 아직 EditorScreen에 반영되지 않아야 함
   });
@@ -54,9 +54,9 @@ test.describe('Phase 7-1: 자체 카메라 촬영 후 자르기 리뷰', () => {
     await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
   });
 
-  test('원본 유지를 누르면 EditorScreen으로 진입하고 문서 영역만 크롭된다', async ({ page }) => {
+  test('원본으로 편집기 이동을 누르면 EditorScreen으로 진입하고 문서 영역만 크롭된다', async ({ page }) => {
     await openCameraAndCapture(page);
-    await page.getByRole('button', { name: '원본 유지' }).click();
+    await page.getByRole('button', { name: '원본으로 편집기 이동' }).click();
     await page.waitForTimeout(300);
     await expect(page.locator('.apptitle')).toHaveText('촬영 서류');
 

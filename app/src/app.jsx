@@ -212,7 +212,7 @@ function warpQuadToRect(srcCanvas, corners) {
   return out;
 }
 
-/* 밝기·대비 슬라이더 값을 캔버스 픽셀에 반영한다 — 리뷰 화면 "원본 유지"·"스캔으로 저장" 공통 전처리. */
+/* 밝기·대비 슬라이더 값을 캔버스 픽셀에 반영한다 — 리뷰 화면 "원본으로 편집기 이동"·"스캔으로 편집기 이동" 공통 전처리. */
 function applyBrightnessContrast(canvas, brightness, contrast) {
   if (!brightness && !contrast) return;
   const ctx = canvas.getContext('2d');
@@ -510,7 +510,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   };
   const resetAutoDetect = () => { manualRef.current = false; setManualMode(false); };
 
-  // 원근 보정만 수행해 캔버스를 반환한다 — 리뷰 화면 "원본 유지"·"스캔으로 저장" 양쪽에서 공통으로
+  // 원근 보정만 수행해 캔버스를 반환한다 — 리뷰 화면 "원본으로 편집기 이동"·"스캔으로 편집기 이동" 양쪽에서 공통으로
   // 재사용한 뒤, 이어서 밝기·대비·스캔 처리를 각자 다르게 적용한다.
   const warpToDocument = (rawCanvas, quad) => {
     let outCanvas = rawCanvas;
@@ -608,7 +608,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
 
   const retakePhoto = () => { setCaptured(null); setReviewQuad(null); setReviewBrightness(0); setReviewContrast(0); openCamera(); };
 
-  // "원본 유지"·"스캔으로 저장" 공통 전처리 — 원근 보정 후 밝기·대비 슬라이더 값을 캔버스에 반영한다.
+  // "원본으로 편집기 이동"·"스캔으로 편집기 이동" 공통 전처리 — 원근 보정 후 밝기·대비 슬라이더 값을 캔버스에 반영한다.
   const buildReviewCanvas = () => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -626,11 +626,11 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     setCaptured(null); setReviewQuad(null); setReviewBrightness(0); setReviewContrast(0);
     onLoadImage(dataUrl, '촬영 서류');
   };
-  const applyReviewColor = async () => { // 원본 유지 — 컬러 그대로, 밝기·대비만 반영
+  const applyReviewColor = async () => { // 원본으로 편집기 이동 — 컬러 그대로, 밝기·대비만 반영
     if (!captured) return;
     finishReview(await buildReviewCanvas());
   };
-  const applyReviewScan = async () => { // 스캔으로 저장 — 흑백 고대비 적응형 임계값 적용
+  const applyReviewScan = async () => { // 스캔으로 편집기 이동 — 흑백 고대비 적응형 임계값 적용
     if (!captured) return;
     const canvas = await buildReviewCanvas();
     applyScanEffect(canvas);
@@ -726,8 +726,8 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
           </div>
           <div className="preview-bar">
             <button className="btn ghost" onClick={retakePhoto}>다시 촬영</button>
-            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewColor}>원본 유지</button>
-            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewScan}>스캔으로 저장</button>
+            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewColor}>원본으로 편집기 이동</button>
+            <button className="btn solid" style={{ flex: 1 }} onClick={applyReviewScan}>스캔으로 편집기 이동</button>
           </div>
         </div>
       )}

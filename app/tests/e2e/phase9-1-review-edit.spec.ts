@@ -1,4 +1,4 @@
-// Phase 9-1: 촬영 확인 화면 밝기·대비 편집 + 원본 유지·스캔으로 저장 분기 E2E.
+// Phase 9-1: 촬영 확인 화면 밝기·대비 편집 + 원본으로 편집기 이동·스캔으로 편집기 이동 분기 E2E.
 import { test, expect } from '@playwright/test';
 
 const FAKE_DOC_RECT = { x: 120, y: 90, w: 400, h: 300 }; // 640x480 프레임 기준
@@ -63,9 +63,9 @@ test.describe('Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택', (
     await expect(slidersAfter.nth(1)).toHaveValue('0');
   });
 
-  test('원본 유지는 컬러를 그대로 저장한다(흑백 변환 없음)', async ({ page }) => {
+  test('원본으로 편집기 이동은 컬러를 그대로 저장한다(흑백 변환 없음)', async ({ page }) => {
     await openCameraAndCapture(page);
-    await page.getByRole('button', { name: '원본 유지' }).click();
+    await page.getByRole('button', { name: '원본으로 편집기 이동' }).click();
     await page.waitForTimeout(300);
     await expect(page.locator('.apptitle')).toHaveText('촬영 서류');
 
@@ -90,14 +90,14 @@ test.describe('Phase 9-1: 촬영 확인 화면 편집 + 저장 형식 선택', (
       };
       img.src = src;
     }), docImage);
-    // "원본 유지"는 적응형 임계값(흑백 양자화)을 거치지 않으므로 순수 흑/백(0 또는 255) 픽셀 비율이
+    // "원본으로 편집기 이동"은 적응형 임계값(흑백 양자화)을 거치지 않으므로 순수 흑/백(0 또는 255) 픽셀 비율이
     // 스캔 결과(아래 테스트에서 0.9 초과)보다 뚜렷이 낮아야 한다.
     expect(quantizedRatio).toBeLessThan(0.5);
   });
 
-  test('스캔으로 저장은 흑백 고대비 이미지로 변환한다(픽셀이 0 또는 255로 양자화)', async ({ page }) => {
+  test('스캔으로 편집기 이동은 흑백 고대비 이미지로 변환한다(픽셀이 0 또는 255로 양자화)', async ({ page }) => {
     await openCameraAndCapture(page);
-    await page.getByRole('button', { name: '스캔으로 저장' }).click();
+    await page.getByRole('button', { name: '스캔으로 편집기 이동' }).click();
     await page.waitForTimeout(300);
     await expect(page.locator('.apptitle')).toHaveText('촬영 서류');
 
