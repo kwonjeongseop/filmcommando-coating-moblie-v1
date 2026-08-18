@@ -168,7 +168,7 @@ function SettingsScreen({ settings, setSetting, onBack }) {
             </div>
           </Row>
           <Row t="기본 크기" d={Math.round(settings.size * 100) + '%'}>
-            <input className="rng" type="range" min="0.1" max="1.8" step="0.1" value={settings.size}
+            <input className="rng" type="range" min="0.05" max="1.8" step="0.1" value={settings.size}
               onChange={(e) => setSetting('size', +e.target.value)} />
           </Row>
           <Row t="투명도" d={Math.round(settings.opacity * 100) + '%'}>

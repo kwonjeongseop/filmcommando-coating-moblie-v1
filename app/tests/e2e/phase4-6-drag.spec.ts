@@ -117,6 +117,6 @@ test.describe('Phase 4-6: 도장 드래그 · 핀치줌 · 회전', () => {
     const afterUndo = await readPlaced(page);
 
     expect(afterUndo.scale).not.toBeCloseTo(beforeUndo.scale, 2);
-    expect(afterUndo.scale).toBeCloseTo(0.15, 2); // 도장 초기 크기 축소(v0.1.8: DEFAULT_SETTINGS.size=0.15) 반영
+    expect(afterUndo.scale).toBeCloseTo(0.10, 2); // 도장 초기 크기 축소(v0.1.9: DEFAULT_SETTINGS.size=0.10) 반영
   });
 });

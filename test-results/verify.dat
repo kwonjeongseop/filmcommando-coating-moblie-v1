@@ -658,3 +658,30 @@ versionCode: 18
       v0.1.8-stamp.png. adb logcat FATAL/AndroidRuntime 크래시 없음.
 GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.8
 상태: PASS
+
+====================================================================
+[Release v0.1.9]
+빌드일: 2026-08-18
+APK: filmcommando-coating-moblie-v0.1.9.apk
+크기: 17.44MB (18291686 bytes)
+versionCode: 19
+수정: 도장선택시자동확대·크기0.10·zoom원복1.0
+  - [수정1] editor.jsx renderPlaced()에 MIN_SEL_SCALE=0.22 도입. 선택 시 표시 배율만
+    Math.max(p.scale, MIN_SEL_SCALE)로 확대해 렌더하고, 저장값 p.scale은 전혀 건드리지 않음
+    (핀치·리사이즈·undo 로직 미변경). 선택 해제 시 즉시 원래 크기로 복귀.
+  - [수정2] app.jsx DEFAULT_SETTINGS.size 0.15→0.10, 슬라이더 min 0.1→0.05(editor.jsx·menus.jsx
+    양쪽). editor.jsx DOC_ZOOM_DEFAULT 1.4→1.0(더블탭 리셋값도 상수 재사용으로 자동 반영).
+  - index.css(핸들 크기·오프셋)는 지시대로 v0.1.8 그대로 미변경.
+  - 배경: 이전 두 차례 시도(size 0.08 단독, 핸들 16px+size 0.10)는 모두 핸들 겹침으로 막혀
+    작업 전 상태로 원복했었음 — 이번 "표시/저장 분리" 접근으로 해결.
+  - companion: Playwright 3개 파일(phase13-2·phase4-6-drag·phase6-2-stamp-lock) scale/zoom
+    기댓값 갱신, 신규 phase14-1-handle-overlap.spec.ts(2건, 지시된 필수 검증 스펙) 추가.
+테스트: Playwright E2E 102/102 PASS (chromium+Pixel 8 각 51건, 신규 핸들 겹침 검증 2건 포함)
+검증: 빌드 전 필수 게이트(phase14-1) — 선택 상태 핸들 4개 전수 쌍 겹침 0건, 해제 후 저장 scale
+      0.10 유지 확인. 실기기(에뮬레이터 emulator-5554, release APK) CDP 기반 검증 — zoom-val
+      "100%", 배치 시 저장 scale 0.10, 핸들 4개 bounding box 실측 전수 겹침 없음, 선택 해제 후
+      화면상 원래 작은 크기로 복귀하면서도 저장값은 0.10 그대로임을 확인. 스크린샷
+      test-results/screenshots/v0.1.9-sel.png(선택·확대) · v0.1.9-desel.png(해제·원복).
+      adb logcat FATAL/AndroidRuntime 크래시 없음.
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.9
+상태: PASS

@@ -21,7 +21,8 @@ const mimeTypeOf = (filename) => {
 const BG_THRESHOLD = 200;
 const DOC_ZOOM_MIN = 0.5;
 const DOC_ZOOM_MAX = 3.0;
-const DOC_ZOOM_DEFAULT = 1.4; // 편집기 진입 시 초기 zoom — 도장 체감 크기를 키우기 위해 문서를 기본 확대해서 보여준다
+const DOC_ZOOM_DEFAULT = 1.0; // 편집기 진입 시 초기 zoom — v0.1.9: 100%로 원복
+const MIN_SEL_SCALE = 0.22; // 도장 선택 시 표시 최소 배율 — 94*0.22=20.7px, 핸들(24px·±14px 오프셋) 겹침이 발생하지 않는 최소값
 
 function ToolBtn({ name, label, onClick, active, primary, disabled, showLabel, badge }) {
   return (
@@ -144,7 +145,7 @@ function StampPopup({ open, onClose, library, recent, sealInk, defaults, onConfi
         <div className="pop-block-h">찍기 옵션</div>
         <div className="opt-row">
           <span className="opt-l">크기</span>
-          <input className="rng" type="range" min="0.1" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
+          <input className="rng" type="range" min="0.05" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
           <span className="opt-v">{Math.round(size * 100)}%</span>
         </div>
         <div className="opt-row">
@@ -987,6 +988,7 @@ function EditorScreen({ store }) {
     const s = stampById(p.stampId); if (!s) return null;
     const stamp = { ...s, color: s.kind === 'seal' ? (s.color || sealInk) : s.color };
     const isSel = sel === p.id && !placing;
+    const displayScale = isSel ? Math.max(p.scale, MIN_SEL_SCALE) : p.scale; // 저장값(p.scale)은 그대로 두고 화면 표시 배율만 선택 시 확대
     const startLP = (e) => {
       if (placing) return;
       clearTimeout(lpRef.current);
@@ -1006,7 +1008,7 @@ function EditorScreen({ store }) {
         onTouchStart={(e) => onStampTouchStart(e, p.id)}
         onTouchMove={onStampTouchMove}
         onTouchEnd={onStampTouchEnd}>
-        <StampVisual stamp={stamp} scale={p.scale * zoom} />
+        <StampVisual stamp={stamp} scale={displayScale * zoom} />
         {isSel && (
           <React.Fragment>
             <span className="h-del" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); ctxAction('del'); }}><Icon name="close" size={13} sw={2.6} /></span>
