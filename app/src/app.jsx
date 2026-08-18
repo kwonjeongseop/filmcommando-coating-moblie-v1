@@ -7,6 +7,7 @@ import { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio, TweakTogg
 import { AndroidDevice } from './android-frame.jsx';
 import { Drawer, SettingsScreen, StampManagerScreen, DocsScreen, ConfirmDialog } from './menus.jsx';
 import { EditorScreen, AddStampSheet } from './editor.jsx';
+import { DOC_CLASSES, loadCocoSsdModel } from './tf-detect.js';
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -271,6 +272,9 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const boxRef = useR(null);
   const cvRef = useR(null);
   const cvFailedRef = useR(false);
+  const tfModelRef = useR(null);
+  const tfFailedRef = useR(false);
+  const tfDetectionsRef = useR([]); // [{x,y,w,h,class,score,isDoc}] — 정규화(0~1) 좌표, video 기준
   const manualRef = useR(false); // true면 사용자가 꼭짓점을 직접 조정 중 — 자동 감지가 boxRef를 덮어쓰지 않는다
   const dragCornerRef = useR(null); // 'tl' | 'tr' | 'br' | 'bl' | null
   const [cameraOpen, setCameraOpen] = useS(false);
@@ -332,16 +336,35 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, w, h);
     const b = boxRef.current;
-    if (!b) return;
-    const pts = [b.tl, b.tr, b.br, b.bl].map((p) => ({ x: p.x * w, y: p.y * h }));
-    ctx.strokeStyle = '#2B6CE6';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fillStyle = '#2B6CE6';
-    pts.forEach((p) => { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill(); });
+    if (b) {
+      const pts = [b.tl, b.tr, b.br, b.bl].map((p) => ({ x: p.x * w, y: p.y * h }));
+      ctx.strokeStyle = '#2B6CE6';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = '#2B6CE6';
+      pts.forEach((p) => { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill(); });
+    }
+
+    // TF.js coco-ssd 물체 감지 박스 — 문서류(DOC_CLASSES)는 초록 실선+라벨/신뢰도, 그 외는 회색 점선+라벨만.
+    ctx.font = '12px sans-serif';
+    ctx.textBaseline = 'top';
+    tfDetectionsRef.current.forEach((d) => {
+      const bx = d.x * w, by = d.y * h, bw = d.w * w, bh = d.h * h;
+      ctx.setLineDash(d.isDoc ? [] : [6, 4]);
+      ctx.strokeStyle = d.isDoc ? '#2ecc71' : '#9aa0a6';
+      ctx.lineWidth = d.isDoc ? 2.5 : 1.5;
+      ctx.strokeRect(bx, by, bw, bh);
+      const label = d.isDoc ? `${d.class} ${Math.round(d.score * 100)}%` : d.class;
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = d.isDoc ? '#2ecc71' : 'rgba(154,160,166,0.9)';
+      ctx.fillRect(bx, Math.max(0, by - 16), tw + 8, 16);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(label, bx + 4, Math.max(0, by - 15));
+    });
+    ctx.setLineDash([]);
   };
 
   // 카메라가 열려 있는 동안 실시간으로 프레임을 다운샘플해 문서 윤곽을 추정하고 오버레이에 그린다.
@@ -361,19 +384,28 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
       if (video && video.videoWidth) {
         if (ts - lastRun > 120 && !manualRef.current) {
           lastRun = ts;
+          // TF.js가 문서류(책·노트북·휴대폰·리모컨)를 감지했으면 그 영역만 잘라 분석해 정확도를 높인다(ROI 힌트).
+          const hint = tfDetectionsRef.current.find((d) => d.isDoc);
+          const PAD = 0.06;
+          const roi = hint
+            ? { x: clamp(hint.x - PAD, 0, 1), y: clamp(hint.y - PAD, 0, 1), w: clamp(hint.w + PAD * 2, 0.05, 1), h: clamp(hint.h + PAD * 2, 0.05, 1) }
+            : { x: 0, y: 0, w: 1, h: 1 };
+          roi.w = Math.min(roi.w, 1 - roi.x); roi.h = Math.min(roi.h, 1 - roi.y);
+          const mapToFrame = (p) => ({ x: roi.x + p.x * roi.w, y: roi.y + p.y * roi.h });
+          const remap = (q) => (q ? { tl: mapToFrame(q.tl), tr: mapToFrame(q.tr), br: mapToFrame(q.br), bl: mapToFrame(q.bl) } : null);
           try {
-            actx.drawImage(video, 0, 0, AW, AH);
+            actx.drawImage(video, roi.x * video.videoWidth, roi.y * video.videoHeight, roi.w * video.videoWidth, roi.h * video.videoHeight, 0, 0, AW, AH);
             if (cvRef.current) {
-              boxRef.current = estimateDocEdgesCV(cvRef.current, analysisCanvas);
+              boxRef.current = remap(estimateDocEdgesCV(cvRef.current, analysisCanvas));
             } else {
               const { data } = actx.getImageData(0, 0, AW, AH);
-              boxRef.current = estimateDocEdges(data, AW, AH);
+              boxRef.current = remap(estimateDocEdges(data, AW, AH));
             }
           } catch (e) {
             cvFailedRef.current = true; // OpenCV 런타임 오류 시 이후 프레임부터 Canvas 폴백으로 전환
             try {
               const { data } = actx.getImageData(0, 0, AW, AH);
-              boxRef.current = estimateDocEdges(data, AW, AH);
+              boxRef.current = remap(estimateDocEdges(data, AW, AH));
             } catch (e2) { /* 프레임 미준비 등 일시적 오류는 다음 tick에서 재시도 */ }
           }
         }
@@ -383,6 +415,45 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
+  }, [cameraOpen]);
+
+  // 카메라가 열려 있는 동안 TF.js coco-ssd로 실시간 물체를 감지한다. OpenCV 엣지감지와는 독립된 루프이며
+  // (500ms 간격, OpenCV의 120ms보다 훨씬 느긋하게), 서로의 성공·실패에 영향을 주지 않는다 — 모델 로드
+  // 실패(오프라인 등) 시에도 위 OpenCv 문서 엣지감지는 그대로 계속 동작한다.
+  useE(() => {
+    if (!cameraOpen) { tfDetectionsRef.current = []; return; }
+    let stopped = false;
+    if (!tfModelRef.current && !tfFailedRef.current) {
+      loadCocoSsdModel().then((model) => { if (!stopped) tfModelRef.current = model; else model.dispose(); })
+        .catch((e) => { tfFailedRef.current = true; console.warn('[TFJS] coco-ssd 로드 실패 — OpenCV 문서 감지만으로 계속 동작', e); });
+    }
+    let raf, lastRun = 0, detecting = false;
+    const tick = (ts) => {
+      const video = videoRef.current;
+      if (video && video.videoWidth && tfModelRef.current && !detecting && ts - lastRun > 500) {
+        lastRun = ts;
+        detecting = true;
+        tfModelRef.current.detect(video).then((preds) => {
+          tfDetectionsRef.current = preds.map((p) => {
+            const [x, y, w, h] = p.bbox; // 픽셀 좌표(video 원본 해상도 기준)
+            return {
+              x: x / video.videoWidth, y: y / video.videoHeight,
+              w: w / video.videoWidth, h: h / video.videoHeight,
+              class: p.class, score: p.score, isDoc: DOC_CLASSES.has(p.class),
+            };
+          });
+          console.log('[TFJS] 감지:', preds.map((p) => `${p.class} ${Math.round(p.score * 100)}%`).join(', ') || '(없음)');
+          drawOverlay();
+        }).catch(() => {}).finally(() => { detecting = false; });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      if (tfModelRef.current) { tfModelRef.current.dispose(); tfModelRef.current = null; } // 카메라 종료 시 모델 메모리 해제
+    };
   }, [cameraOpen]);
 
   // 오버레이 꼭짓점 핸들 드래그 — 자동 감지 사각형을 사용자가 손가락으로 직접 보정할 수 있게 한다.

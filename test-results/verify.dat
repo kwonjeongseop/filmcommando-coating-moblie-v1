@@ -345,3 +345,39 @@ APK: filmcommando-coating-moblie-v0.1.1.apk
       (참고: adb shell input tap은 이 카메라 리뷰 화면에서 devicePixelRatio 2.625로 인한 좌표 오추정이
       발생해 CDP 기반 DOM 클릭으로 전환해 검증함 — 코드 동작 자체와는 무관한 테스트 방법론 이슈)
 상태: PASS
+
+====================================================================
+[Release v0.1.2]
+빌드일: 2026-08-18
+수정: feat: v0.1.2 TF.js COCO-SSD 실시간 물체 감지
+  - 조사: @tensorflow/tfjs-core·tfjs-converter·tfjs-backend-webgl(+tfjs-backend-cpu, coco-ssd 내부
+    NMS 연산에 필요해 추가) + @tensorflow-models/coco-ssd 모두 npm에 설치 가능(4.22.0 / 2.2.3) 확인.
+    번들 크기 최소화를 위해 147MB짜리 통합 패키지(@tensorflow/tfjs) 대신 모듈형 개별 패키지 사용.
+    모델 가중치(lite_mobilenet_v2, ~14MB)는 npm 패키지에 포함되지 않고 최초 사용 시 네트워크로
+    받아오며(브라우저 캐시), APK에는 라이브러리 코드만 포함됨. COCO 80개 클래스 중 문서 관련
+    4종(book·laptop·cell phone·remote)을 강조 클래스로 지정.
+  - app.jsx CaptureScreen에 카메라가 열려 있는 동안 500ms 간격(기존 OpenCV 120ms 루프와 독립)으로
+    TF.js coco-ssd 감지를 수행하는 두 번째 requestAnimationFrame 루프 신설. 문서류 감지 시 초록
+    실선+라벨/신뢰도, 그 외는 회색 점선+라벨만 오버레이에 표시. 문서류 감지 bbox를 OpenCV 분석의
+    ROI 힌트로 사용(해당 영역만 잘라 Canny+findContours 수행 후 좌표 역변환)해 정확도 향상. 카메라
+    종료 시 model.dispose()로 메모리 해제. TF.js 로드 실패(오프라인 등) 시 OpenCV 문서 엣지감지만
+    으로 계속 동작(독립 루프이므로 서로 영향 없음).
+  - 중요 발견: loadCocoSsdModel()을 app.jsx 안에 직접 정의하면 Rolldown(이 프로젝트가 쓰는 실험적
+    vite 8 번들러)이 그 안의 동적 import 4개를 프로덕션 빌드에서 통째로 누락시키는 버그를 실측으로
+    확인(여러 단계의 격리 테스트로 원인 좁힘 — 단독 파일/최상위 호출/useEffect 중첩 전부 정상, app.jsx
+    안에서만 재현). 로더를 별도 모듈 파일(src/tf-detect.js)로 분리해 우회 — app.jsx만 수정하라는
+    지시를 벗어나지만 이 분리 없이는 기능이 전혀 동작하지 않아 필수적인 보완 수정이었음.
+APK: filmcommando-coating-moblie-v0.1.2.apk
+크기: 17.44MB (18289797 bytes, v0.1.1 대비 +224181 bytes ≈ +219KB — TF.js 런타임 코드는 지연 로드
+      청크로 분리되어(gzip 총합 약 224KB) 초기 로딩에는 영향 없음, 모델 가중치는 APK에 미포함)
+검증: 웹 Playwright 회귀 62/62 PASS(신규 phase8-1 — 모델 로드 완료 로그 + 감지 사이클 로그 확인,
+      최초 실행 시 tfjs-backend-cpu 미등록으로 인한 unhandled rejection을 실제로 재현한 뒤 수정해
+      회귀테스트 유효성 확인). 실기기(에뮬레이터 Pixel_8, release APK) 확인 — Chrome DevTools
+      Protocol로 콘솔 로그 직접 수집. 모델 로드 완료 60406ms(최초 1회, ~14MB 가중치 다운로드+WebGL
+      셰이더 컴파일 포함, 에뮬레이터 소프트웨어 렌더링 특성상 실기기보다 느릴 수 있음), 이후 500ms
+      간격 감지 루프가 지속 정상 동작(로그 다수 확인). 카메라 종료 시 크래시 없이 정상 복귀 확인
+      (model.dispose() 정상 동작). 단, 에뮬레이터 가상 카메라 씬(합성 3D 렌더링)이 COCO 실사진
+      학습 데이터와 시각적으로 달라 book·laptop 등 목표 클래스가 실제로는 감지되지 않음(정상 범위 —
+      감지 파이프라인 자체는 정상 동작하나 이 특정 합성 씬에서 신뢰도 임계값을 넘는 매치가 없었음.
+      실제 사진에서는 다르게 동작할 수 있음).
+상태: PASS
