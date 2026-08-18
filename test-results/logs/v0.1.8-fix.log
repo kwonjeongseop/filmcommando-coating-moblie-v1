@@ -1,0 +1,68 @@
+[v0.1.8] 문서 기본 확대(140%) + 도장 크기 추가 축소(0.15) — 수정/검증 로그
+
+## 수정 대상
+- app/src/editor.jsx (zoom 초기값 + 더블탭 리셋값) — 외과적 수정
+- app/src/app.jsx (DEFAULT_SETTINGS.size) — 외과적 수정
+
+## 수정 내용
+
+[수정 1] 문서 기본 zoom 상향
+- editor.jsx에 DOC_ZOOM_DEFAULT = 1.4 상수 추가.
+- 초기 zoom state: useState(1) → useState(DOC_ZOOM_DEFAULT).
+- 더블탭 리셋: setZoom(1) → setZoom(DOC_ZOOM_DEFAULT).
+- 줌바 슬라이더는 zoom state에 그대로 바인딩되어 있어 별도 수정 없이 140%로 연동됨.
+
+[수정 2] 도장 기본 크기 추가 축소
+- app.jsx DEFAULT_SETTINGS.size: 0.2 → 0.15(지시된 값 그대로).
+- 크기 슬라이더 min은 이미 v0.1.7에서 0.1로 변경되어 있어 추가 수정 불필요.
+
+## 범위 결정(disclosure) — "맞춤" 버튼은 의도적으로 미수정
+- editor.jsx의 "맞춤" 버튼(줌바)은 여전히 setZoom(1) — 리터럴 100%로 남겨둠.
+- 지시문이 "zoom 초기값 + 더블탭 리셋값만" 외과적 수정 대상으로 명시했고, 이 두 곳만 바꿔도
+  [수정1] 목표(편집기 진입 시 140% 확대)가 완전히 동작함 — "맞춤" 버튼을 그대로 두어도 기능이
+  무력화되지 않으므로(문서상 별개의 리셋 지점 2곳이 서로 다른 값으로 남는 것은 결함이 아니라
+  방어 가능한 설계 선택) 이번 턴은 필수 companion 수정 사례에 해당하지 않는다고 판단, 범위를
+  넘기지 않았다.
+
+## companion 수정 (범위 외 disclosure, 요약)
+- Playwright 스펙 갱신이 다수 필요했음(테스트 파일만 수정, editor.jsx/app.jsx 추가 변경 없음).
+  - phase13-2-stamp-size.spec.ts: scale 기댓값 0.2→0.15, image-kind 폭 비교식에 zoom(1.4) 계수
+    반영(기존 식은 zoom=1.0 전제였음 — 없으면 이 테스트가 항상 실패).
+  - phase4-6-drag.spec.ts: undo 후 scale 기댓값 0.2→0.15.
+  - phase6-2-stamp-lock.spec.ts: zoom-val 기댓값 200%→240%(140%+버튼5회=+100%p). 추가로, 리사이즈
+    핸들 좌표 계산 전 scrollIntoViewIfNeeded() 삽입 — v0.1.8 기본 zoom 상향으로 240%까지 확대하면
+    .page가 .canvas 가시 영역보다 훨씬 커져 핸들이 스크롤 밖으로 밀려나 있었음(없으면 리사이즈
+    제스처가 엉뚱한 지점을 클릭해 scale이 전혀 안 변함).
+  - phase7-2-stamp-zoom-scale.spec.ts: 이 파일의 모든 비율 계산(2배·1.5배·÷2)이 "before=100%"를
+    전제하는데, 편집기 기본 zoom이 이제 140%라 전제가 깨짐 — "맞춤" 버튼(리터럴 100%, 위 결정에
+    따라 미변경)을 이용해 각 테스트에서 measurement 전에 zoom을 100%로 재설정하는
+    resetZoomTo100() 헬퍼를 추가(3개 테스트 모두 적용). 이 조치 없이는 3개 테스트가 전부
+    실패했음.
+  - phase5-2-doc-pinch-zoom.spec.ts: 더블탭 리셋 테스트 이름/주석만 "원본 크기(100%)"→"편집기
+    기본 배율(140%)"로 정정(수치 비교 자체는 원래도 baseline-relative라 영향 없었음).
+
+## 검증 결과
+
+### 1. 코드 품질
+- pnpm lint: 통과(신규 warning 없음)
+- pnpm build (tsc -b && vite build): 통과
+
+### 2. Playwright E2E (전체 98개)
+- 98 passed — chromium + Pixel 8 프로파일 각각(1차 실행 시 14건 실패 → 위 companion 테스트 수정
+  반영 후 재실행 100% 통과)
+
+### 3. 실기기(에뮬레이터 emulator-5554) 검증 — CDP 기반(Input.dispatchMouseEvent)
+- [수정1] 에디터 진입 직후 줌바를 열어 .zoom-val 텍스트가 정확히 "140%"임을 확인.
+  스크린샷 test-results/screenshots/v0.1.8-zoom.png
+- [수정2] 새 도장을 배치해 localStorage에 저장된 scale이 정확히 0.15임을 확인, 확대 상태에서
+  도장이 문서 텍스트 대비 이전 버전보다 뚜렷이 작아진 것을 육안 확인.
+  스크린샷 test-results/screenshots/v0.1.8-stamp.png
+- adb logcat FATAL/AndroidRuntime 크래시 없음
+
+## 빌드/릴리즈
+- app/package.json version: 0.1.7 → 0.1.8
+- android/app/build.gradle: versionCode 17→18, versionName "0.1.7"→"0.1.8"
+- pnpm build → npx cap sync android → gradlew assembleRelease: 전부 성공
+- apksigner verify: v2 scheme true, Number of signers: 1
+- APK: filmcommando-coating-moblie-v0.1.8.apk (18,291,670 bytes / 17.44MB)
+- adb install -r 성공, pm clear 후 정상 기동 확인

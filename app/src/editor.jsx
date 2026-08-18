@@ -21,6 +21,7 @@ const mimeTypeOf = (filename) => {
 const BG_THRESHOLD = 200;
 const DOC_ZOOM_MIN = 0.5;
 const DOC_ZOOM_MAX = 3.0;
+const DOC_ZOOM_DEFAULT = 1.4; // 편집기 진입 시 초기 zoom — 도장 체감 크기를 키우기 위해 문서를 기본 확대해서 보여준다
 
 function ToolBtn({ name, label, onClick, active, primary, disabled, showLabel, badge }) {
   return (
@@ -428,7 +429,7 @@ function EditorScreen({ store }) {
   const sealInk = t.sealInk;
 
   const pageRef = useRef(null);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(DOC_ZOOM_DEFAULT);
   const [zoomBar, setZoomBar] = useState(false);
   const [popup, setPopup] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -767,7 +768,7 @@ function EditorScreen({ store }) {
     const t = e.changedTouches[0];
     if (Math.hypot(t.clientX - tapRef.current.x, t.clientY - tapRef.current.y) > 10) return; // 드래그(패닝)는 탭이 아님
     const now = Date.now();
-    if (now - tapRef.current.time < 300) { setZoom(1); tapRef.current.time = 0; }
+    if (now - tapRef.current.time < 300) { setZoom(DOC_ZOOM_DEFAULT); tapRef.current.time = 0; }
     else tapRef.current.time = now;
   };
 

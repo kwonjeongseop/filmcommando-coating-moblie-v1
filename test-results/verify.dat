@@ -630,3 +630,31 @@ versionCode: 17
       크래시 없음.
 GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.7
 상태: PASS
+
+====================================================================
+[Release v0.1.8]
+빌드일: 2026-08-18
+APK: filmcommando-coating-moblie-v0.1.8.apk
+크기: 17.44MB (18291670 bytes)
+versionCode: 18
+수정: 문서기본zoom1.4·도장크기0.15
+  - [수정1] editor.jsx DOC_ZOOM_DEFAULT=1.4 상수 추가. 초기 zoom state와 더블탭 리셋값을 모두
+    1(100%)→DOC_ZOOM_DEFAULT(140%)로 변경. 줌바 슬라이더는 zoom state에 그대로 바인딩되어 자동
+    연동됨. "맞춤" 버튼은 지시 범위 밖이라 리터럴 100%로 의도적으로 유지(disclosure).
+  - [수정2] app.jsx DEFAULT_SETTINGS.size 0.2→0.15(지시된 값 그대로). 슬라이더 min은 v0.1.7에서
+    이미 0.1로 낮춰져 있어 추가 수정 불필요.
+  - companion: Playwright 스펙 다수 갱신(테스트 파일만, 앱 코드 미변경) — phase13-2·phase4-6-drag
+    scale 기댓값 0.2→0.15, phase6-2-stamp-lock zoom-val 200%→240%+리사이즈 핸들
+    scrollIntoViewIfNeeded() 추가(확대 240%에서 핸들이 스크롤 밖으로 밀려나 제스처가 무효화되던
+    문제), phase7-2-stamp-zoom-scale 전체(3건)에 resetZoomTo100() 헬퍼 추가(이 파일의 모든 비율
+    계산이 "before=100%" 전제였는데 기본 zoom이 140%로 바뀌며 전제가 깨졌음 — "맞춤" 버튼으로
+    재설정), phase5-2-doc-pinch-zoom 더블탭 리셋 테스트 이름/주석 정정.
+테스트: Playwright E2E 98/98 PASS (chromium+Pixel 8 각 49건, 1차 실행 시 위 companion 미반영으로
+      14건 실패 → 수정 후 재실행 100% 통과)
+검증: 실기기(에뮬레이터 emulator-5554, release APK) CDP Input.dispatchMouseEvent 기반 정밀 검증 —
+      [수정1] 에디터 진입 직후 .zoom-val이 정확히 "140%"임을 확인. [수정2] 새 도장 배치 시
+      localStorage에 저장된 scale이 정확히 0.15임을 확인, 도장이 문서 텍스트 대비 이전보다
+      뚜렷이 작아짐을 육안 확인. 스크린샷 test-results/screenshots/v0.1.8-zoom.png ·
+      v0.1.8-stamp.png. adb logcat FATAL/AndroidRuntime 크래시 없음.
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.8
+상태: PASS

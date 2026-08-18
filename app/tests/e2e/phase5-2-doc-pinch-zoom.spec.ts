@@ -56,7 +56,7 @@ test.describe('Phase 5-2: 문서 배경 핀치줌', () => {
     expect(zoomedOut.width).toBeLessThan(zoomedIn.width / 2);
   });
 
-  test('배경을 더블탭하면 원본 크기(100%)로 리셋된다', async ({ page, context }) => {
+  test('배경을 더블탭하면 편집기 기본 배율(v0.1.8: 140%)로 리셋된다', async ({ page, context }) => {
     await openEditor(page);
     const before = await page.locator('.page').boundingBox();
     const canvasBox = await page.locator('.canvas').boundingBox();

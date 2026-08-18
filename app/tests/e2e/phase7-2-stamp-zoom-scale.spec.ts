@@ -28,9 +28,21 @@ async function setZoom200(page) {
   await expect(page.locator('.zoom-val')).toHaveText('200%');
 }
 
+// v0.1.8: 편집기 진입 시 기본 zoom이 100%가 아닌 140%(DOC_ZOOM_DEFAULT)로 바뀌어, 이 파일의 모든
+// 비율 계산(2배·1.5배·÷2 등)이 전제로 삼는 "before = 100%" 기준선이 깨진다. "맞춤" 버튼은 여전히
+// 리터럴 100%로 리셋되므로(editor.jsx 수정 범위 밖, 의도적으로 유지) 이를 이용해 기준선을 다시
+// 100%로 맞춘 뒤 측정한다.
+async function resetZoomTo100(page) {
+  await page.locator('button[aria-label="돋보기"]').click();
+  await page.locator('.zoombar .btn.ghost.sm').click();
+  await expect(page.locator('.zoom-val')).toHaveText('100%');
+  await page.locator('button[aria-label="돋보기"]').click();
+}
+
 test.describe('Phase 7-2: 도장 크기와 문서 zoom 연동', () => {
   test('배경을 확대하면 도장도 같은 비율로 커진다', async ({ page }) => {
     await placeStamp(page);
+    await resetZoomTo100(page);
     const before = await page.locator('.placed').boundingBox();
     await setZoom200(page);
     const after = await page.locator('.placed').boundingBox();
@@ -42,6 +54,7 @@ test.describe('Phase 7-2: 도장 크기와 문서 zoom 연동', () => {
     await placeStamp(page);
     await page.locator('.h-lock').click(); // 잠금 — 리사이즈만 막힐 뿐 zoom 연동 렌더링은 그대로여야 함
     await expect(page.locator('.h-lock')).toHaveText('🔒');
+    await resetZoomTo100(page);
     const before = await page.locator('.placed').boundingBox();
 
     await setZoom200(page);
@@ -56,6 +69,7 @@ test.describe('Phase 7-2: 도장 크기와 문서 zoom 연동', () => {
 
   test('zoom 2배 상태에서 리사이즈 후 zoom 1배로 복귀해도 화면 크기가 저장된 scale과 일관된다', async ({ page }) => {
     await placeStamp(page);
+    await resetZoomTo100(page);
     await setZoom200(page);
     const handle = page.locator('.h-res');
     const placedBox = await page.locator('.placed').boundingBox();

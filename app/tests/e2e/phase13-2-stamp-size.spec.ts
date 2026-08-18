@@ -24,11 +24,11 @@ async function placeFirstLibraryStamp(page) {
 }
 
 test.describe('Phase 13-2: 도장 초기 크기', () => {
-  test('설정을 건드리지 않고 새 도장을 배치하면 기본 scale이 0.2다(DEFAULT_SETTINGS.size 축소)', async ({ page }) => {
+  test('설정을 건드리지 않고 새 도장을 배치하면 기본 scale이 0.15다(DEFAULT_SETTINGS.size 축소)', async ({ page }) => {
     await loadEditor(page);
     await placeFirstLibraryStamp(page);
     const placed = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2')).pages[0].placed[0]);
-    expect(placed.scale).toBeCloseTo(0.2, 2);
+    expect(placed.scale).toBeCloseTo(0.15, 2);
   });
 
   test('수기 도장(image kind)과 인감(seal kind)이 같은 scale에서 같은 폭으로 렌더링된다(기준폭 94 통일)', async ({ page }) => {
@@ -57,9 +57,10 @@ test.describe('Phase 13-2: 도장 초기 크기', () => {
 
     const imgWidth = await page.locator('.placed img').first().evaluate((el) => el.getBoundingClientRect().width);
     const placed = await page.evaluate(() => JSON.parse(localStorage.getItem('docstamp_v2')).pages[0].placed[0]);
-    // visuals.jsx: width = (stamp.w || 94) * scale, editor.jsx가 이제 w:94로 저장하므로 seal의
-    // 94*scale 기준과 동일해야 한다(허용 오차: 렌더 반올림 대비 ±1px).
-    expect(imgWidth).toBeGreaterThan(94 * placed.scale - 1);
-    expect(imgWidth).toBeLessThan(94 * placed.scale + 1);
+    // visuals.jsx: width = (stamp.w || 94) * scale * zoom, editor.jsx가 이제 w:94로 저장하므로 seal의
+    // 94*scale*zoom 기준과 동일해야 한다(v0.1.8: 편집기 진입 시 zoom 기본값 1.4 — 허용 오차: 렌더 반올림 대비 ±1px).
+    const ZOOM_DEFAULT = 1.4;
+    expect(imgWidth).toBeGreaterThan(94 * placed.scale * ZOOM_DEFAULT - 1);
+    expect(imgWidth).toBeLessThan(94 * placed.scale * ZOOM_DEFAULT + 1);
   });
 });

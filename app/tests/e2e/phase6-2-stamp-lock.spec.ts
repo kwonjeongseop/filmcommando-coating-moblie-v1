@@ -80,13 +80,16 @@ test.describe('Phase 6-2: 도장 크기 고정 버튼', () => {
 
   test('문서를 확대(zoom)한 상태에서 리사이즈해도 zoom을 되돌리면 같은 상대 크기로 저장된다', async ({ page }) => {
     const pageBoxAtZoom1 = await placeStamp(page);
-    // 줌 200%로 확대
+    // 줌 240%로 확대(v0.1.8: 편집기 진입 기본 zoom 140% + 버튼 5회 = +1.0)
     await page.locator('button[aria-label="돋보기"]').click();
     for (let i = 0; i < 5; i++) await page.locator('.zoombar .rbtn').nth(1).click(); // + 버튼 5회 = +1.0
-    await expect(page.locator('.zoom-val')).toHaveText('200%');
+    await expect(page.locator('.zoom-val')).toHaveText('240%');
 
-    const placedBox = await page.locator('.placed').boundingBox();
+    // v0.1.8: 편집기 기본 zoom이 140%로 올라, 240%까지 확대하면 .page가 .canvas 가시 영역보다
+    // 훨씬 커져 도장이 스크롤 밖으로 밀려날 수 있다 — 좌표 계산 전 반드시 뷰포트 안으로 스크롤한다.
     const handle = page.locator('.h-res');
+    await handle.scrollIntoViewIfNeeded();
+    const placedBox = await page.locator('.placed').boundingBox();
     const handleBox = await handle.boundingBox();
     const center = { x: placedBox.x + placedBox.width / 2, y: placedBox.y + placedBox.height / 2 };
     const from = { x: handleBox.x + handleBox.width / 2, y: handleBox.y + handleBox.height / 2 };
@@ -101,7 +104,7 @@ test.describe('Phase 6-2: 도장 크기 고정 버튼', () => {
     const afterResizeAtZoom2 = await readPlaced(page);
     // 핸들-중심 거리는 zoom과 무관하게 항상 도장 자신의 고정 px 크기에서 나오므로, "거리를 2배로"
     // 늘리는 제스처는 dist/startDist≈2를 만든다. zoom 정규화(÷zoom=2.0)가 적용되면 계산값은 원본
-    // scale(v0.1.7: 기본 0.2)에 가까워지는데, 이는 리사이즈 clamp 하한(0.4, editor.jsx:675)보다
+    // scale(v0.1.8: 기본 0.15)에 가까워지는데, 이는 리사이즈 clamp 하한(0.4, editor.jsx:675)보다
     // 작으므로 실제로는 0.4로 클램프된다 — 정규화가 아예 없었다면 훨씬 큰 값(원본의 2배 이상)이
     // 나왔을 것이므로, 두 프로젝트(뷰포트 DPR 차이) 사이의 픽셀 측정 오차를 감안해 넓게 확인한다.
     expect(afterResizeAtZoom2.scale).toBeLessThan(0.55);

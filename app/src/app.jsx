@@ -47,7 +47,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const DEFAULT_SETTINGS = {
-  ink: '주홍', size: 0.2, opacity: 1, autoSelect: true,
+  ink: '주홍', size: 0.15, opacity: 1, autoSelect: true,
   format: 'PDF', hq: false, autosave: true, pw: false, localOnly: true,
 };
 
