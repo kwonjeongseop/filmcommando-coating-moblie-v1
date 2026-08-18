@@ -11,9 +11,17 @@ const SEALS = [
 
 async function placeSeal(page, label) {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => {
+    localStorage.clear();
+    // v0.1.6: 홈 화면 "최근 서류"가 실제 저장 문서만 표시하도록 바뀌어(app.jsx CaptureScreen)
+    // 예전처럼 "재직증명서.jpg" 항목을 클릭할 수 없다 — 동일한 샘플 문서 상태를 직접 시드한다.
+    localStorage.setItem('docstamp_v2', JSON.stringify({
+      screen: 'editor',
+      pages: [{ docMode: 'sample', docImage: null, placed: [] }],
+      currentPage: 0, docName: '재직증명서', docs: [], recent: [], favId: null, settings: {},
+    }));
+  });
   await page.reload();
-  await page.getByText('재직증명서.jpg').click();
   await page.locator('button[aria-label="도장"]').click();
   await page.locator('.stamp-card', { hasText: label }).click();
   await page.getByRole('button', { name: '확인' }).click();

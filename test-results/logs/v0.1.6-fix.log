@@ -1,0 +1,97 @@
+[v0.1.6] 파일 직접 열기 + 스캔 폴백 보수화 + 최근 서류 실제 연동 — 수정/검증 로그
+
+## 수정 대상
+- app/src/editor.jsx (saveNativeFile 파일 열기 핸들러) — 외과적 수정
+- app/src/app.jsx (capturePhoto 폴백 차단 + 감지 게이팅 상수 + CaptureScreen 최근 서류 위젯) — 외과적 수정
+- app/src/menus.jsx (fmtDocDate export) — companion 수정(아래 disclosure 참조)
+
+## 수정 내용
+
+[수정 1] 파일 직접 열기 — file-opener 연동
+- pnpm add @capacitor-community/file-opener(8.0.1) 설치, npx cap sync android로 플러그인 등록 확인
+  (자체 FileProvider authority "${applicationId}.file.opener.provider" 사용 — 기존
+  "${applicationId}.fileprovider"와 별도 네임스페이스라 충돌 없음, AAR 자체 매니페스트에 선언되어
+  있어 Gradle 매니페스트 병합으로 자동 반영됨. 수동 AndroidManifest.xml 편집 불필요했음).
+- editor.jsx에 mimeTypeOf(filename) 헬퍼 신설(pdf→application/pdf, png→image/png, jpg/jpeg→
+  image/jpeg). saveNativeFile()의 onOpen 콜백을 FileOpener.open({ filePath: uri, contentType,
+  openWithDefault: true })로 교체, 실패 시(플러그인 미탑재·핸들러 없음 등) 기존 Share.share()로
+  폴백(지시된 요구사항 그대로 구현).
+
+[수정 2] 스캔 화질 — 캡처 단계 폴백 보수화
+- app.jsx capturePhoto()에 차단 로직 추가 — boxRef.current가 비어있고(안정화 실패) manualRef.current도
+  false(사용자 수동 조정 이력 없음)면 showToast('문서를 화면 안에 완전히 맞춰주세요')로 안내하고
+  촬영을 중단(카메라는 계속 열려있는 상태로 유지, 재시도 가능).
+- STABLE_FRAMES_REQUIRED 3→2, EDGE_CLIP_MARGIN 0.03→0.02로 완화(지시된 값 그대로).
+- companion 수정(필수) — overlayPointerDown이 boxRef.current가 null일 때 즉시 return하던 기존
+  로직 때문에, 자동 감지가 한 번도 성공하지 못한 상태에서는 사용자가 수동으로 꼭짓점을 만들 방법이
+  전혀 없어(드래그를 시작할 기존 사각형 자체가 없음) 촬영이 영구히 막히는 데드엔드가 발생함을
+  구현 중 확인. overlayPointerDown이 boxRef.current가 비어있으면 FALLBACK_QUAD로 즉시 시드한 뒤
+  히트테스트를 진행하도록 수정 — 화면을 터치하면 폴백 사각형이 나타나고, 그 자리에서 바로 꼭짓점을
+  드래그해 수동 조정(manualRef=true)할 수 있어 차단 로직과 함께 사용해도 막다른 길이 생기지 않음.
+  "app.jsx capturePhoto 폴백 + 감지 게이팅 상수" 범위 내의 필수 companion으로 판단해 함께 수정.
+
+[수정 3] 최근 서류 목록 실제 데이터 연동
+- App 컴포넌트에 openDoc(doc) 공용 핸들러 신설 — 기존 DocsScreen(내 서류함)의 인라인 onOpen 콜백과
+  동일한 로직을 추출해 재사용(중복 제거). DocsScreen onOpen={openDoc}로 교체, CaptureScreen에는
+  onOpenDoc={openDoc} + docs={docs} + showToast={showToast}를 새로 전달.
+- CaptureScreen "최근 서류" 위젯을 하드코딩된 "재직증명서.jpg" 단일 버튼에서 docs 배열 기반 렌더링
+  (최대 3개, 배열 순서 그대로 — saveDoc이 항상 맨 앞에 추가하므로 최신순)으로 교체. 항목 클릭 시
+  onOpenDoc(d) 호출. docs가 비어있으면 섹션 전체를 렌더링하지 않음(지시된 두 옵션 중 "섹션 미표시"
+  선택).
+- 지시대로 "재직증명서.jpg 클릭 → onLoadSample()" 로직 제거 — CaptureScreen 어디서도 onLoadSample을
+  더 이상 호출하지 않아 App의 loadSample() 함수 자체가 orphan이 되어 함께 삭제(원칙7).
+
+## companion 수정 (범위 외 disclosure)
+- menus.jsx의 fmtDocDate 함수를 export 목록에 추가 — CaptureScreen의 "최근 서류" 항목도 DocsScreen과
+  동일한 날짜 포맷("8월 18일 06:30")을 쓰도록 재사용(중복 구현 방지). 기존 DocsScreen 동작은 무변경.
+- Playwright 테스트 9개 파일 업데이트 — CaptureScreen 홈 화면의 "재직증명서.jpg" 하드코딩 버튼이
+  제거되면서(수정3), 기존에 이 버튼을 클릭해 에디터로 진입하던 9개 테스트 파일의 설정 헬퍼가 전부
+  깨짐(phase4-5, phase4-6, phase5-1, phase5-2, phase6-1, phase6-2, phase6-3, phase7-2, phase11-3).
+  각 파일의 "localStorage.clear() → reload() → '재직증명서.jpg' 클릭" 시퀀스를 이미 다른 테스트들이
+  쓰던 검증된 패턴(docstamp_v2에 docMode:'sample' 상태를 직접 시드)으로 교체 — 테스트 시나리오·
+  검증 로직 자체는 무변경.
+- phase9-3-handle-margin.spec.ts·phase11-1-camera-handle.spec.ts의 기존 2개 테스트가 "감지 실패
+  시에도 폴백으로 촬영된다"는 v0.1.5 시점 전제로 작성되어 있었는데, 이번 [수정2](차단 로직)로 그
+  전제 자체가 바뀌어 재작성 — "촬영이 차단되고 안내 토스트가 뜬다" / "라이브 화면에서 수동 조정하면
+  차단 없이 촬영되고 핸들은 안전 여백을 지킨다"로 테스트 의도를 새 동작에 맞게 갱신(로직 변경이
+  아니라 실제 앱 동작 변경에 따른 스펙 현행화).
+- phase12-1-recent-docs.spec.ts 신규 3건 — 수정3 검증용.
+
+## 검증 결과
+
+### 1. 코드 품질
+- pnpm lint: 통과(신규 warning 없음 — menus.jsx에 fmtDocDate export 추가로 인한
+  react(only-export-components) 경고 1건은 이미 같은 파일에 있던 기존 패턴과 동일한 종류)
+- pnpm build (tsc -b && vite build): 통과
+
+### 2. Playwright E2E (전체 90개, 신규 9개 포함)
+- 90 passed — chromium + Pixel 8 프로파일 각각
+- 신규 phase12-1-recent-docs.spec.ts(3건) — 빈 docs 시 섹션 미표시, docs 3개 초과 시 최신 3개만
+  이름·도장개수와 함께 표시, 항목 클릭 시 해당 문서로 에디터 진입 확인
+- 재작성된 phase9-3(2건)·phase11-1(1건) — 차단+토스트, 라이브 화면 수동조정 후 촬영 허용 확인
+
+### 3. 실기기(에뮬레이터 emulator-5554) 검증 — CDP 기반
+- [수정1] 샘플 문서 PDF 저장 → "파일 열기" 탭 → **선택창 없이 PDF 뷰어가 바로 열림**(제목 표시줄에
+  파일명 표시, 주석·편집 아이콘 있는 전용 뷰어) — v0.1.5의 "Sharing 1 file" 공유 시트와 확연히
+  다른, 의도한 "직접 열기" 동작 확인. 스크린샷 test-results/screenshots/v0.1.6-open.png
+- [수정2] 실제 카메라(에뮬레이터 가상 씬 — 책장·TV·고양이, 복잡한 배경)로 촬영 시도 → 감지가
+  안정화되지 못해 촬영이 차단되고 토스트 "문서를 화면 안에 완전히 맞춰주세요" 표시, 라이브 카메라
+  화면 유지 확인(리뷰 화면으로 진입하지 않음) — 실제로 복잡한 배경에서 차단 로직이 발동함을 확인
+- [수정3] 문서 저장 후 홈 화면으로 돌아가면 "최근 서류"에 실제 저장한 문서명("재직증명서")과 저장
+  시각("8월 18일 06:30")·도장 개수("도장 미적용")가 정확히 표시됨 확인. 스크린샷 test-results/
+  screenshots/v0.1.6-recent.png
+- ⚠️ 검증 중 WebView 네이티브 크래시 1건 관측 — FileOpener로 PDF 뷰어를 연 직후 앱이 백그라운드로
+  전환되며 Android가 메모리 트림(dispatchTrimMemory)을 요청했고, 그 처리 도중
+  libwebviewchromium.so(Google WebView 시스템 라이브러리) 내부에서 SIGILL 발생(logcat backtrace
+  확인 — WV.qi1.onTrimMemory 프레임). 이 앱의 자바스크립트 코드(app.jsx/editor.jsx)나 이번 수정과는
+  무관한 시스템/WebView 레벨 크래시로 판단(원인 프레임이 전부 시스템·WebView 바이너리이고 앱 코드가
+  스택에 없음). 프로세스는 자동 재시작되었고 이후 재검증(최근 서류 화면 확인 등)은 정상 동작 —
+  기능적으로 막힌 부분 없음. 참고용으로 기록.
+
+## 빌드/릴리즈
+- app/package.json version: 0.1.5 → 0.1.6
+- android/app/build.gradle: versionCode 15→16, versionName "0.1.5"→"0.1.6"
+- pnpm build → npx cap sync android → gradlew assembleRelease: 전부 성공
+- apksigner verify: v2 scheme true, Number of signers: 1
+- APK: filmcommando-coating-moblie-v0.1.6.apk (18,291,622 bytes / 17.45MB)
+- adb install -r 성공, pm clear 후 정상 기동 확인

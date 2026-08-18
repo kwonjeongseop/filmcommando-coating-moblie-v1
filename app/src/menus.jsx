@@ -305,5 +305,5 @@ function DocsScreen({ docs, onBack, onOpen }) {
 
 export {
   Drawer, OverflowMenu, StampContextMenu, ConfirmDialog, PromptDialog,
-  SettingsScreen, StampManagerScreen, DocsScreen,
+  SettingsScreen, StampManagerScreen, DocsScreen, fmtDocDate,
 };

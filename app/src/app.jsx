@@ -5,7 +5,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Icon, SealVisual, SAMPLE_LIBRARY, makeId } from './visuals.jsx';
 import { useTweaks, TweaksPanel, TweakSection, TweakColor, TweakRadio, TweakToggle } from './tweaks-panel.jsx';
 import { AndroidDevice } from './android-frame.jsx';
-import { Drawer, SettingsScreen, StampManagerScreen, DocsScreen, ConfirmDialog } from './menus.jsx';
+import { Drawer, SettingsScreen, StampManagerScreen, DocsScreen, ConfirmDialog, fmtDocDate } from './menus.jsx';
 import { EditorScreen, AddStampSheet } from './editor.jsx';
 import { DOC_CLASSES, loadCocoSsdModel } from './tf-detect.js';
 
@@ -23,13 +23,15 @@ const clampQuad = (q) => (q ? {
 
 // 자동 감지 결과를 몇 프레임 연속 안정적으로 감지해야 boxRef에 반영할지 — 물체가 프레임에 다 들어오기
 // 전(계속 움직이는 중)에는 좌표가 매 프레임 크게 바뀌므로 이 조건을 만족하지 못해 반영되지 않는다.
-const STABLE_FRAMES_REQUIRED = 3;
+const STABLE_FRAMES_REQUIRED = 2;
 const STABLE_FRAME_DELTA = 0.05;
-const EDGE_CLIP_MARGIN = 0.03; // 꼭짓점이 이 여백보다 화면 가장자리에 가까우면 문서가 잘렸다고 판단
+const EDGE_CLIP_MARGIN = 0.02; // 꼭짓점이 이 여백보다 화면 가장자리에 가까우면 문서가 잘렸다고 판단
 const quadClippedAtEdge = (q) => ['tl', 'tr', 'br', 'bl'].some((k) =>
   q[k].x < EDGE_CLIP_MARGIN || q[k].x > 1 - EDGE_CLIP_MARGIN || q[k].y < EDGE_CLIP_MARGIN || q[k].y > 1 - EDGE_CLIP_MARGIN);
 const quadsAreClose = (a, b) => ['tl', 'tr', 'br', 'bl'].every((k) =>
   Math.abs(a[k].x - b[k].x) < STABLE_FRAME_DELTA && Math.abs(a[k].y - b[k].y) < STABLE_FRAME_DELTA);
+// 자동 감지가 실패했을 때 리뷰 화면 기본값 + 라이브 카메라에서 수동 조정을 시작할 시드로 재사용한다.
+const FALLBACK_QUAD = { tl: { x: 0.05, y: 0.05 }, tr: { x: 0.95, y: 0.05 }, br: { x: 0.95, y: 0.95 }, bl: { x: 0.05, y: 0.95 } };
 
 const THEMES = {
   navy:   { primary: '#2B6CE6', primaryDark: '#1E4FB0', navy: '#14233F', surface: '#F4F6FB', card: '#FFFFFF', line: '#E2E7F0', muted: '#5A6B86' },
@@ -299,7 +301,7 @@ async function pdfToImages(file) {
   return images;
 }
 
-function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
+function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showToast }) {
   const fileRef = useR(null);
   const videoRef = useR(null);
   const streamRef = useR(null);
@@ -509,8 +511,13 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   // 오버레이 꼭짓점 핸들 드래그 — 자동 감지 사각형을 사용자가 손가락으로 직접 보정할 수 있게 한다.
   const HANDLE_HIT_PX = 22;
   const overlayPointerDown = (e) => {
-    const canvas = overlayRef.current, b = boxRef.current;
-    if (!canvas || !b) return;
+    const canvas = overlayRef.current;
+    if (!canvas) return;
+    // 자동 감지가 아직 안정화되지 않아 boxRef가 비어 있어도, 화면을 터치하면 폴백 사각형을 시드해
+    // 사용자가 직접 꼭짓점을 조정할 수 있게 한다 — 그렇지 않으면 감지 실패 시 조정할 대상 자체가
+    // 없어 촬영이 막힌 채(수정 2) 되돌릴 방법이 없어진다.
+    if (!boxRef.current) { boxRef.current = { ...FALLBACK_QUAD }; drawOverlay(); }
+    const b = boxRef.current;
     const r = canvas.getBoundingClientRect();
     const px = e.clientX - r.left, py = e.clientY - r.top;
     let best = null, bestDist = HANDLE_HIT_PX;
@@ -569,13 +576,20 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   };
 
   // 촬영 버튼 — 원본 프레임과 자동 감지된 사각형을 그대로 리뷰 화면으로 넘긴다(즉시 확정하지 않음).
+  // 자동 감지가 안정화되지 않았고(boxRef 비어있음) 사용자가 수동으로 조정한 적도 없다면(!manualRef)
+  // 배경이 그대로 섞여 들어가는 촬영을 막고 재시도를 안내한다 — 수동으로 조정한 경우는 boxRef가
+  // 이미 채워져 있으므로(overlayPointerDown의 폴백 시드) 이 분기에 걸리지 않는다.
   const capturePhoto = () => {
     const video = videoRef.current; if (!video) return;
+    if (!boxRef.current && !manualRef.current) {
+      showToast('문서를 화면 안에 완전히 맞춰주세요');
+      return;
+    }
     const vw = video.videoWidth || 720, vh = video.videoHeight || 1280;
     const raw = document.createElement('canvas');
     raw.width = vw; raw.height = vh;
     raw.getContext('2d').drawImage(video, 0, 0, vw, vh);
-    const quad = boxRef.current || { tl: { x: 0.05, y: 0.05 }, tr: { x: 0.95, y: 0.05 }, br: { x: 0.95, y: 0.95 }, bl: { x: 0.05, y: 0.95 } };
+    const quad = boxRef.current || FALLBACK_QUAD;
     setCaptured({ dataUrl: raw.toDataURL('image/png'), w: vw, h: vh });
     setReviewQuad(quad);
     setReviewBrightness(0); setReviewContrast(0);
@@ -704,14 +718,22 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
         <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden onChange={onFile} />
       </div>
 
-      <div className="cap-recent">
-        <div className="cap-recent-h">최근 서류</div>
-        <button className="recent-row" onClick={() => onLoadSample()}>
-          <span className="recent-thumb"><Icon name="file" size={20} color={theme.primary} /></span>
-          <span className="recent-meta"><b>재직증명서.jpg</b><i>오늘 · 도장 미적용</i></span>
-          <Icon name="back" size={18} color={theme.muted} style={{ transform: 'scaleX(-1)' }} />
-        </button>
-      </div>
+      {docs.length > 0 && (
+        <div className="cap-recent">
+          <div className="cap-recent-h">최근 서류</div>
+          {docs.slice(0, 3).map((d) => (
+            <button key={d.id} className="recent-row" onClick={() => onOpenDoc(d)}>
+              <span className="recent-thumb">
+                {d.thumbnail
+                  ? <img src={d.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }} />
+                  : <Icon name="file" size={20} color={theme.primary} />}
+              </span>
+              <span className="recent-meta"><b>{d.name}</b><i>{fmtDocDate(d.date)} · {d.stampCount ? `도장 ${d.stampCount}개` : '도장 미적용'}</i></span>
+              <Icon name="back" size={18} color={theme.muted} style={{ transform: 'scaleX(-1)' }} />
+            </button>
+          ))}
+        </div>
+      )}
 
       {cameraOpen && (
         <div className="preview-modal">
@@ -857,11 +879,17 @@ function App() {
   const undo = () => { if (!past.length) return; const prev = past[past.length - 1]; setPast((p) => p.slice(0, -1)); setFuture((f) => [placed, ...f]); setPlaced(prev); };
   const redo = () => { if (!future.length) return; const nxt = future[0]; setFuture((f) => f.slice(1)); setPast((p) => [...p, placed]); setPlaced(nxt); };
 
-  const loadSample = () => { setPages([{ docMode: 'sample', docImage: null, placed: [] }]); setCurrentPage(0); setDocName('재직증명서'); setScreen('editor'); };
   const loadImage = (src, name) => {
     const imgs = Array.isArray(src) ? src : [src];
     setPages(imgs.map((s) => ({ docMode: 'image', docImage: s, placed: [] })));
     setCurrentPage(0); setDocName(name); setScreen('editor');
+  };
+  // 저장된 서류(docs 항목)를 불러온다 — CaptureScreen "최근 서류"·DocsScreen "내 서류함" 공용.
+  const openDoc = (doc) => {
+    setPages([{ docMode: doc.docMode, docImage: doc.docImage, placed: doc.placed || [] }]);
+    setCurrentPage(0);
+    setDocName(doc.name);
+    setScreen('editor');
   };
   const saveDoc = (thumbnail) => {
     setDocs((d) => {
@@ -894,7 +922,7 @@ function App() {
   };
 
   const body = () => {
-    if (screen === 'capture') return <CaptureScreen onLoadSample={loadSample} onLoadImage={loadImage} openDrawer={() => setDrawer(true)} theme={theme} />;
+    if (screen === 'capture') return <CaptureScreen onLoadImage={loadImage} openDrawer={() => setDrawer(true)} theme={theme} docs={docs} onOpenDoc={openDoc} showToast={showToast} />;
     if (screen === 'settings') return <SettingsScreen settings={settings} setSetting={setSetting} onBack={() => setScreen('editor')} />;
     if (screen === 'manager') return (
       <StampManagerScreen library={library} favId={favId} onBack={() => setScreen('editor')}
@@ -904,13 +932,7 @@ function App() {
         onFav={(id) => { setFavId(id); showToast('기본 도장으로 지정했습니다.'); }} />
     );
     if (screen === 'docs') return (
-      <DocsScreen docs={docs} onBack={() => setScreen('capture')}
-        onOpen={(doc) => {
-          setPages([{ docMode: doc.docMode, docImage: doc.docImage, placed: doc.placed || [] }]);
-          setCurrentPage(0);
-          setDocName(doc.name);
-          setScreen('editor');
-        }} />
+      <DocsScreen docs={docs} onBack={() => setScreen('capture')} onOpen={openDoc} />
     );
     if (screen === 'help') return <HelpScreen onBack={() => setScreen('capture')} />;
     return <EditorScreen store={store} />;

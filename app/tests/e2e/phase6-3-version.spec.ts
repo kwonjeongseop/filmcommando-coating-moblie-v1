@@ -7,9 +7,17 @@ const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.ur
 test.describe('Phase 6-3: 버전 정보 자동 연동', () => {
   test('드로어 하단에 package.json의 실제 버전이 표시된다(하드코딩 아님)', async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      localStorage.clear();
+      // v0.1.6: 홈 화면 "최근 서류"가 실제 저장 문서만 표시하도록 바뀌어(app.jsx CaptureScreen)
+      // 예전처럼 "재직증명서.jpg" 항목을 클릭할 수 없다 — 동일한 샘플 문서 상태를 직접 시드한다.
+      localStorage.setItem('docstamp_v2', JSON.stringify({
+        screen: 'editor',
+        pages: [{ docMode: 'sample', docImage: null, placed: [] }],
+        currentPage: 0, docName: '재직증명서', docs: [], recent: [], favId: null, settings: {},
+      }));
+    });
     await page.reload();
-    await page.getByText('재직증명서.jpg').click();
     await page.locator('button[aria-label="전체 메뉴"]').click();
     await expect(page.locator('.dr-foot')).toHaveText(`버전 ${pkg.version}`);
     await expect(page.locator('.dr-foot')).not.toHaveText('버전 1.0.4');

@@ -93,6 +93,465 @@
   },
   "suites": [
     {
+      "title": "phase11-1-camera-handle.spec.ts",
+      "file": "phase11-1-camera-handle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 11-1: 문서 영역 자동 감지 안정성 게이팅",
+          "file": "phase11-1-camera-handle.spec.ts",
+          "line": 37,
+          "column": 6,
+          "specs": [
+            {
+              "title": "문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6794,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:23:03.450Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b7db1809c8924badd8d0-8671ea18f473ef4eecef",
+              "file": "phase11-1-camera-handle.spec.ts",
+              "line": 45,
+              "column": 3
+            },
+            {
+              "title": "문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6085,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:25:27.856Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b7db1809c8924badd8d0-0086070c66a02c839ad2",
+              "file": "phase11-1-camera-handle.spec.ts",
+              "line": 45,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "phase11-3-save-open.spec.ts",
+      "file": "phase11-3-save-open.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 11-3: 저장 완료 토스트 파일 열기(웹 경로 회귀 가드)",
+          "file": "phase11-3-save-open.spec.ts",
+          "line": 30,
+          "column": 6,
+          "specs": [
+            {
+              "title": "웹 환경(Capacitor 비-네이티브)에서는 저장 토스트에 \"파일 열기\" 버튼이 없다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2086,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:23:10.368Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "18c4cbe23db0ff198988-bddf2bc701738ba377ab",
+              "file": "phase11-3-save-open.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "일반 토스트(도장 삭제 등)는 여전히 2.2초 내외로 자동 사라진다(5초 토스트와 구분됨)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4559,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:23:12.463Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "18c4cbe23db0ff198988-4f2fac928e58ef413aa7",
+              "file": "phase11-3-save-open.spec.ts",
+              "line": 44,
+              "column": 3
+            },
+            {
+              "title": "웹 환경(Capacitor 비-네이티브)에서는 저장 토스트에 \"파일 열기\" 버튼이 없다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1867,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:25:34.115Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "18c4cbe23db0ff198988-1130d803aeaf0ac6c58e",
+              "file": "phase11-3-save-open.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "일반 토스트(도장 삭제 등)는 여전히 2.2초 내외로 자동 사라진다(5초 토스트와 구분됨)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4560,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:25:35.993Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "18c4cbe23db0ff198988-01a745892968c2d43b4c",
+              "file": "phase11-3-save-open.spec.ts",
+              "line": 44,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "phase12-1-recent-docs.spec.ts",
+      "file": "phase12-1-recent-docs.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 12-1: 홈 화면 최근 서류 위젯",
+          "file": "phase12-1-recent-docs.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [
+            {
+              "title": "저장된 서류가 없으면 \"최근 서류\" 섹션 자체가 표시되지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 812,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:23:17.051Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "14da4439f713827f1e99-563c85d5465b9a64b576",
+              "file": "phase12-1-recent-docs.spec.ts",
+              "line": 18,
+              "column": 3
+            },
+            {
+              "title": "저장된 서류가 있으면 최신순 최대 3개까지 실제 이름·도장 개수로 표시된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 853,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:23:17.870Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "14da4439f713827f1e99-dde1a718c4c9bf763f56",
+              "file": "phase12-1-recent-docs.spec.ts",
+              "line": 23,
+              "column": 3
+            },
+            {
+              "title": "최근 서류 항목을 클릭하면 해당 서류가 에디터에서 열린다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 955,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:23:18.736Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "14da4439f713827f1e99-c86d1debeaa96e8455f6",
+              "file": "phase12-1-recent-docs.spec.ts",
+              "line": 43,
+              "column": 3
+            },
+            {
+              "title": "저장된 서류가 없으면 \"최근 서류\" 섹션 자체가 표시되지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 876,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:25:40.569Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "14da4439f713827f1e99-aa515000a0df2efc2c9e",
+              "file": "phase12-1-recent-docs.spec.ts",
+              "line": 18,
+              "column": 3
+            },
+            {
+              "title": "저장된 서류가 있으면 최신순 최대 3개까지 실제 이름·도장 개수로 표시된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 857,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:25:41.451Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "14da4439f713827f1e99-900fb8915ca9b614a2f4",
+              "file": "phase12-1-recent-docs.spec.ts",
+              "line": 23,
+              "column": 3
+            },
+            {
+              "title": "최근 서류 항목을 클릭하면 해당 서류가 에디터에서 열린다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 948,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T06:25:42.315Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "14da4439f713827f1e99-057ad971bd6b681de92d",
+              "file": "phase12-1-recent-docs.spec.ts",
+              "line": 43,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "phase4-4-opencv.spec.ts",
       "file": "phase4-4-opencv.spec.ts",
       "column": 0,
@@ -121,12 +580,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7094,
+                      "duration": 7088,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:01:36.380Z",
+                      "startTime": "2026-08-18T06:23:19.706Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -155,12 +614,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7538,
+                      "duration": 7533,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:01:43.608Z",
+                      "startTime": "2026-08-18T06:23:26.802Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -189,12 +648,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5247,
+                      "duration": 5335,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:01:51.157Z",
+                      "startTime": "2026-08-18T06:23:34.344Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -223,12 +682,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6987,
+                      "duration": 6943,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:47.010Z",
+                      "startTime": "2026-08-18T06:25:43.292Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -257,12 +716,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7611,
+                      "duration": 7555,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:54.128Z",
+                      "startTime": "2026-08-18T06:25:50.241Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -291,12 +750,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5815,
+                      "duration": 5747,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:01.749Z",
+                      "startTime": "2026-08-18T06:25:57.804Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -323,7 +782,7 @@
         {
           "title": "Phase 4-5: 수기 도장 제작",
           "file": "phase4-5-drawing.spec.ts",
-          "line": 26,
+          "line": 34,
           "column": 6,
           "specs": [
             {
@@ -342,12 +801,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2232,
+                      "duration": 2147,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:01:56.433Z",
+                      "startTime": "2026-08-18T06:23:39.697Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -357,7 +816,7 @@
               ],
               "id": "678610dbbf500055a713-35c9e528f86b2b45d4a6",
               "file": "phase4-5-drawing.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 3
             },
             {
@@ -376,12 +835,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2242,
+                      "duration": 2168,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:01:58.675Z",
+                      "startTime": "2026-08-18T06:23:41.852Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -391,7 +850,7 @@
               ],
               "id": "678610dbbf500055a713-18fb99ec3670b98300e6",
               "file": "phase4-5-drawing.spec.ts",
-              "line": 43,
+              "line": 51,
               "column": 3
             },
             {
@@ -410,12 +869,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2522,
+                      "duration": 2494,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:00.922Z",
+                      "startTime": "2026-08-18T06:23:44.025Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -425,7 +884,7 @@
               ],
               "id": "678610dbbf500055a713-fee175fe585a52fb52d1",
               "file": "phase4-5-drawing.spec.ts",
-              "line": 66,
+              "line": 74,
               "column": 3
             },
             {
@@ -444,12 +903,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2182,
+                      "duration": 2176,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:07.590Z",
+                      "startTime": "2026-08-18T06:26:03.570Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -459,7 +918,7 @@
               ],
               "id": "678610dbbf500055a713-73b2a0e29b9148b7e404",
               "file": "phase4-5-drawing.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 3
             },
             {
@@ -478,12 +937,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2259,
+                      "duration": 2200,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:09.781Z",
+                      "startTime": "2026-08-18T06:26:05.752Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -493,7 +952,7 @@
               ],
               "id": "678610dbbf500055a713-ea0950068990c18ab3e5",
               "file": "phase4-5-drawing.spec.ts",
-              "line": 43,
+              "line": 51,
               "column": 3
             },
             {
@@ -512,12 +971,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2587,
+                      "duration": 2535,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:12.048Z",
+                      "startTime": "2026-08-18T06:26:07.958Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -527,7 +986,7 @@
               ],
               "id": "678610dbbf500055a713-0acb4182be6ed5116151",
               "file": "phase4-5-drawing.spec.ts",
-              "line": 66,
+              "line": 74,
               "column": 3
             }
           ]
@@ -544,7 +1003,7 @@
         {
           "title": "Phase 4-6: 도장 드래그 · 핀치줌 · 회전",
           "file": "phase4-6-drag.spec.ts",
-          "line": 23,
+          "line": 31,
           "column": 6,
           "specs": [
             {
@@ -563,12 +1022,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2065,
+                      "duration": 1978,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:03.461Z",
+                      "startTime": "2026-08-18T06:23:46.534Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -578,7 +1037,7 @@
               ],
               "id": "573ee8efd72a37a971eb-3cde85874c7bad78232d",
               "file": "phase4-6-drag.spec.ts",
-              "line": 24,
+              "line": 32,
               "column": 3
             },
             {
@@ -597,12 +1056,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1894,
+                      "duration": 1959,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:05.532Z",
+                      "startTime": "2026-08-18T06:23:48.518Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -612,7 +1071,7 @@
               ],
               "id": "573ee8efd72a37a971eb-5ade38e83be20e4291c2",
               "file": "phase4-6-drag.spec.ts",
-              "line": 44,
+              "line": 52,
               "column": 3
             },
             {
@@ -631,12 +1090,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2032,
+                      "duration": 2035,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:07.432Z",
+                      "startTime": "2026-08-18T06:23:50.484Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -646,7 +1105,7 @@
               ],
               "id": "573ee8efd72a37a971eb-6e935dcc4c5fb8ffe11d",
               "file": "phase4-6-drag.spec.ts",
-              "line": 62,
+              "line": 70,
               "column": 3
             },
             {
@@ -665,12 +1124,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2115,
+                      "duration": 1944,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:09.470Z",
+                      "startTime": "2026-08-18T06:23:52.527Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -680,7 +1139,7 @@
               ],
               "id": "573ee8efd72a37a971eb-e00a919c17aa2eb1e36e",
               "file": "phase4-6-drag.spec.ts",
-              "line": 90,
+              "line": 98,
               "column": 3
             },
             {
@@ -699,12 +1158,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2102,
+                      "duration": 1977,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:14.654Z",
+                      "startTime": "2026-08-18T06:26:10.519Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -714,7 +1173,7 @@
               ],
               "id": "573ee8efd72a37a971eb-5273596819a957c0c541",
               "file": "phase4-6-drag.spec.ts",
-              "line": 24,
+              "line": 32,
               "column": 3
             },
             {
@@ -733,12 +1192,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2061,
+                      "duration": 1969,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:16.763Z",
+                      "startTime": "2026-08-18T06:26:12.503Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -748,7 +1207,7 @@
               ],
               "id": "573ee8efd72a37a971eb-dca0357fd780c3b8b943",
               "file": "phase4-6-drag.spec.ts",
-              "line": 44,
+              "line": 52,
               "column": 3
             },
             {
@@ -767,12 +1226,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1973,
+                      "duration": 1946,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:18.829Z",
+                      "startTime": "2026-08-18T06:26:14.478Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -782,7 +1241,7 @@
               ],
               "id": "573ee8efd72a37a971eb-80495d4dc08f6448e50d",
               "file": "phase4-6-drag.spec.ts",
-              "line": 62,
+              "line": 70,
               "column": 3
             },
             {
@@ -801,12 +1260,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2182,
+                      "duration": 1992,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:20.809Z",
+                      "startTime": "2026-08-18T06:26:16.429Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -816,7 +1275,7 @@
               ],
               "id": "573ee8efd72a37a971eb-ca94496447870bc1225d",
               "file": "phase4-6-drag.spec.ts",
-              "line": 90,
+              "line": 98,
               "column": 3
             }
           ]
@@ -833,7 +1292,7 @@
         {
           "title": "Phase 5-1: 원형 도장 텍스트 fit (이슈 8)",
           "file": "phase5-1-seal-fit.spec.ts",
-          "line": 25,
+          "line": 33,
           "column": 6,
           "specs": [
             {
@@ -852,12 +1311,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1732,
+                      "duration": 1526,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:11.606Z",
+                      "startTime": "2026-08-18T06:23:54.498Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -867,7 +1326,7 @@
               ],
               "id": "c44cf8161bdbbe6b633d-1275e33eb2cdbede4aa9",
               "file": "phase5-1-seal-fit.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 5
             },
             {
@@ -886,12 +1345,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1669,
+                      "duration": 1660,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:13.344Z",
+                      "startTime": "2026-08-18T06:23:56.030Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -901,7 +1360,7 @@
               ],
               "id": "c44cf8161bdbbe6b633d-be63d297a90be907ac97",
               "file": "phase5-1-seal-fit.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 5
             },
             {
@@ -920,12 +1379,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1682,
+                      "duration": 1542,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:15.019Z",
+                      "startTime": "2026-08-18T06:23:57.697Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -935,7 +1394,7 @@
               ],
               "id": "c44cf8161bdbbe6b633d-178c586d7edc661cc4b9",
               "file": "phase5-1-seal-fit.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 5
             },
             {
@@ -954,12 +1413,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1623,
+                      "duration": 1602,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:23.007Z",
+                      "startTime": "2026-08-18T06:26:18.444Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -969,7 +1428,7 @@
               ],
               "id": "c44cf8161bdbbe6b633d-d110c348d5fee626a9ad",
               "file": "phase5-1-seal-fit.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 5
             },
             {
@@ -988,12 +1447,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1704,
+                      "duration": 1580,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:24.637Z",
+                      "startTime": "2026-08-18T06:26:20.053Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1003,7 +1462,7 @@
               ],
               "id": "c44cf8161bdbbe6b633d-4a9db715edef9dff8c07",
               "file": "phase5-1-seal-fit.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 5
             },
             {
@@ -1022,12 +1481,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1667,
+                      "duration": 1510,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:26.347Z",
+                      "startTime": "2026-08-18T06:26:21.639Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1037,7 +1496,7 @@
               ],
               "id": "c44cf8161bdbbe6b633d-4c71196bd6e19ba1e090",
               "file": "phase5-1-seal-fit.spec.ts",
-              "line": 27,
+              "line": 35,
               "column": 5
             }
           ]
@@ -1054,7 +1513,7 @@
         {
           "title": "Phase 5-2: 문서 배경 핀치줌",
           "file": "phase5-2-doc-pinch-zoom.spec.ts",
-          "line": 20,
+          "line": 28,
           "column": 6,
           "specs": [
             {
@@ -1073,12 +1532,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1749,
+                      "duration": 1666,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:16.723Z",
+                      "startTime": "2026-08-18T06:23:59.263Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1088,7 +1547,7 @@
               ],
               "id": "2156b910ce067f3a039e-c3006680c946befeac5b",
               "file": "phase5-2-doc-pinch-zoom.spec.ts",
-              "line": 21,
+              "line": 29,
               "column": 3
             },
             {
@@ -1107,12 +1566,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1586,
+                      "duration": 1467,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:18.478Z",
+                      "startTime": "2026-08-18T06:24:00.934Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1122,7 +1581,7 @@
               ],
               "id": "2156b910ce067f3a039e-08bf4b519bd83e29d059",
               "file": "phase5-2-doc-pinch-zoom.spec.ts",
-              "line": 51,
+              "line": 59,
               "column": 3
             },
             {
@@ -1141,12 +1600,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1024,
+                      "duration": 919,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:20.069Z",
+                      "startTime": "2026-08-18T06:24:02.407Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1156,7 +1615,7 @@
               ],
               "id": "2156b910ce067f3a039e-137bf859631792c52667",
               "file": "phase5-2-doc-pinch-zoom.spec.ts",
-              "line": 79,
+              "line": 87,
               "column": 3
             },
             {
@@ -1175,12 +1634,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1728,
+                      "duration": 1648,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:28.027Z",
+                      "startTime": "2026-08-18T06:26:23.161Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1190,7 +1649,7 @@
               ],
               "id": "2156b910ce067f3a039e-b8e502beadeaf45d7e21",
               "file": "phase5-2-doc-pinch-zoom.spec.ts",
-              "line": 21,
+              "line": 29,
               "column": 3
             },
             {
@@ -1209,12 +1668,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1605,
+                      "duration": 1501,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:29.761Z",
+                      "startTime": "2026-08-18T06:26:24.814Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1224,7 +1683,7 @@
               ],
               "id": "2156b910ce067f3a039e-b054778ac96efcfde78f",
               "file": "phase5-2-doc-pinch-zoom.spec.ts",
-              "line": 51,
+              "line": 59,
               "column": 3
             },
             {
@@ -1243,12 +1702,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 966,
+                      "duration": 976,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:31.371Z",
+                      "startTime": "2026-08-18T06:26:26.320Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1258,7 +1717,7 @@
               ],
               "id": "2156b910ce067f3a039e-0f814315d76866e31d9b",
               "file": "phase5-2-doc-pinch-zoom.spec.ts",
-              "line": 79,
+              "line": 87,
               "column": 3
             }
           ]
@@ -1294,12 +1753,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1643,
+                      "duration": 1456,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:21.107Z",
+                      "startTime": "2026-08-18T06:24:03.348Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1328,12 +1787,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1640,
+                      "duration": 1593,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:32.364Z",
+                      "startTime": "2026-08-18T06:26:27.319Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1360,7 +1819,7 @@
         {
           "title": "Phase 6-2: 도장 크기 고정 버튼",
           "file": "phase6-2-stamp-lock.spec.ts",
-          "line": 23,
+          "line": 31,
           "column": 6,
           "specs": [
             {
@@ -1379,12 +1838,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1735,
+                      "duration": 1692,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:22.765Z",
+                      "startTime": "2026-08-18T06:24:04.822Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1394,7 +1853,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-e14b1760d014144fdabc",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 24,
+              "line": 32,
               "column": 3
             },
             {
@@ -1413,12 +1872,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1577,
+                      "duration": 1553,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:24.506Z",
+                      "startTime": "2026-08-18T06:24:06.520Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1428,7 +1887,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-dc4067e6cf4be90ad517",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 42,
+              "line": 50,
               "column": 3
             },
             {
@@ -1447,12 +1906,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1895,
+                      "duration": 1922,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:26.089Z",
+                      "startTime": "2026-08-18T06:24:08.079Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1462,7 +1921,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-b927cc3ed927376094a1",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 51,
+              "line": 59,
               "column": 3
             },
             {
@@ -1481,12 +1940,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2233,
+                      "duration": 2150,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:27.989Z",
+                      "startTime": "2026-08-18T06:24:10.006Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1496,7 +1955,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-7ebdb49c019a2e72f45e",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 73,
+              "line": 81,
               "column": 3
             },
             {
@@ -1520,7 +1979,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:34.023Z",
+                      "startTime": "2026-08-18T06:26:28.929Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1530,7 +1989,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-0b054673dcb9b659cebe",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 24,
+              "line": 32,
               "column": 3
             },
             {
@@ -1549,12 +2008,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1728,
+                      "duration": 1695,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:35.760Z",
+                      "startTime": "2026-08-18T06:26:30.666Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1564,7 +2023,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-152619caf30a23ed7336",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 42,
+              "line": 50,
               "column": 3
             },
             {
@@ -1583,12 +2042,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2024,
+                      "duration": 1933,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:37.493Z",
+                      "startTime": "2026-08-18T06:26:32.366Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1598,7 +2057,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-4e30f8ffad5f070cfa59",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 51,
+              "line": 59,
               "column": 3
             },
             {
@@ -1617,12 +2076,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2204,
+                      "duration": 2175,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:39.524Z",
+                      "startTime": "2026-08-18T06:26:34.304Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1632,7 +2091,7 @@
               ],
               "id": "91ab5e3604e2fcc3aafa-a359ad6cb3b1bb8f2d58",
               "file": "phase6-2-stamp-lock.spec.ts",
-              "line": 73,
+              "line": 81,
               "column": 3
             }
           ]
@@ -1668,12 +2127,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1009,
+                      "duration": 968,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:30.247Z",
+                      "startTime": "2026-08-18T06:24:12.179Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1702,12 +2161,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1016,
+                      "duration": 994,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:41.743Z",
+                      "startTime": "2026-08-18T06:26:36.504Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1753,12 +2212,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1428,
+                      "duration": 1379,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:31.281Z",
+                      "startTime": "2026-08-18T06:24:13.161Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1787,12 +2246,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1309,
+                      "duration": 1276,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:32.715Z",
+                      "startTime": "2026-08-18T06:24:14.546Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1821,12 +2280,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1461,
+                      "duration": 1401,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:42.777Z",
+                      "startTime": "2026-08-18T06:26:37.521Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1855,12 +2314,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1253,
+                      "duration": 1291,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:44.243Z",
+                      "startTime": "2026-08-18T06:26:38.928Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1906,12 +2365,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5594,
+                      "duration": 5536,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:34.040Z",
+                      "startTime": "2026-08-18T06:24:15.845Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1940,12 +2399,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6133,
+                      "duration": 5889,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:39.641Z",
+                      "startTime": "2026-08-18T06:24:21.388Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1974,12 +2433,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5932,
+                      "duration": 5933,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:45.783Z",
+                      "startTime": "2026-08-18T06:24:27.286Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2008,12 +2467,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5931,
+                      "duration": 6013,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:45.517Z",
+                      "startTime": "2026-08-18T06:26:40.241Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2042,12 +2501,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6005,
+                      "duration": 5973,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:51.455Z",
+                      "startTime": "2026-08-18T06:26:46.261Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2076,12 +2535,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6190,
+                      "duration": 6193,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:04:57.467Z",
+                      "startTime": "2026-08-18T06:26:52.241Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2108,7 +2567,7 @@
         {
           "title": "Phase 7-2: 도장 크기와 문서 zoom 연동",
           "file": "phase7-2-stamp-zoom-scale.spec.ts",
-          "line": 23,
+          "line": 31,
           "column": 6,
           "specs": [
             {
@@ -2127,12 +2586,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2011,
+                      "duration": 1809,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:51.740Z",
+                      "startTime": "2026-08-18T06:24:33.247Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2142,7 +2601,7 @@
               ],
               "id": "2610928ee675057c6cad-ed62b32544690770c371",
               "file": "phase7-2-stamp-zoom-scale.spec.ts",
-              "line": 24,
+              "line": 32,
               "column": 3
             },
             {
@@ -2161,12 +2620,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2048,
+                      "duration": 1910,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:53.759Z",
+                      "startTime": "2026-08-18T06:24:35.064Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2176,7 +2635,7 @@
               ],
               "id": "2610928ee675057c6cad-af64cc89696b980c22a9",
               "file": "phase7-2-stamp-zoom-scale.spec.ts",
-              "line": 33,
+              "line": 41,
               "column": 3
             },
             {
@@ -2195,12 +2654,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2287,
+                      "duration": 2240,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:55.813Z",
+                      "startTime": "2026-08-18T06:24:36.979Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2210,7 +2669,7 @@
               ],
               "id": "2610928ee675057c6cad-a2e51319571a4a36dbb0",
               "file": "phase7-2-stamp-zoom-scale.spec.ts",
-              "line": 49,
+              "line": 57,
               "column": 3
             },
             {
@@ -2229,12 +2688,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1986,
+                      "duration": 1802,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:03.687Z",
+                      "startTime": "2026-08-18T06:26:58.447Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2244,7 +2703,7 @@
               ],
               "id": "2610928ee675057c6cad-8dd24b04e3a02c3f2d04",
               "file": "phase7-2-stamp-zoom-scale.spec.ts",
-              "line": 24,
+              "line": 32,
               "column": 3
             },
             {
@@ -2263,12 +2722,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2077,
+                      "duration": 2058,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:05.679Z",
+                      "startTime": "2026-08-18T06:27:00.256Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2278,7 +2737,7 @@
               ],
               "id": "2610928ee675057c6cad-317f0529b0fb31b4c084",
               "file": "phase7-2-stamp-zoom-scale.spec.ts",
-              "line": 33,
+              "line": 41,
               "column": 3
             },
             {
@@ -2297,12 +2756,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2260,
+                      "duration": 2287,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:07.761Z",
+                      "startTime": "2026-08-18T06:27:02.322Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2312,7 +2771,7 @@
               ],
               "id": "2610928ee675057c6cad-2ea01f761a1eef59c27c",
               "file": "phase7-2-stamp-zoom-scale.spec.ts",
-              "line": 49,
+              "line": 57,
               "column": 3
             }
           ]
@@ -2348,12 +2807,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7328,
+                      "duration": 6852,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:02:58.121Z",
+                      "startTime": "2026-08-18T06:24:39.243Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2382,12 +2841,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6832,
+                      "duration": 6785,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:10.040Z",
+                      "startTime": "2026-08-18T06:27:04.630Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2433,12 +2892,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5537,
+                      "duration": 5378,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:05.471Z",
+                      "startTime": "2026-08-18T06:24:46.111Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2467,12 +2926,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 8137,
+                      "duration": 8234,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:11.015Z",
+                      "startTime": "2026-08-18T06:24:51.495Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2501,12 +2960,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5796,
+                      "duration": 5768,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:19.159Z",
+                      "startTime": "2026-08-18T06:24:59.736Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2535,12 +2994,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5805,
+                      "duration": 5784,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:24.962Z",
+                      "startTime": "2026-08-18T06:25:05.511Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2569,12 +3028,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5941,
+                      "duration": 6034,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:16.885Z",
+                      "startTime": "2026-08-18T06:27:11.428Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2603,12 +3062,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 8758,
+                      "duration": 9160,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:22.833Z",
+                      "startTime": "2026-08-18T06:27:17.468Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2637,12 +3096,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6295,
+                      "duration": 6348,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:31.598Z",
+                      "startTime": "2026-08-18T06:27:26.636Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2671,12 +3130,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6265,
+                      "duration": 6804,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:37.900Z",
+                      "startTime": "2026-08-18T06:27:32.990Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2722,12 +3181,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2092,
+                      "duration": 2074,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:30.795Z",
+                      "startTime": "2026-08-18T06:25:11.327Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2756,12 +3215,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1845,
+                      "duration": 1814,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:32.893Z",
+                      "startTime": "2026-08-18T06:25:13.407Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2790,12 +3249,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1874,
+                      "duration": 1872,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:44.194Z",
+                      "startTime": "2026-08-18T06:27:39.827Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2824,12 +3283,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1859,
+                      "duration": 2015,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:46.075Z",
+                      "startTime": "2026-08-18T06:27:41.708Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2856,11 +3315,11 @@
         {
           "title": "Phase 9-3: 촬영 확인 화면 핸들 안전 여백",
           "file": "phase9-3-handle-margin.spec.ts",
-          "line": 47,
+          "line": 50,
           "column": 6,
           "specs": [
             {
-              "title": "감지 실패(빈 배경) 시 리뷰 화면 기본 사각형 핸들이 화면 가장자리(0/1)에 붙지 않는다",
+              "title": "감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2875,12 +3334,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5587,
+                      "duration": 5509,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:34.759Z",
+                      "startTime": "2026-08-18T06:25:15.241Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2888,13 +3347,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "a69dc1f83eb5d528f7c9-c2b9b3e8af4170367a21",
+              "id": "a69dc1f83eb5d528f7c9-7c23c7d6adf1fe3f6abe",
               "file": "phase9-3-handle-margin.spec.ts",
-              "line": 55,
+              "line": 58,
               "column": 3
             },
             {
-              "title": "핸들을 화면 맨 꼭짓점으로 드래그해도 안전 여백([0.05,0.95]) 밖으로 나가지 않는다",
+              "title": "라이브 화면에서 수동으로 꼭짓점을 조정하면 감지 실패 상태에서도 촬영이 허용되고, 핸들은 안전 여백 밖으로 나가지 않는다",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2909,12 +3368,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5956,
+                      "duration": 6402,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:03:40.353Z",
+                      "startTime": "2026-08-18T06:25:20.757Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2922,13 +3381,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "a69dc1f83eb5d528f7c9-a9ee6448e10730aff727",
+              "id": "a69dc1f83eb5d528f7c9-69632690f907e76dffd9",
               "file": "phase9-3-handle-margin.spec.ts",
               "line": 68,
               "column": 3
             },
             {
-              "title": "감지 실패(빈 배경) 시 리뷰 화면 기본 사각형 핸들이 화면 가장자리(0/1)에 붙지 않는다",
+              "title": "감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2943,12 +3402,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5807,
+                      "duration": 6118,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:47.955Z",
+                      "startTime": "2026-08-18T06:27:43.739Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2956,13 +3415,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "a69dc1f83eb5d528f7c9-dd713a9c2e563d73b0cd",
+              "id": "a69dc1f83eb5d528f7c9-497d86c490f167288019",
               "file": "phase9-3-handle-margin.spec.ts",
-              "line": 55,
+              "line": 58,
               "column": 3
             },
             {
-              "title": "핸들을 화면 맨 꼭짓점으로 드래그해도 안전 여백([0.05,0.95]) 밖으로 나가지 않는다",
+              "title": "라이브 화면에서 수동으로 꼭짓점을 조정하면 감지 실패 상태에서도 촬영이 허용되고, 핸들은 안전 여백 밖으로 나가지 않는다",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2977,12 +3436,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6176,
+                      "duration": 6497,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T05:05:53.768Z",
+                      "startTime": "2026-08-18T06:27:49.865Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2990,7 +3449,7 @@
                   "status": "expected"
                 }
               ],
-              "id": "a69dc1f83eb5d528f7c9-cd4df2d627ab5d8b0312",
+              "id": "a69dc1f83eb5d528f7c9-a6d6564023979275ec7f",
               "file": "phase9-3-handle-margin.spec.ts",
               "line": 68,
               "column": 3
@@ -3002,9 +3461,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-18T05:01:32.583Z",
-    "duration": 268768.728,
-    "expected": 78,
+    "startTime": "2026-08-18T06:23:01.292Z",
+    "duration": 296594.951,
+    "expected": 90,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

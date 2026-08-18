@@ -1,6 +1,8 @@
 // Phase 11-1: 카메라 문서 영역 자동 감지 안정성 게이팅(v0.1.5 수정2) E2E.
 // 핸들 안전 여백([0.05,0.95] clamp, v0.1.5 수정1)은 phase9-3-handle-margin.spec.ts에서 이미 검증
 // 중이므로 여기서는 중복 작성하지 않고, 그쪽에서 다루지 않은 "감지 안정성 게이팅"만 다룬다.
+// v0.1.6: 안정화되지 않은 상태(경계 클리핑 포함)에서는 촬영 자체가 차단되도록 바뀌어(app.jsx
+// capturePhoto), "감지 실패 시에도 폴백으로 촬영이 된다"는 이전 전제는 더 이상 유효하지 않다.
 import { test, expect } from '@playwright/test';
 
 // 문서처럼 보이는 밝은 사각형을 왼쪽 화면 경계 밖으로 일부 걸치게 정적으로 배치한 가짜 카메라.
@@ -26,33 +28,10 @@ async function installEdgeClippedDocCamera(page) {
   });
 }
 
-async function openCameraAndCapture(page) {
+async function openCamera(page) {
   await page.getByText('카메라로 촬영').click();
   await page.locator('video').waitFor({ state: 'visible' });
   await page.waitForTimeout(3000); // OpenCV.js 로드+초기화 + 여러 분석 tick 누적 대기
-  await page.getByText('촬영', { exact: true }).click();
-}
-
-async function readHandlePositions(page) {
-  return page.evaluate(() => {
-    const canvas = document.querySelector('.preview-modal canvas');
-    const ctx = canvas.getContext('2d');
-    const { width: w, height: h } = canvas;
-    const { data } = ctx.getImageData(0, 0, w, h);
-    let minX = 1, maxX = 0, minY = 1, maxY = 0, found = 0;
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const i = (y * w + x) * 4;
-        if (Math.abs(data[i] - 0x2b) < 20 && Math.abs(data[i + 1] - 0x6c) < 20 && Math.abs(data[i + 2] - 0xe6) < 20) {
-          found++;
-          const nx = x / w, ny = y / h;
-          if (nx < minX) minX = nx; if (nx > maxX) maxX = nx;
-          if (ny < minY) minY = ny; if (ny > maxY) maxY = ny;
-        }
-      }
-    }
-    return { found, minX, maxX, minY, maxY };
-  });
 }
 
 test.describe('Phase 11-1: 문서 영역 자동 감지 안정성 게이팅', () => {
@@ -63,18 +42,14 @@ test.describe('Phase 11-1: 문서 영역 자동 감지 안정성 게이팅', () 
     await page.reload();
   });
 
-  test('문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영 시 기본(폴백) 사각형이 사용된다', async ({ page }) => {
-    await openCameraAndCapture(page);
-    await expect(page.getByText('촬영 확인 · 범위 조정')).toBeVisible();
+  test('문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)', async ({ page }) => {
+    await openCamera(page);
+    await page.getByText('촬영', { exact: true }).click();
 
-    // capturePhoto의 감지 실패 폴백은 [0.05,0.05]~[0.95,0.95](x폭 0.9)로 화면 전체에 가깝게 퍼진다.
-    // 반대로 실시간 감지값이 반영됐다면 화면 밖으로 걸친 문서의 좌변(x≈0)이 그대로 좌측 핸들에
-    // 반영되어야 하므로, 좌측 핸들이 안전 여백(0.05) 안쪽에 머문다는 사실 자체가 "경계 클리핑으로
-    // 판단되어 boxRef가 갱신되지 않고 폴백이 쓰였다"는 증거가 된다.
-    const pos = await readHandlePositions(page);
-    expect(pos.found).toBeGreaterThan(0);
-    expect(pos.maxX - pos.minX).toBeGreaterThan(0.7);
-    expect(pos.minX).toBeGreaterThan(0.02);
-    expect(pos.maxX).toBeLessThan(0.98);
+    // 경계 클리핑으로 판단되어(boxRef 미갱신) 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면에
+    // 남아야 하며, 사용자에게 안내 토스트가 표시되어야 한다.
+    await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
+    await expect(page.locator('video')).toBeVisible();
+    await expect(page.locator('.toast')).toHaveText(/문서를 화면 안에 완전히 맞춰주세요/);
   });
 });

@@ -5,10 +5,19 @@ import { jsPDF } from 'jspdf';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { FileOpener } from '@capacitor-community/file-opener';
 import { Icon, StampVisual, SealVisual, makeId, SampleCertificate } from './visuals.jsx';
 import { OverflowMenu, StampContextMenu, PromptDialog, ConfirmDialog } from './menus.jsx';
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+// 저장 파일명 확장자로 FileOpener에 넘길 MIME 타입을 결정한다.
+const mimeTypeOf = (filename) => {
+  const ext = filename.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'application/pdf';
+  if (ext === 'png') return 'image/png';
+  if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  return 'application/octet-stream';
+};
 const BG_THRESHOLD = 200;
 const DOC_ZOOM_MIN = 0.5;
 const DOC_ZOOM_MAX = 3.0;
@@ -794,12 +803,18 @@ function EditorScreen({ store }) {
         // Filesystem.getUri()는 탭 시점에 지연 호출한다 — 저장 직후 매번 미리 구하지 않아도 된다.
         // @capacitor/browser의 Browser.open()은 Chrome Custom Tabs로 file:// URI를 그대로 열려다
         // FileUriExposedException으로 즉시 크래시하는 것을 실기기에서 확인(StrictMode가 file:// URI를
-        // Intent로 앱 밖에 노출하는 것을 차단함) — shareDocumentImage()에서 이미 쓰던 Share.share()로
-        // 대체했다. Share.share는 FileProvider를 통해 content:// URI로 안전하게 감싸 전달한다.
+        // Intent로 앱 밖에 노출하는 것을 차단함) — v0.1.5에서는 shareDocumentImage()가 쓰던
+        // Share.share()로 대체했으나 이는 ACTION_SEND(공유 시트)라 "직접 열기"와 의미가 다르다.
+        // FileOpener는 자체 FileProvider로 content:// URI를 만들어 ACTION_VIEW로 열어 기본 뷰어 앱이
+        // 있으면 선택창 없이 바로 열린다 — 실패 시(플러그인 미탑재·핸들러 없음 등) Share.share로 폴백.
         const onOpen = async () => {
           try {
             const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Documents });
-            await Share.share({ title: filename, url: uri, dialogTitle: '파일 열기' });
+            try {
+              await FileOpener.open({ filePath: uri, contentType: mimeTypeOf(filename), openWithDefault: true });
+            } catch (e) {
+              await Share.share({ title: filename, url: uri, dialogTitle: '파일 열기' });
+            }
           } catch (e) { /* 파일 열기 실패 — 저장 자체는 이미 성공했으므로 조용히 무시 */ }
         };
         showToast('✅ 문서 폴더에 저장되었습니다\n' + filename, onOpen);

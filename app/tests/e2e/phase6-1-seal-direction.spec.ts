@@ -4,9 +4,17 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 6-1: 원형 도장 텍스트 가로 배치', () => {
   test('3자 이름이 왼쪽→오른쪽, 위→아래 순서로 배치된다(세로 배치 아님)', async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      localStorage.clear();
+      // v0.1.6: 홈 화면 "최근 서류"가 실제 저장 문서만 표시하도록 바뀌어(app.jsx CaptureScreen)
+      // 예전처럼 "재직증명서.jpg" 항목을 클릭할 수 없다 — 동일한 샘플 문서 상태를 직접 시드한다.
+      localStorage.setItem('docstamp_v2', JSON.stringify({
+        screen: 'editor',
+        pages: [{ docMode: 'sample', docImage: null, placed: [] }],
+        currentPage: 0, docName: '재직증명서', docs: [], recent: [], favId: null, settings: {},
+      }));
+    });
     await page.reload();
-    await page.getByText('재직증명서.jpg').click();
     await page.locator('button[aria-label="도장"]').click();
     await page.locator('.stamp-card', { hasText: '인감 · 김민수' }).click(); // text: 金民洙
     await page.getByRole('button', { name: '확인' }).click();
