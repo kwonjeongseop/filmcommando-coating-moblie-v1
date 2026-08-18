@@ -431,3 +431,36 @@ APK: filmcommando-coating-moblie-v0.1.4.apk
       test-results/screenshots/v0.1.4-review.png(밝기20/대비15, 새 라벨 2줄 표기 레이아웃 정상).
       adb logcat FATAL/AndroidRuntime 크래시 없음.
 상태: PASS
+
+====================================================================
+[Release v0.1.5]
+빌드일: 2026-08-18
+수정: 핸들여백·감지안정성·스캔화질개선·저장파일열기
+  - [수정1] HANDLE_SAFE_MARGIN=0.05 상수 도입, 드래그·감지 결과 모두 [0.05,0.95] 범위로 clamp해
+    꼭짓점 핸들이 화면 물리적 가장자리(OS 제스처 구간)에 닿지 않도록 함.
+  - [수정2] STABLE_FRAMES_REQUIRED=3(연속 안정 프레임 수) + EDGE_CLIP_MARGIN=0.03(경계 클리핑 판정)
+    게이팅을 감지 루프에 추가 — 문서가 프레임에 완전히 들어오기 전(계속 움직이는 중)에는 boxRef가
+    갱신되지 않도록 함.
+  - [수정3] editor.jsx의 "스캔(PDF)으로 저장" 파이프라인을 블록 평균 적응형 임계값에서 그레이스케일
+    +가우시안 블러(반경 3px)+Otsu 전역 이진화로 교체, capturePageCanvas에 scale 옵션을 추가해 스캔
+    캡처에만 scale=2 적용 — 복잡한 배경에서의 노이즈 과반응 문제 해결.
+  - [수정4] saveNativeFile 저장 완료 토스트에 "📂 파일 열기" 클릭 액션 추가. 최초 구현(@capacitor/
+    browser의 Browser.open)은 실기기 검증 중 FileUriExposedException 크래시를 logcat FATAL로 직접
+    확인해 즉시 원인 파악 — Chrome Custom Tabs 기반 API라 로컬 file:// URI에 애초에 부적합했음.
+    shareDocumentImage()가 이미 쓰던 Share.share() 패턴(FileProvider 경유 content:// URI)으로 교체해
+    재검증, 크래시 없이 Android 공유 시트가 정상 동작함을 확인. @capacitor/browser는 이후 미사용
+    상태가 되어 제거(pnpm remove + cap sync).
+  - companion 수정: showToast를 CaptureScreen이 아닌 App 컴포넌트가 소유하고 있어 [수정4] 구현을
+    위해 range를 벗어나 showToast(msg, onOpen) 시그니처 확장 + toast state를 문자열→객체로 변경
+    (기존 20여 곳의 단일 인자 호출은 무변경 동작).
+APK: filmcommando-coating-moblie-v0.1.5.apk
+크기: 17.44MB (18290793 bytes, v0.1.4 대비 @capacitor/browser 제거로 순감소)
+검증: 웹 Playwright 전체 78/78 PASS(chromium+Pixel 8, 신규 phase9-2-scan-quality 2건·phase9-3-
+      handle-margin 2건 포함 — Otsu 이진화 픽셀 양자화율 >99%, scale=2 캡처 해상도 확인, 핸들 안전
+      여백 픽셀 위치 확인). 실기기(에뮬레이터 emulator-5554, release APK) CDP 기반 검증 — 실제 카메라
+      촬영 리뷰 화면 핸들 위치가 [0.035~0.962, 0.041~0.958] 범위로 가장자리에 닿지 않음 확인, 스캔
+      (PDF)·PDF 저장 플로우 정상 동작, "파일 열기" 탭 시 Android 공유 시트 정상 표시(크래시 없음,
+      최초 구현의 크래시를 실기기에서 직접 발견해 원인 파악 후 수정). 스크린샷 test-results/
+      screenshots/v0.1.5-handle.png · v0.1.5-scan.png · v0.1.5-open.png. adb logcat FATAL/
+      AndroidRuntime 크래시 없음(수정 후 재확인).
+상태: PASS

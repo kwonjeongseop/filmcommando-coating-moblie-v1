@@ -449,11 +449,12 @@ function EditorScreen({ store }) {
       return tc.toDataURL('image/jpeg', 0.7);
     } catch (e) { return null; }
   };
-  const capturePageCanvas = async (bgColor) => {
+  const capturePageCanvas = async (bgColor, scale) => {
     await new Promise((r) => requestAnimationFrame(r));
     return html2canvas(pageRef.current, {
       backgroundColor: bgColor,
       useCORS: true,
+      ...(scale ? { scale } : {}),
       onclone: (doc, cloned) => { cloned.style.boxShadow = 'none'; },
     });
   };
@@ -477,33 +478,64 @@ function EditorScreen({ store }) {
     if (switched) setCurrentPage(originalPage);
     return doc;
   };
-  // 그레이스케일 변환 + 적응형 임계값(블록 평균 대비 C만큼 어두우면 검정)으로 흑백 고대비 스캔 이미지를 만든다.
+  // 그레이스케일 변환 + 가우시안 블러(반경 3px, 노이즈 제거) + Otsu 전역 이진화로 흑백 스캔 이미지를
+  // 만든다. 이전의 블록 평균 기반 적응형 임계값은 배경이 복잡할 때 과반응해 화질이 저하되는 문제가
+  // 있어, 전역 임계값(Otsu)으로 교체했다.
   const toScanCanvas = (canvas) => {
     const w = canvas.width, h = canvas.height;
     const ctx = canvas.getContext('2d');
     const img = ctx.getImageData(0, 0, w, h);
     const d = img.data;
-    const gray = new Uint8ClampedArray(w * h);
-    for (let i = 0, p = 0; i < d.length; i += 4, p++) gray[p] = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
-    const BLOCK = 15, C = 8, half = BLOCK >> 1;
-    const integral = new Float64Array((w + 1) * (h + 1));
+    const n = w * h;
+    const gray = new Float32Array(n);
+    for (let i = 0, p = 0; i < d.length; i += 4, p++) gray[p] = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+
+    const RADIUS = 3;
+    const sigma = RADIUS / 2;
+    const kernel = new Float32Array(RADIUS * 2 + 1);
+    let kSum = 0;
+    for (let i = -RADIUS; i <= RADIUS; i++) {
+      const v = Math.exp(-(i * i) / (2 * sigma * sigma));
+      kernel[i + RADIUS] = v;
+      kSum += v;
+    }
+    for (let i = 0; i < kernel.length; i++) kernel[i] /= kSum;
+    const blurH = new Float32Array(n);
     for (let y = 0; y < h; y++) {
-      let rowSum = 0;
       for (let x = 0; x < w; x++) {
-        rowSum += gray[y * w + x];
-        integral[(y + 1) * (w + 1) + (x + 1)] = integral[y * (w + 1) + (x + 1)] + rowSum;
+        let sum = 0;
+        for (let k = -RADIUS; k <= RADIUS; k++) sum += gray[y * w + clamp(x + k, 0, w - 1)] * kernel[k + RADIUS];
+        blurH[y * w + x] = sum;
       }
     }
-    const sumRect = (x0, y0, x1, y1) => integral[y1 * (w + 1) + x1] - integral[y0 * (w + 1) + x1] - integral[y1 * (w + 1) + x0] + integral[y0 * (w + 1) + x0];
-    for (let y = 0; y < h; y++) {
-      const y0 = Math.max(0, y - half), y1 = Math.min(h, y + half + 1);
-      for (let x = 0; x < w; x++) {
-        const x0 = Math.max(0, x - half), x1 = Math.min(w, x + half + 1);
-        const mean = sumRect(x0, y0, x1, y1) / ((x1 - x0) * (y1 - y0));
-        const v = gray[y * w + x] < mean - C ? 0 : 255;
-        const i = (y * w + x) * 4;
-        d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+    const blurred = new Uint8ClampedArray(n);
+    for (let x = 0; x < w; x++) {
+      for (let y = 0; y < h; y++) {
+        let sum = 0;
+        for (let k = -RADIUS; k <= RADIUS; k++) sum += blurH[clamp(y + k, 0, h - 1) * w + x] * kernel[k + RADIUS];
+        blurred[y * w + x] = sum;
       }
+    }
+
+    const hist = new Uint32Array(256);
+    for (let p = 0; p < n; p++) hist[blurred[p]]++;
+    let sumAll = 0;
+    for (let i = 0; i < 256; i++) sumAll += i * hist[i];
+    let sumB = 0, wB = 0, maxVar = 0, threshold = 128;
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t];
+      if (wB === 0) continue;
+      const wF = n - wB;
+      if (wF === 0) break;
+      sumB += t * hist[t];
+      const mB = sumB / wB, mF = (sumAll - sumB) / wF;
+      const varBetween = wB * wF * (mB - mF) * (mB - mF);
+      if (varBetween > maxVar) { maxVar = varBetween; threshold = t; }
+    }
+
+    for (let p = 0, i = 0; p < n; p++, i += 4) {
+      const v = blurred[p] < threshold ? 0 : 255;
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
     return canvas;
@@ -514,7 +546,7 @@ function EditorScreen({ store }) {
     let switched = false;
     for (let i = 0; i < pages.length; i++) {
       if (i !== originalPage) { setCurrentPage(i); switched = true; await new Promise((r) => requestAnimationFrame(r)); }
-      const canvas = await capturePageCanvas('#ffffff');
+      const canvas = await capturePageCanvas('#ffffff', 2); // scale=2 — 그레이스케일+블러+Otsu 이진화 전 고해상도 확보
       toScanCanvas(canvas);
       const imgData = canvas.toDataURL('image/png');
       const pageW = doc.internal.pageSize.getWidth();
@@ -758,7 +790,22 @@ function EditorScreen({ store }) {
       await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Documents, recursive: true });
       const listing = await Filesystem.readdir({ path: '', directory: Directory.Documents });
       const exists = listing.files.some((f) => f.name === filename);
-      showToast((exists ? '✅ ' : '⚠️ ') + '문서 폴더에 저장되었습니다\n' + filename + (exists ? '' : ' (저장 확인 실패 — 다시 시도해 주세요)'));
+      if (exists) {
+        // Filesystem.getUri()는 탭 시점에 지연 호출한다 — 저장 직후 매번 미리 구하지 않아도 된다.
+        // @capacitor/browser의 Browser.open()은 Chrome Custom Tabs로 file:// URI를 그대로 열려다
+        // FileUriExposedException으로 즉시 크래시하는 것을 실기기에서 확인(StrictMode가 file:// URI를
+        // Intent로 앱 밖에 노출하는 것을 차단함) — shareDocumentImage()에서 이미 쓰던 Share.share()로
+        // 대체했다. Share.share는 FileProvider를 통해 content:// URI로 안전하게 감싸 전달한다.
+        const onOpen = async () => {
+          try {
+            const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Documents });
+            await Share.share({ title: filename, url: uri, dialogTitle: '파일 열기' });
+          } catch (e) { /* 파일 열기 실패 — 저장 자체는 이미 성공했으므로 조용히 무시 */ }
+        };
+        showToast('✅ 문서 폴더에 저장되었습니다\n' + filename, onOpen);
+      } else {
+        showToast('⚠️ 문서 폴더에 저장되었습니다\n' + filename + ' (저장 확인 실패 — 다시 시도해 주세요)');
+      }
     } catch (e) {
       showToast('저장 실패 — 저장소 권한을 확인해 주세요');
     }

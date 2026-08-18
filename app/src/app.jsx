@@ -11,6 +11,26 @@ import { DOC_CLASSES, loadCocoSsdModel } from './tf-detect.js';
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+// 꼭짓점 핸들이 화면 물리적 가장자리(OS 제스처 내비게이션 구간)에 닿지 않도록 두는 안전 여백.
+const HANDLE_SAFE_MARGIN = 0.05;
+const clampToSafeMargin = (v) => clamp(v, HANDLE_SAFE_MARGIN, 1 - HANDLE_SAFE_MARGIN);
+const clampQuad = (q) => (q ? {
+  tl: { x: clampToSafeMargin(q.tl.x), y: clampToSafeMargin(q.tl.y) },
+  tr: { x: clampToSafeMargin(q.tr.x), y: clampToSafeMargin(q.tr.y) },
+  br: { x: clampToSafeMargin(q.br.x), y: clampToSafeMargin(q.br.y) },
+  bl: { x: clampToSafeMargin(q.bl.x), y: clampToSafeMargin(q.bl.y) },
+} : null);
+
+// 자동 감지 결과를 몇 프레임 연속 안정적으로 감지해야 boxRef에 반영할지 — 물체가 프레임에 다 들어오기
+// 전(계속 움직이는 중)에는 좌표가 매 프레임 크게 바뀌므로 이 조건을 만족하지 못해 반영되지 않는다.
+const STABLE_FRAMES_REQUIRED = 3;
+const STABLE_FRAME_DELTA = 0.05;
+const EDGE_CLIP_MARGIN = 0.03; // 꼭짓점이 이 여백보다 화면 가장자리에 가까우면 문서가 잘렸다고 판단
+const quadClippedAtEdge = (q) => ['tl', 'tr', 'br', 'bl'].some((k) =>
+  q[k].x < EDGE_CLIP_MARGIN || q[k].x > 1 - EDGE_CLIP_MARGIN || q[k].y < EDGE_CLIP_MARGIN || q[k].y > 1 - EDGE_CLIP_MARGIN);
+const quadsAreClose = (a, b) => ['tl', 'tr', 'br', 'bl'].every((k) =>
+  Math.abs(a[k].x - b[k].x) < STABLE_FRAME_DELTA && Math.abs(a[k].y - b[k].y) < STABLE_FRAME_DELTA);
+
 const THEMES = {
   navy:   { primary: '#2B6CE6', primaryDark: '#1E4FB0', navy: '#14233F', surface: '#F4F6FB', card: '#FFFFFF', line: '#E2E7F0', muted: '#5A6B86' },
   indigo: { primary: '#5046E5', primaryDark: '#3A32B5', navy: '#1B1740', surface: '#F5F4FC', card: '#FFFFFF', line: '#E6E4F4', muted: '#615C82' },
@@ -285,6 +305,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   const streamRef = useR(null);
   const overlayRef = useR(null);
   const boxRef = useR(null);
+  const stableRef = useR({ quad: null, count: 0 }); // 안정성 게이팅용 — 직전 후보 quad와 연속 안정 프레임 수
   const cvRef = useR(null);
   const cvFailedRef = useR(false);
   const tfModelRef = useR(null);
@@ -387,7 +408,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
   // 카메라가 열려 있는 동안 실시간으로 프레임을 다운샘플해 문서 윤곽을 추정하고 오버레이에 그린다.
   // OpenCV.js가 로드·초기화되면 Canny+findContours로, 아니면(로드 중·실패) Canvas API 폴백으로 감지한다.
   useE(() => {
-    if (!cameraOpen) { boxRef.current = null; return; }
+    if (!cameraOpen) { boxRef.current = null; stableRef.current = { quad: null, count: 0 }; return; }
     if (!cvRef.current && !cvFailedRef.current) {
       loadOpenCv().then((cv) => { cvRef.current = cv; }).catch(() => { cvFailedRef.current = true; });
     }
@@ -395,6 +416,18 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     const analysisCanvas = document.createElement('canvas');
     analysisCanvas.width = AW; analysisCanvas.height = AH;
     const actx = analysisCanvas.getContext('2d', { willReadFrequently: true });
+    // 감지 후보를 즉시 boxRef에 반영하지 않고, 화면 가장자리에 잘려 있지 않은지 + 연속
+    // STABLE_FRAMES_REQUIRED 프레임 동안 좌표가 안정적인지 확인한 뒤에만 반영한다(수정 2).
+    const commitCandidate = (candidate) => {
+      if (!candidate || quadClippedAtEdge(candidate)) {
+        stableRef.current = { quad: null, count: 0 };
+        return;
+      }
+      const prev = stableRef.current.quad;
+      const count = prev && quadsAreClose(candidate, prev) ? stableRef.current.count + 1 : 1;
+      stableRef.current = { quad: candidate, count };
+      if (count >= STABLE_FRAMES_REQUIRED) boxRef.current = clampQuad(candidate);
+    };
     let raf, lastRun = 0;
     const tick = (ts) => {
       const video = videoRef.current;
@@ -413,16 +446,16 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
           try {
             actx.drawImage(video, roi.x * video.videoWidth, roi.y * video.videoHeight, roi.w * video.videoWidth, roi.h * video.videoHeight, 0, 0, AW, AH);
             if (cvRef.current) {
-              boxRef.current = remap(estimateDocEdgesCV(cvRef.current, analysisCanvas));
+              commitCandidate(remap(estimateDocEdgesCV(cvRef.current, analysisCanvas)));
             } else {
               const { data } = actx.getImageData(0, 0, AW, AH);
-              boxRef.current = remap(estimateDocEdges(data, AW, AH));
+              commitCandidate(remap(estimateDocEdges(data, AW, AH)));
             }
           } catch (e) {
             cvFailedRef.current = true; // OpenCV 런타임 오류 시 이후 프레임부터 Canvas 폴백으로 전환
             try {
               const { data } = actx.getImageData(0, 0, AW, AH);
-              boxRef.current = remap(estimateDocEdges(data, AW, AH));
+              commitCandidate(remap(estimateDocEdges(data, AW, AH)));
             } catch (e2) { /* 프레임 미준비 등 일시적 오류는 다음 tick에서 재시도 */ }
           }
         }
@@ -498,8 +531,8 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     const canvas = overlayRef.current, k = dragCornerRef.current;
     if (!canvas || !k) return;
     const r = canvas.getBoundingClientRect();
-    const x = clamp((e.clientX - r.left) / r.width, 0, 1);
-    const y = clamp((e.clientY - r.top) / r.height, 0, 1);
+    const x = clampToSafeMargin((e.clientX - r.left) / r.width);
+    const y = clampToSafeMargin((e.clientY - r.top) / r.height);
     boxRef.current = { ...boxRef.current, [k]: { x, y } };
     drawOverlay();
   };
@@ -508,7 +541,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     window.removeEventListener('pointermove', overlayPointerMove);
     window.removeEventListener('pointerup', overlayPointerUp);
   };
-  const resetAutoDetect = () => { manualRef.current = false; setManualMode(false); };
+  const resetAutoDetect = () => { manualRef.current = false; setManualMode(false); stableRef.current = { quad: null, count: 0 }; };
 
   // 원근 보정만 수행해 캔버스를 반환한다 — 리뷰 화면 "원본으로 편집기 이동"·"스캔으로 편집기 이동" 양쪽에서 공통으로
   // 재사용한 뒤, 이어서 밝기·대비·스캔 처리를 각자 다르게 적용한다.
@@ -542,7 +575,7 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     const raw = document.createElement('canvas');
     raw.width = vw; raw.height = vh;
     raw.getContext('2d').drawImage(video, 0, 0, vw, vh);
-    const quad = boxRef.current || { tl: { x: 0.06, y: 0.06 }, tr: { x: 0.94, y: 0.06 }, br: { x: 0.94, y: 0.94 }, bl: { x: 0.06, y: 0.94 } };
+    const quad = boxRef.current || { tl: { x: 0.05, y: 0.05 }, tr: { x: 0.95, y: 0.05 }, br: { x: 0.95, y: 0.95 }, bl: { x: 0.05, y: 0.95 } };
     setCaptured({ dataUrl: raw.toDataURL('image/png'), w: vw, h: vh });
     setReviewQuad(quad);
     setReviewBrightness(0); setReviewContrast(0);
@@ -596,8 +629,8 @@ function CaptureScreen({ onLoadSample, onLoadImage, openDrawer, theme }) {
     const canvas = reviewOverlayRef.current, k = reviewDragCornerRef.current;
     if (!canvas || !k) return;
     const r = canvas.getBoundingClientRect();
-    const x = clamp((e.clientX - r.left) / r.width, 0, 1);
-    const y = clamp((e.clientY - r.top) / r.height, 0, 1);
+    const x = clampToSafeMargin((e.clientX - r.left) / r.width);
+    const y = clampToSafeMargin((e.clientY - r.top) / r.height);
     setReviewQuad((q) => ({ ...q, [k]: { x, y } }));
   };
   const reviewPointerUp = () => {
@@ -801,9 +834,10 @@ function App() {
   useE(() => { saveState({ screen, pages, currentPage, docName, docs, library, recent, favId, settings }); },
     [screen, pages, currentPage, docName, docs, library, recent, favId, settings]);
 
-  const showToast = (msg) => {
-    setToast(msg); clearTimeout(toastT.current);
-    toastT.current = setTimeout(() => setToast(null), 2200);
+  // onOpen이 있으면(예: 저장 완료 후 "파일 열기") 5초간, 없으면 기존과 동일하게 2.2초간 노출한다.
+  const showToast = (msg, onOpen) => {
+    setToast({ msg, onOpen }); clearTimeout(toastT.current);
+    toastT.current = setTimeout(() => setToast(null), onOpen ? 5000 : 2200);
   };
 
   const autosaveDataRef = useR({ docImage, placed, docName });
@@ -907,7 +941,19 @@ function App() {
                 restoreConfirmedRef.current = false;
                 setRestorePrompt(null);
               }} />
-            {toast && <div className="toast"><Icon name="check" size={16} sw={2.6} color="#fff" />{toast}</div>}
+            {toast && (
+              <div className="toast" style={toast.onOpen ? { flexDirection: 'column', alignItems: 'flex-start', whiteSpace: 'pre-line' } : undefined}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="check" size={16} sw={2.6} color="#fff" />{toast.msg}
+                </span>
+                {toast.onOpen && (
+                  <button onClick={() => { toast.onOpen(); setToast(null); }}
+                    style={{ background: 'none', border: 'none', color: '#fff', textDecoration: 'underline', padding: 0, marginTop: 4, font: 'inherit', cursor: 'pointer', alignSelf: 'flex-end' }}>
+                    📂 파일 열기
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </AndroidDevice>
       </div>

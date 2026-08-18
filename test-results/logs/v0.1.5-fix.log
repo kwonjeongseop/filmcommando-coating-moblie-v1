@@ -1,0 +1,86 @@
+[v0.1.5] 카메라 핸들 여백 + 문서영역 안정성 + 스캔 화질 + 저장 파일 열기 — 수정/검증 로그
+
+## 수정 대상
+- app/src/app.jsx (CaptureScreen 핸들·감지 루프) — 외과적 수정
+- app/src/editor.jsx (스캔 파이프라인 + saveNativeFile 토스트) — 외과적 수정
+- app/src/app.jsx (App 컴포넌트의 showToast/toast 렌더) — companion 수정(아래 disclosure 참조)
+
+## 수정 내용
+
+[수정 1] 핸들 안전 여백
+- 모듈 최상위에 HANDLE_SAFE_MARGIN=0.05 상수 + clampToSafeMargin/clampQuad 헬퍼 정의(app.jsx:14-21)
+- overlayPointerMove·reviewPointerMove의 드래그 clamp 범위를 [0,1] → [0.05,0.95]로 변경
+- capturePhoto의 감지 실패 폴백 기본 사각형을 [0.06,0.94] → [0.05,0.95]로 변경
+- 감지 루프(commitCandidate)에서 안정화된 후보를 boxRef에 반영할 때 clampQuad를 거쳐 저장
+
+[수정 2] 감지 안정성 게이팅
+- STABLE_FRAMES_REQUIRED=3, STABLE_FRAME_DELTA=0.05, EDGE_CLIP_MARGIN=0.03 상수 정의
+- quadClippedAtEdge/quadsAreClose 헬퍼 정의, CaptureScreen에 stableRef({quad,count}) 신설
+- 감지 루프의 commitCandidate()가: ①원시 후보가 화면 경계([0.03,0.97] 밖)에 닿아 있으면(=잘림 추정)
+  즉시 안정화 카운트 리셋하고 boxRef 미갱신 ②아니면 직전 후보와 비교해 4점 모두 변화량<0.05면
+  카운트 증가, 아니면 1로 리셋 ③카운트가 3에 도달한 프레임에서만 clampQuad를 거쳐 boxRef 갱신
+- resetAutoDetect(수동↔자동 전환)에서도 안정화 상태 초기화
+
+[수정 3] 스캔 화질 개선 (editor.jsx)
+- capturePageCanvas(bgColor, scale) — scale 옵션 매개변수 추가(기본 동작 무변경, 다른 4개 호출부는
+  scale 생략이라 기존과 동일). buildScanPdf만 capturePageCanvas('#ffffff', 2) 호출로 변경
+- toScanCanvas를 블록 평균 기반 적응형 임계값에서 그레이스케일 → 가우시안 블러(반경 3px, 분리 가능
+  컨볼루션) → Otsu 전역 이진화로 전면 교체. 복잡한 배경에서 지역 임계값이 과반응해 노이즈가 그대로
+  검게 찍히던 문제를 전역 임계값으로 해결
+
+[수정 4] 저장 완료 토스트 → 클릭 시 파일 열기 (editor.jsx saveNativeFile + companion app.jsx)
+- pnpm add @capacitor/browser 설치 후 Browser.open()으로 구현했으나, 실기기 검증 중
+  FileUriExposedException으로 앱이 즉시 크래시하는 것을 logcat FATAL EXCEPTION으로 직접 확인
+  (StrictMode가 file:// URI를 Intent로 앱 밖에 노출하는 것을 차단 — Browser.open은 Chrome Custom
+  Tabs 기반이라 http(s) 전용이며 로컬 file:// URI에는 애초에 맞지 않는 API였음). 즉시 원인 파악 후
+  shareDocumentImage()가 이미 쓰고 있던 Share.share() 패턴으로 대체 — FileProvider를 통해
+  content:// URI로 안전하게 감싸 전달하며, 탭 시 Android 공유 시트(인쇄·Drive·메시지 등 파일을
+  열 수 있는 앱 목록)가 뜬다. 이후 @capacitor/browser는 미사용 상태가 되어 pnpm remove로 제거
+  (원칙7: 내 변경으로 생긴 orphan 정리) + npx cap sync android로 플러그인 목록에서도 제거 확인.
+- saveNativeFile은 저장 확인(exists) 성공 시에만 onOpen 콜백을 showToast에 전달, 실패/경고 토스트는
+  기존과 동일(파일 열기 버튼 없음)
+
+## companion 수정 (범위 외 disclosure)
+- app.jsx의 showToast/toast state/render — [수정4]의 "클릭 시 파일 열기" 기능은 toast를 렌더링하는
+  App 컴포넌트 자체를 손대지 않고는 구현할 수 없어(showToast·toast state 모두 CaptureScreen이 아닌
+  App 컴포넌트 소유), 지시된 "CaptureScreen 핸들·감지 루프만" 범위를 넘어서는 최소 필요 수정을
+  가했다. showToast(msg, onOpen) 형태로 시그니처를 확장(기존 단일 인자 호출 20여 곳은 그대로 동작),
+  toast state를 문자열에서 {msg, onOpen} 객체로 변경, onOpen이 있을 때만 5초 노출 + "📂 파일 열기"
+  링크를 추가 렌더링(기존 2.2초짜리 일반 토스트는 동작·시간 모두 무변경).
+- @capacitor/browser 설치 후 제거 — 위 [수정4] 설명 참조.
+
+## 검증 결과
+
+### 1. 코드 품질
+- pnpm lint: 통과(신규 warning 없음)
+- pnpm build (tsc -b && vite build): 통과
+
+### 2. Playwright E2E (전체 78개, 신규 8개 포함)
+- 78 passed — chromium + Pixel 8 프로파일 각각
+- 기존 62개(v0.1.4 기준 70개 중 재검증 대상)는 라벨/로직 변경 없이 그대로 통과. phase4-4-opencv의
+  감지 테스트는 안정성 게이팅(3프레임 대기) 추가로 소요 시간이 늘었으나(예: 7.9s→26.1s, 재측정 시
+  7.8s로 회복 — 실행별 편차) 결과는 통과.
+- 신규 phase9-2-scan-quality.spec.ts(2건) — Otsu 이진화로 픽셀이 순수 0/255로 양자화됨(>99%),
+  scale=2 명시 지정으로 캡처 해상도가 .page CSS 크기의 1.5배 초과 확인
+- 신규 phase9-3-handle-margin.spec.ts(2건) — 감지 실패 시 기본 사각형 핸들이 가장자리(0/1)에 붙지
+  않음, 핸들을 화면 맨 꼭짓점으로 드래그해도 안전 여백 밖으로 나가지 않음
+
+### 3. 실기기(에뮬레이터 emulator-5554) 검증 — CDP 기반
+- [수정1] 실제 카메라로 문서 촬영 후 리뷰 화면 핸들 픽셀 위치 측정 — minX=0.035, maxX=0.962,
+  minY=0.041, maxY=0.958로 전부 [0.05,0.95] 근방에 위치, 화면 가장자리(0/1)에 닿지 않음 확인.
+  스크린샷 test-results/screenshots/v0.1.5-handle.png
+- [수정3] 샘플 서류로 "저장 → 스캔(PDF) → 저장" 실행, 토스트 정상 표시 확인.
+  스크린샷 test-results/screenshots/v0.1.5-scan.png (Otsu 이진화 자체의 픽셀 단위 검증은 Playwright
+  phase9-2에서 수행 — 실기기에서는 저장 플로우 자체가 크래시 없이 끝까지 동작하는지 확인)
+- [수정4] ⚠️→✅ 최초 구현(Browser.open) 실기기 검증 중 FileUriExposedException으로 크래시 발견 →
+  Share.share로 교체 후 재검증, 크래시 없이 Android 공유 시트가 정상적으로 뜨는 것을 확인.
+  스크린샷 test-results/screenshots/v0.1.5-open.png (파일명 dojang-20260818-050646.pdf가 공유 시트에
+  정확히 표시됨). adb logcat FATAL/AndroidRuntime 크래시 없음(수정 후 재확인)
+
+## 빌드/릴리즈
+- app/package.json version: 0.1.4 → 0.1.5
+- android/app/build.gradle: versionCode 14→15, versionName "0.1.4"→"0.1.5"
+- pnpm build → npx cap sync android → gradlew assembleRelease: 전부 성공(Browser 제거 후 재빌드 포함)
+- apksigner verify: v2 scheme true, Number of signers: 1
+- APK: filmcommando-coating-moblie-v0.1.5.apk (18,290,793 bytes / 17.44MB)
+- adb install -r 성공, pm clear 후 정상 기동 확인
