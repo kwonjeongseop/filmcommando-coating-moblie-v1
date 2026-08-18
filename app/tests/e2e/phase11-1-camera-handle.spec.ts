@@ -48,18 +48,15 @@ test.describe('Phase 11-1: 문서 영역 자동 감지 안정성 게이팅', () 
     await page.reload();
   });
 
-  test('문서 영역이 화면 경계에 걸쳐 잘려 있으면 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)', async ({ page }) => {
+  test('문서 영역이 화면 경계에 걸쳐 잘려 있으면 경고 토스트가 표시되고 촬영이 진행된다(v0.2.4 수정3)', async ({ page }) => {
     await openCamera(page);
     await page.getByText('촬영', { exact: true }).click();
 
-    // 경계 클리핑으로 판단되어(boxRef 미갱신) 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면에
-    // 남아야 하며, 사용자에게 안내 토스트가 표시되어야 한다. 토스트는 2.2초 후 자동으로 사라지므로
-    // (app.jsx showToast) 가장 시간에 민감한 토스트 확인을 먼저 하고, 계속 유지되는 상태(리뷰 화면
-    // 미진입·비디오 노출)는 그 뒤에 확인한다 — v0.2.3: 순서가 반대였을 때 두 상태 확인에 걸리는
-    // 시간만으로 토스트가 이미 사라져 flaky하게 실패하는 문제가 있었다(EDGE_CLIP_MARGIN 자체 결함은
-    // 아님 — 차단은 매번 정상 동작했음).
-    await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
-    await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
-    await expect(page.locator('video')).toBeVisible();
+    // v0.2.4: capturePhoto의 차단(return) 분기가 제거되어, 경계 클리핑으로 안정화되지 않은 상태여도
+    // 촬영을 막지 않고 경고 토스트만 표시한 뒤 그대로 리뷰 화면으로 넘어간다. 토스트는 2.2초 후
+    // 자동으로 사라지므로(app.jsx showToast) 가장 시간에 민감한 토스트 확인을 먼저 한다.
+    await expect(page.locator('.toast')).toHaveText(/문서 경계를 확인해 주세요/);
+    await expect(page.getByText('촬영 확인 · 범위 조정')).toBeVisible();
+    await expect(page.locator('video')).toHaveCount(0);
   });
 });

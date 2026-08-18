@@ -58,14 +58,16 @@ test.describe('Phase 9-3: 촬영 확인 화면 핸들 안전 여백', () => {
     await page.reload();
   });
 
-  test('감지 실패(빈 배경) 시 촬영이 차단되고 안내 토스트가 표시된다(v0.1.6 수정2)', async ({ page }) => {
+  test('감지 실패(빈 배경) 시 경고 토스트가 표시되고 촬영이 진행된다(v0.2.4 수정3)', async ({ page }) => {
     await openCamera(page);
     await page.getByText('촬영', { exact: true }).click();
 
-    // 차단되었으므로 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면 그대로 남아야 한다.
-    await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
-    await expect(page.locator('video')).toBeVisible();
-    await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
+    // v0.2.4: capturePhoto의 차단(return) 분기가 제거되어, 감지가 안정화되지 않아도 촬영을 막지
+    // 않고 경고 토스트만 표시한 뒤 그대로 리뷰 화면으로 넘어간다. 토스트는 2.2초 후 자동으로
+    // 사라지므로(app.jsx showToast) 가장 시간에 민감한 토스트 확인을 먼저 한다.
+    await expect(page.locator('.toast')).toHaveText(/문서 경계를 확인해 주세요/);
+    await expect(page.getByText('촬영 확인 · 범위 조정')).toBeVisible();
+    await expect(page.locator('video')).toHaveCount(0);
   });
 
   test('라이브 화면에서 수동으로 꼭짓점을 조정하면 감지 실패 상태에서도 촬영이 허용되고, 핸들은 안전 여백 밖으로 나가지 않는다', async ({ page }) => {
