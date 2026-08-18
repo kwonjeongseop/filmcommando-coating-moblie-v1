@@ -50,6 +50,6 @@ test.describe('Phase 11-1: 문서 영역 자동 감지 안정성 게이팅', () 
     // 남아야 하며, 사용자에게 안내 토스트가 표시되어야 한다.
     await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
     await expect(page.locator('video')).toBeVisible();
-    await expect(page.locator('.toast')).toHaveText(/문서를 화면 안에 완전히 맞춰주세요/);
+    await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
   });
 });

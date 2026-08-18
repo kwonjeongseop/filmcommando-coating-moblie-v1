@@ -599,3 +599,34 @@ GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases
       라이브러리(libwebviewchromium.so)의 onTrimMemory 처리 중 SIGILL 1건 관측 — 크래시 스택이
       전부 시스템/WebView 바이너리이고 앱 JS 코드와 무관, 프로세스 자동 재시작 후 이후 검증은
       전부 정상 동작. 원인이 이 앱의 코드 밖에 있어 기능적으로 막힌 부분 없음, 참고용으로 기록.)
+
+====================================================================
+[Release v0.1.7]
+빌드일: 2026-08-18
+APK: filmcommando-coating-moblie-v0.1.7.apk
+크기: 17.44MB (18291662 bytes)
+versionCode: 17
+수정: 스캔화질(수동조정조건강화)·수기도장경계선·도장크기축소
+  - [수정1] overlayPointerDown이 pointerdown 즉시가 아니라 MIN_MANUAL_DRAG_PX(20px) 이상 실제로
+    이동해야 manualRef=true가 되도록 변경. companion으로 capturePhoto의 차단 판정을
+    stableRef.count 기준으로 교체(boxRef.current 존재만으로는 "탭 한 번"에 뚫리는 허점이 있었음,
+    v0.1.6-issues-audit.log에서 발견) — 안내 토스트 문구도 "문서 전체가 보이도록 카메라를 조정해
+    주세요"로 변경.
+  - [수정2] editor.jsx registerDrawing()이 가이드(원형·사각형 경계선)를 최종 저장 이미지에 합성.
+    잉크 레이어의 흰 배경을 먼저 투명화한 뒤 가이드 위에 얹는 순서로 구현(순서가 반대면 가이드가
+    가려져 전혀 안 보임).
+  - [수정3] DEFAULT_SETTINGS.size 0.35→0.2(문서 가로의 9.14%→5.2%, 권장 5~8% 범위 내). image kind
+    기준폭을 94px로 통일(visuals.jsx 폴백 + editor.jsx 두 생성 지점의 w:120→94 모두 변경 필요했음
+    — 후자 없이는 전자가 무효). 크기 슬라이더 min 0.2→0.1(editor.jsx·menus.jsx 양쪽).
+  - companion: Playwright phase11-1·phase9-3(토스트 문구)·phase4-6-drag(0.35→0.2) 갱신, 신규
+    phase13-1-drawing-guide.spec.ts(2건)·phase13-2-stamp-size.spec.ts(2건) 추가.
+테스트: Playwright E2E 98/98 PASS (chromium+Pixel 8 각 49건)
+검증: 실기기(에뮬레이터 emulator-5554, release APK) CDP Input.dispatchMouseEvent 기반 정밀 검증 —
+      [수정1] 감지 미안정 상태에서 단순 탭만으로는 여전히 촬영이 차단되고(허점 해결 확인), 20px
+      이상 실제 드래그 후에는 차단이 풀려 리뷰 화면에 진입함을 3단계로 확인. [수정2][수정3] 수기
+      도장을 그려 등록(library.w=94 확인) 후 문서에 배치, 확대 크롭 스크린샷에서 원형 점선 가이드가
+      잉크와 함께 보이고 도장 크기가 뚜렷이 작아짐을 육안 확인. 스크린샷 test-results/screenshots/
+      v0.1.7-scan.png · v0.1.7-drawing.png · v0.1.7-size.png. adb logcat FATAL/AndroidRuntime
+      크래시 없음.
+GitHub: https://github.com/kwonjeongseop/filmcommando-coating-moblie-v1/releases/tag/v0.1.7
+상태: PASS

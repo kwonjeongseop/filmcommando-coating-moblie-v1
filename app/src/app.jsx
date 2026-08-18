@@ -47,7 +47,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const DEFAULT_SETTINGS = {
-  ink: '주홍', size: 0.35, opacity: 1, autoSelect: true,
+  ink: '주홍', size: 0.2, opacity: 1, autoSelect: true,
   format: 'PDF', hq: false, autosave: true, pw: false, localOnly: true,
 };
 
@@ -315,6 +315,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
   const tfDetectionsRef = useR([]); // [{x,y,w,h,class,score,isDoc}] — 정규화(0~1) 좌표, video 기준
   const manualRef = useR(false); // true면 사용자가 꼭짓점을 직접 조정 중 — 자동 감지가 boxRef를 덮어쓰지 않는다
   const dragCornerRef = useR(null); // 'tl' | 'tr' | 'br' | 'bl' | null
+  const dragStartRef = useR(null); // 드래그 시작 시 화면 좌표(px) — 최소 이동 거리 판정용(수정 1)
   const [cameraOpen, setCameraOpen] = useS(false);
   const [manualMode, setManualMode] = useS(false);
   const [captured, setCaptured] = useS(null); // { dataUrl, w, h } — 촬영 직후 자르기 리뷰용 원본 프레임
@@ -510,12 +511,14 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
 
   // 오버레이 꼭짓점 핸들 드래그 — 자동 감지 사각형을 사용자가 손가락으로 직접 보정할 수 있게 한다.
   const HANDLE_HIT_PX = 22;
+  const MIN_MANUAL_DRAG_PX = 20; // 이 거리 이상 실제로 옮겨야만 "수동 조정"으로 인정한다(수정 1) — 단순 탭은 인정 안 함
   const overlayPointerDown = (e) => {
     const canvas = overlayRef.current;
     if (!canvas) return;
     // 자동 감지가 아직 안정화되지 않아 boxRef가 비어 있어도, 화면을 터치하면 폴백 사각형을 시드해
     // 사용자가 직접 꼭짓점을 조정할 수 있게 한다 — 그렇지 않으면 감지 실패 시 조정할 대상 자체가
-    // 없어 촬영이 막힌 채(수정 2) 되돌릴 방법이 없어진다.
+    // 없어 촬영이 막힌 채(수정 2) 되돌릴 방법이 없어진다. 단, 이 시드 자체는 manualRef를 true로
+    // 만들지 않는다 — 실제로 MIN_MANUAL_DRAG_PX 이상 옮겨야만 "수동 조정"으로 인정된다.
     if (!boxRef.current) { boxRef.current = { ...FALLBACK_QUAD }; drawOverlay(); }
     const b = boxRef.current;
     const r = canvas.getBoundingClientRect();
@@ -529,14 +532,17 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
     if (!best) return;
     e.preventDefault();
     dragCornerRef.current = best;
-    manualRef.current = true;
-    setManualMode(true);
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
     window.addEventListener('pointermove', overlayPointerMove);
     window.addEventListener('pointerup', overlayPointerUp);
   };
   const overlayPointerMove = (e) => {
     const canvas = overlayRef.current, k = dragCornerRef.current;
     if (!canvas || !k) return;
+    if (!manualRef.current && dragStartRef.current) {
+      const dist = Math.hypot(e.clientX - dragStartRef.current.x, e.clientY - dragStartRef.current.y);
+      if (dist >= MIN_MANUAL_DRAG_PX) { manualRef.current = true; setManualMode(true); }
+    }
     const r = canvas.getBoundingClientRect();
     const x = clampToSafeMargin((e.clientX - r.left) / r.width);
     const y = clampToSafeMargin((e.clientY - r.top) / r.height);
@@ -545,6 +551,7 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
   };
   const overlayPointerUp = () => {
     dragCornerRef.current = null;
+    dragStartRef.current = null;
     window.removeEventListener('pointermove', overlayPointerMove);
     window.removeEventListener('pointerup', overlayPointerUp);
   };
@@ -581,8 +588,11 @@ function CaptureScreen({ onLoadImage, openDrawer, theme, docs, onOpenDoc, showTo
   // 이미 채워져 있으므로(overlayPointerDown의 폴백 시드) 이 분기에 걸리지 않는다.
   const capturePhoto = () => {
     const video = videoRef.current; if (!video) return;
-    if (!boxRef.current && !manualRef.current) {
-      showToast('문서를 화면 안에 완전히 맞춰주세요');
+    // boxRef.current는 overlayPointerDown이 터치만 해도 폴백으로 시드되므로(위 참조) 그 존재만으로는
+    // "의미 있게 조정됨"을 보장하지 못한다 — 자동 감지가 실제로 안정화됐는지(stableRef.count)
+    // 또는 사용자가 실제로 MIN_MANUAL_DRAG_PX 이상 옮겼는지(manualRef)로 판단한다.
+    if (!manualRef.current && stableRef.current.count < STABLE_FRAMES_REQUIRED) {
+      showToast('문서 전체가 보이도록 카메라를 조정해 주세요');
       return;
     }
     const vw = video.videoWidth || 720, vh = video.videoHeight || 1280;

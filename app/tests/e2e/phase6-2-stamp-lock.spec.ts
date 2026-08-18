@@ -100,9 +100,10 @@ test.describe('Phase 6-2: 도장 크기 고정 버튼', () => {
 
     const afterResizeAtZoom2 = await readPlaced(page);
     // 핸들-중심 거리는 zoom과 무관하게 항상 도장 자신의 고정 px 크기에서 나오므로, "거리를 2배로"
-    // 늘리는 제스처는 dist/startDist≈2를 만든다. zoom 정규화(÷zoom=2.0)가 적용되면 결과 scale은
-    // 원본(0.35)에 가까워야 한다 — 정규화가 없다면 0.7(원본의 2배)이 나왔을 것이다. 두 프로젝트(뷰포트
-    // DPR 차이) 사이의 픽셀 측정 오차를 감안해 넓게(0.7의 절반 이하) 확인한다.
+    // 늘리는 제스처는 dist/startDist≈2를 만든다. zoom 정규화(÷zoom=2.0)가 적용되면 계산값은 원본
+    // scale(v0.1.7: 기본 0.2)에 가까워지는데, 이는 리사이즈 clamp 하한(0.4, editor.jsx:675)보다
+    // 작으므로 실제로는 0.4로 클램프된다 — 정규화가 아예 없었다면 훨씬 큰 값(원본의 2배 이상)이
+    // 나왔을 것이므로, 두 프로젝트(뷰포트 DPR 차이) 사이의 픽셀 측정 오차를 감안해 넓게 확인한다.
     expect(afterResizeAtZoom2.scale).toBeLessThan(0.55);
     expect(afterResizeAtZoom2.scale).toBeGreaterThan(0.25);
   });

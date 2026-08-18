@@ -62,7 +62,7 @@ test.describe('Phase 9-3: 촬영 확인 화면 핸들 안전 여백', () => {
     // 차단되었으므로 리뷰 화면으로 넘어가지 않고 라이브 카메라 화면 그대로 남아야 한다.
     await expect(page.getByText('촬영 확인 · 범위 조정')).toHaveCount(0);
     await expect(page.locator('video')).toBeVisible();
-    await expect(page.locator('.toast')).toHaveText(/문서를 화면 안에 완전히 맞춰주세요/);
+    await expect(page.locator('.toast')).toHaveText(/문서 전체가 보이도록 카메라를 조정해 주세요/); // v0.1.7 수정1: 안내 문구 변경
   });
 
   test('라이브 화면에서 수동으로 꼭짓점을 조정하면 감지 실패 상태에서도 촬영이 허용되고, 핸들은 안전 여백 밖으로 나가지 않는다', async ({ page }) => {

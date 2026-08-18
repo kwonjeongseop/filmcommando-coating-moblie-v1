@@ -97,7 +97,7 @@ function StampVisual({ stamp, scale = 1 }) {
   if (!stamp) return null;
   if (stamp.kind === 'image') {
     return <img src={stamp.src} alt="" draggable={false}
-      style={{ width: (stamp.w || 120) * scale, height: 'auto', display: 'block', pointerEvents: 'none' }} />;
+      style={{ width: (stamp.w || 94) * scale, height: 'auto', display: 'block', pointerEvents: 'none' }} />;
   }
   if (stamp.kind === 'seal') {
     return <SealVisual text={stamp.text} color={stamp.color} size={94 * scale} />;

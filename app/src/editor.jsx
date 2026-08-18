@@ -143,7 +143,7 @@ function StampPopup({ open, onClose, library, recent, sealInk, defaults, onConfi
         <div className="pop-block-h">찍기 옵션</div>
         <div className="opt-row">
           <span className="opt-l">크기</span>
-          <input className="rng" type="range" min="0.2" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
+          <input className="rng" type="range" min="0.1" max="1.8" step="0.1" value={size} onChange={(e) => setSize(+e.target.value)} />
           <span className="opt-v">{Math.round(size * 100)}%</span>
         </div>
         <div className="opt-row">
@@ -230,17 +230,28 @@ function AddStampSheet({ open, onClose, sealInk, onAdd }) {
 
   const registerDrawing = () => {
     const srcCanvas = drawCanvasRef.current; if (!srcCanvas) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = srcCanvas.width; canvas.height = srcCanvas.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(srcCanvas, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const guideCanvas = guideCanvasRef.current;
+
+    // 잉크 레이어 — 흰 배경을 먼저 투명화해야 아래 가이드(경계선) 레이어가 가려지지 않고 비쳐 보인다.
+    const inkCanvas = document.createElement('canvas');
+    inkCanvas.width = srcCanvas.width; inkCanvas.height = srcCanvas.height;
+    const inkCtx = inkCanvas.getContext('2d');
+    inkCtx.drawImage(srcCanvas, 0, 0);
+    const imageData = inkCtx.getImageData(0, 0, inkCanvas.width, inkCanvas.height);
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
       if (data[i] >= BG_THRESHOLD && data[i + 1] >= BG_THRESHOLD && data[i + 2] >= BG_THRESHOLD) data[i + 3] = 0;
     }
-    ctx.putImageData(imageData, 0, 0);
-    onAdd({ id: makeId(), kind: 'image', src: canvas.toDataURL('image/png'), w: 120, label: '수기 도장' });
+    inkCtx.putImageData(imageData, 0, 0);
+
+    // 최종 합성 — 가이드(원형·사각형 경계선)를 먼저 그리고 그 위에 투명화된 잉크를 얹는다.
+    const canvas = document.createElement('canvas');
+    canvas.width = srcCanvas.width; canvas.height = srcCanvas.height;
+    const ctx = canvas.getContext('2d');
+    if (guideCanvas) ctx.drawImage(guideCanvas, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(inkCanvas, 0, 0);
+
+    onAdd({ id: makeId(), kind: 'image', src: canvas.toDataURL('image/png'), w: 94, label: '수기 도장' });
     onClose();
   };
 
@@ -266,7 +277,7 @@ function AddStampSheet({ open, onClose, sealInk, onAdd }) {
           if (data[i] >= BG_THRESHOLD && data[i + 1] >= BG_THRESHOLD && data[i + 2] >= BG_THRESHOLD) data[i + 3] = 0;
         }
         ctx.putImageData(imageData, 0, 0);
-        onAdd({ id: makeId(), kind: 'image', src: canvas.toDataURL('image/png'), w: 120, label: '업로드 · ' + f.name.slice(0, 10) });
+        onAdd({ id: makeId(), kind: 'image', src: canvas.toDataURL('image/png'), w: 94, label: '업로드 · ' + f.name.slice(0, 10) });
         onClose();
       };
       img.src = r.result;

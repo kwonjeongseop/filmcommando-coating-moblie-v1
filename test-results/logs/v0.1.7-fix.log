@@ -1,0 +1,89 @@
+[v0.1.7] 스캔 화질(수동 조정 조건 강화) + 수기 도장 경계선 + 도장 크기 축소 — 수정/검증 로그
+
+## 수정 대상
+- app/src/app.jsx (overlayPointerDown/Move 드래그 거리 조건 + capturePhoto 차단 판정 + DEFAULT_SETTINGS.size) — 외과적 수정
+- app/src/editor.jsx (registerDrawing 가이드 합성 + 크기 슬라이더 min) — 외과적 수정
+- app/src/menus.jsx (크기 슬라이더 min) — 외과적 수정
+- app/src/visuals.jsx (image kind 기준폭) — 외과적 수정
+
+## 수정 내용
+
+[수정 1] 스캔 화질 — 수동 조정 인정 조건 강화
+- app.jsx에 MIN_MANUAL_DRAG_PX=20 상수 추가. overlayPointerDown에서는 더 이상 pointerdown 시점에
+  manualRef를 true로 설정하지 않고, dragStartRef(드래그 시작 화면 좌표)만 기록. overlayPointerMove에서
+  누적 이동 거리가 20px 이상일 때만 manualRef.current=true + setManualMode(true) 설정(지시된 요구사항
+  그대로).
+- companion(필수) — capturePhoto의 차단 판정을 `!boxRef.current && !manualRef.current`에서
+  `!manualRef.current && stableRef.current.count < STABLE_FRAMES_REQUIRED`로 변경. 이전 판정은
+  overlayPointerDown이 터치만 해도 boxRef.current를 폴백으로 시드하는 것과 상호작용해 "탭 한 번"만
+  으로도 차단이 풀리는 허점이 있었음(v0.1.6-issues-audit.log에서 발견) — MIN_MANUAL_DRAG_PX 조건만
+  추가하고 이 판정식을 그대로 두면 여전히 우회 가능해 함께 수정하지 않으면 [수정1]이 실질적으로
+  무력화됨. stableRef.current.count는 자동 감지가 실제로 안정화됐는지의 정확한 대리 지표라 추가
+  상태 없이 재사용 가능했음.
+- 안내 토스트 문구를 "문서를 화면 안에 완전히 맞춰주세요" → "문서 전체가 보이도록 카메라를 조정해
+  주세요"로 변경(지시된 문구 그대로).
+
+[수정 2] 수기 도장 경계선 — 가이드 합성
+- editor.jsx registerDrawing()을 잉크 레이어(흰 배경 투명화 먼저 적용) + 가이드 레이어(원형·사각형
+  점선, guideCanvasRef) 2단계 합성으로 재구성. 잉크 캔버스의 불투명 흰 배경이 그대로면 그 아래
+  가이드가 완전히 가려지므로, 잉크 쪽을 먼저 투명화한 뒤 가이드 위에 얹는 순서로 구현(지시된 "①~④"
+  순서를 그대로 따르되, 투명화 순서를 가이드 합성 전으로 옮겨야 실제로 가이드가 보임 — 이 순서
+  조정 없이는 가이드가 저장 이미지에 전혀 나타나지 않아 기능이 무력화됨).
+
+[수정 3] 도장 초기 크기 축소
+- app.jsx DEFAULT_SETTINGS.size: 0.35 → 0.2(지시된 값 그대로) — 인감 기준 94*0.2=18.8px = 문서
+  가로(360px)의 5.2%(권장 5~8% 범위 내).
+- visuals.jsx StampVisual의 image kind 기준폭 fallback을 (stamp.w||120) → (stamp.w||94)로 교체.
+- companion(필수) — editor.jsx의 두 스탬프 생성 지점(registerDrawing 231행 근방, 업로드 핸들러
+  269행 근방)에서 stamp.w를 항상 120으로 명시 저장하고 있어, visuals.jsx의 폴백값 변경만으로는
+  아무 효과가 없음(stamp.w가 이미 존재하므로 `|| 94` 폴백에 도달하지 않음) — 두 지점 모두 w:94로
+  변경해야 "image kind 기준폭 94 통일" 목표가 실제로 달성됨. "editor.jsx registerDrawing 합성
+  로직만" 범위를 벗어나지만 목표 달성에 필수적이라 판단해 함께 수정.
+- 크기 슬라이더 min "0.2"→"0.1" — editor.jsx(스탬프 팝업)·menus.jsx(설정 화면) 두 곳 모두 동일
+  슬라이더가 존재해 일관성을 위해 둘 다 수정(지시문이 "app.jsx"로 그룹핑했으나 실제 슬라이더는
+  app.jsx에 없음 — 실제 위치 2곳을 모두 반영).
+
+## companion 수정 (범위 외 disclosure, 요약)
+- capturePhoto 차단 판정식 변경(위 [수정1] 참조) — 없으면 MIN_MANUAL_DRAG_PX 요구사항이 실질
+  무의미해짐.
+- registerDrawing 내 투명화 순서 조정(위 [수정2] 참조) — 없으면 가이드가 저장 이미지에 전혀 안
+  나타남.
+- editor.jsx 두 stamp.w:120→94 리터럴 변경(위 [수정3] 참조) — 없으면 visuals.jsx 폴백 변경이
+  무효.
+- menus.jsx 크기 슬라이더 min 변경 — editor.jsx만으로는 설정 화면 슬라이더가 불일치.
+- Playwright 스펙 갱신 — phase11-1·phase9-3(안내 토스트 문구 변경 반영), phase4-6-drag(undo 후
+  scale 기댓값 0.35→0.2 반영), phase6-2-stamp-lock(리사이즈 clamp 관련 주석만 명확화, 수치는
+  실제로 무영향이라 원복). 신규 phase13-1-drawing-guide.spec.ts(2건)·phase13-2-stamp-size.spec.ts
+  (2건) 추가.
+
+## 검증 결과
+
+### 1. 코드 품질
+- pnpm lint: 통과(신규 warning 없음)
+- pnpm build (tsc -b && vite build): 통과
+
+### 2. Playwright E2E (전체 98개, 신규 4개 포함)
+- 98 passed — chromium + Pixel 8 프로파일 각각
+- 신규 phase13-1-drawing-guide.spec.ts — 원형 가이드 합성 시 경계선 링 픽셀 존재 확인, 사각형
+  가이드로 전환해도 투명 비율 50% 초과 유지 확인
+- 신규 phase13-2-stamp-size.spec.ts — 신규 배치 도장 scale=0.2 확인, 수기 도장(image kind)과
+  인감(seal kind)이 같은 scale에서 동일 폭(94*scale)으로 렌더링됨 확인
+
+### 3. 실기기(에뮬레이터 emulator-5554) 검증 — CDP 기반(Input.dispatchMouseEvent로 정밀 좌표 제어)
+- [수정1] 3단계 검증 — ①감지 미안정 상태에서 첫 촬영 시도 → 차단 + 새 토스트 문구 확인
+  ②오버레이를 단순 탭(이동 없음)한 뒤 재시도 → **여전히 차단됨**(허점 해결 확인) ③실제로 40px
+  드래그(20px 임계값 초과)한 뒤 재시도 → 차단 해제, 리뷰 화면 진입 확인. 스크린샷
+  test-results/screenshots/v0.1.7-scan.png(드래그로 조정된 사각형이 표시된 리뷰 화면)
+- [수정2][수정3] 수기 도장을 그려 등록(library.w=94 확인) 후 문서에 배치 → 실제 배치된 도장을
+  200%로 확대 크롭한 스크린샷에서 원형 점선 가이드가 잉크와 함께 선명하게 보임 + 도장 크기가
+  이전 대비 눈에 띄게 작아짐을 육안 확인. 스크린샷 test-results/screenshots/v0.1.7-drawing.png
+  (그리기 화면), test-results/screenshots/v0.1.7-size.png(배치 결과 확대 크롭)
+- adb logcat FATAL/AndroidRuntime 크래시 없음
+
+## 빌드/릴리즈
+- app/package.json version: 0.1.6 → 0.1.7
+- android/app/build.gradle: versionCode 16→17, versionName "0.1.6"→"0.1.7"
+- pnpm build → npx cap sync android → gradlew assembleRelease: 전부 성공
+- apksigner verify: v2 scheme true, Number of signers: 1
+- APK: filmcommando-coating-moblie-v0.1.7.apk (18,291,662 bytes / 17.44MB)
+- adb install -r 성공, pm clear 후 정상 기동 확인
