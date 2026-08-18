@@ -48,7 +48,7 @@ function Drawer({ open, onClose, onNav, docName, stampCount, placedCount }) {
             { k: 'help', ic: 'preview', t: '이용 안내' },
           ])}
         </div>
-        <div className="dr-foot">버전 1.0.4</div>
+        <div className="dr-foot">버전 {__APP_VERSION__}</div>
       </nav>
     </div>
   );
@@ -75,7 +75,7 @@ function OverflowMenu({ open, onClose, on, placedCount }) {
         <S label="서류" />
         <I k="addpage" ic="plus" t="페이지 추가" />
         <I k="rotate" ic="rotate" t="서류 회전" meta="90°" />
-        <I k="replace" ic="image" t="서류 이미지 교체" />
+        <I k="replace" ic="image" t="서류 이미지 편집" />
         <div className="mn-div" />
         <S label="도장" />
         <I k="manager" ic="layers" t="도장 보관함" />

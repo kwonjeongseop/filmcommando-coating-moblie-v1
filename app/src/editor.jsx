@@ -401,7 +401,7 @@ function ShareSheet({ open, onClose, docName, defaults, onAction }) {
 
 /* ───────────────────────── Editor ───────────────────────── */
 function EditorScreen({ store }) {
-  const { docMode, docImage, docName, setDocName, library, addStamp, recent, pushRecent,
+  const { docMode, docImage, docName, setDocName, setDocImage, library, addStamp, recent, pushRecent,
     pages, currentPage, setCurrentPage, addPage,
     placed, setPlacedLive, pushHistory, undo, redo, canUndo, canRedo,
     goBack, openDrawer, nav, showToast, settings, t, saveDoc } = store;
@@ -425,6 +425,9 @@ function EditorScreen({ store }) {
   const [ctx, setCtx] = useState(null);
   const [docRot, setDocRot] = useState(0);
   const [snapGuides, setSnapGuides] = useState({ x: false, y: false });
+  const [cropping, setCropping] = useState(false);
+  const [cropSel, setCropSel] = useState(null); // {x,y,w,h} — .page 기준 정규화 좌표(0~1)
+  const cropDragRef = useRef(null);
   const dragRef = useRef(null);
   const lpRef = useRef(null);
   const pinchRef = useRef(null);
@@ -432,6 +435,7 @@ function EditorScreen({ store }) {
   const tapRef = useRef({ time: 0, x: 0, y: 0 }); // 문서 배경 더블탭 감지(원본 크기로 리셋)
 
   const stampById = (id) => library.find((s) => s.id === id);
+  const selInst = sel ? placed.find((p) => p.id === sel) : null;
   const captureThumb = async () => {
     try {
       const c = await html2canvas(pageRef.current, {
@@ -534,15 +538,57 @@ function EditorScreen({ store }) {
   const endPlacement = () => { setPlacing(null); setGhost(null); };
   const onPageMove = (e) => { if (placing) setGhost(pctFromEvent(e)); };
   const onPageClick = (e) => {
+    if (cropping) return;
     if (placing) {
       const p = pctFromEvent(e);
       pushHistory();
       const id = makeId();
-      setPlacedLive((arr) => [...arr, { id, stampId: placing.id, x: p.x, y: p.y, scale: placing._opts.size, opacity: placing._opts.opacity, rot: 0 }]);
+      setPlacedLive((arr) => [...arr, { id, stampId: placing.id, x: p.x, y: p.y, scale: placing._opts.size, opacity: placing._opts.opacity, rot: 0, locked: false }]);
       if (settings.autoSelect) { setPlacing(null); setGhost(null); setSel(id); }
       return;
     }
     setSel(null);
+  };
+
+  // 서류 이미지 자르기 — 더보기 메뉴 "서류 이미지 편집"에서 진입. .page 위를 드래그해 선택 영역을
+  // 정하고 "적용"을 누르면 canvas로 선택 영역만 잘라 docImage를 교체한다.
+  const startCropSel = (e) => {
+    if (!cropping) return;
+    e.preventDefault();
+    const r = pageRef.current.getBoundingClientRect();
+    const x = clamp((e.clientX - r.left) / r.width, 0, 1), y = clamp((e.clientY - r.top) / r.height, 0, 1);
+    cropDragRef.current = { x0: x, y0: y };
+    setCropSel({ x, y, w: 0, h: 0 });
+    window.addEventListener('pointermove', moveCropSel);
+    window.addEventListener('pointerup', upCropSel);
+  };
+  const moveCropSel = (e) => {
+    const d = cropDragRef.current; if (!d) return;
+    const r = pageRef.current.getBoundingClientRect();
+    const x = clamp((e.clientX - r.left) / r.width, 0, 1), y = clamp((e.clientY - r.top) / r.height, 0, 1);
+    setCropSel({ x: Math.min(d.x0, x), y: Math.min(d.y0, y), w: Math.abs(x - d.x0), h: Math.abs(y - d.y0) });
+  };
+  const upCropSel = () => {
+    cropDragRef.current = null;
+    window.removeEventListener('pointermove', moveCropSel);
+    window.removeEventListener('pointerup', upCropSel);
+  };
+  const cancelCrop = () => { setCropping(false); setCropSel(null); };
+  const applyCrop = () => {
+    if (!cropSel || cropSel.w < 0.03 || cropSel.h < 0.03 || !docImage) { cancelCrop(); return; }
+    const img = new Image();
+    img.onload = () => {
+      const sx = cropSel.x * img.naturalWidth, sy = cropSel.y * img.naturalHeight;
+      const sw = cropSel.w * img.naturalWidth, sh = cropSel.h * img.naturalHeight;
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(sw)); c.height = Math.max(1, Math.round(sh));
+      c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      pushHistory();
+      setDocImage(c.toDataURL('image/jpeg', 0.92));
+      cancelCrop();
+      showToast('서류 이미지를 잘랐습니다.');
+    };
+    img.src = docImage;
   };
 
   const onHandleDown = (e, id, mode) => {
@@ -572,7 +618,9 @@ function EditorScreen({ store }) {
       set((p) => ({ ...p, x, y }));
     } else if (d.mode === 'resize') {
       const dist = Math.hypot(e.clientX - d.center.x, e.clientY - d.center.y);
-      set((p) => ({ ...p, scale: clamp(d.startScale * (dist / d.startDist), 0.4, 3.2) }));
+      // 문서가 확대(zoom)된 상태에서는 같은 화면 픽셀 이동이 실제 문서 기준으로는 더 작은 이동이므로
+      // zoom으로 나눠 문서 좌표계 기준 배율을 저장한다 — 그래야 이후 zoom을 바꿔도 상대 크기가 유지된다.
+      set((p) => ({ ...p, scale: clamp(d.startScale * (dist / d.startDist) / zoom, 0.4, 3.2) }));
     }
   };
   const onDragUp = () => {
@@ -614,7 +662,7 @@ function EditorScreen({ store }) {
   const onStampTouchStart = (e, id) => {
     if (e.touches.length !== 2) return;
     e.preventDefault();
-    const inst = placed.find((p) => p.id === id); if (!inst) return;
+    const inst = placed.find((p) => p.id === id); if (!inst || inst.locked) return; // 잠긴 도장은 핀치 크기 조절 차단
     clearTimeout(lpRef.current);
     if (dragRef.current) { window.removeEventListener('pointermove', onDragMove); window.removeEventListener('pointerup', onDragUp); dragRef.current = null; }
     pushHistory();
@@ -685,6 +733,7 @@ function EditorScreen({ store }) {
       setPlacedLive((a) => { const i = a.findIndex((p) => p.id === sel); if (i < 0) return a; const c = [...a]; c.push(c.splice(i, 1)[0]); return c; });
     }
     if (k === 'reset') setPlacedLive((a) => a.map((p) => p.id === sel ? { ...p, rot: 0 } : p));
+    if (k === 'lock') setPlacedLive((a) => a.map((p) => p.id === sel ? { ...p, locked: !p.locked } : p));
   };
 
   const onMenu = (k) => {
@@ -693,7 +742,7 @@ function EditorScreen({ store }) {
     if (k === 'pdf') return showToast('PDF로 변환하여 저장했습니다.');
     if (k === 'addpage') { addPage(); showToast('페이지를 추가했습니다. (' + (pages.length + 1) + '페이지)'); return; }
     if (k === 'rotate') { setDocRot((r) => (r + 90) % 360); return showToast('서류를 90° 회전했습니다.'); }
-    if (k === 'replace') return showToast('서류 이미지를 다시 선택하세요.');
+    if (k === 'replace') { if (docImage) { setSel(null); setCropping(true); } else showToast('자를 서류 이미지가 없습니다.'); return; }
     if (k === 'manager') return nav('manager');
     if (k === 'settings') return nav('settings');
     if (k === 'clear') return setConfirm({ key: 'clear' });
@@ -887,7 +936,8 @@ function EditorScreen({ store }) {
         {isSel && (
           <React.Fragment>
             <span className="h-del" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); ctxAction('del'); }}><Icon name="close" size={13} sw={2.6} /></span>
-            <span className="h-res" onPointerDown={(e) => onHandleDown(e, p.id, 'resize')}><Icon name="resize" size={13} sw={2.2} /></span>
+            <span className="h-lock" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); ctxAction('lock'); }}>{p.locked ? '🔒' : '🔓'}</span>
+            {!p.locked && <span className="h-res" onPointerDown={(e) => onHandleDown(e, p.id, 'resize')}><Icon name="resize" size={13} sw={2.2} /></span>}
             <span className="h-mn" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setCtx({ x: e.clientX - 20, y: e.clientY - 10 }); }}><Icon name="more" size={13} sw={2.4} /></span>
           </React.Fragment>
         )}
@@ -938,15 +988,27 @@ function EditorScreen({ store }) {
           <button className="btn solid sm" onClick={endPlacement}>완료</button>
         </div>
       )}
+      {cropping && (
+        <div className="place-banner">
+          <span className="pb-text">자를 영역을 드래그로 선택하세요</span>
+          <button className="btn ghost sm" onClick={cancelCrop}>취소</button>
+          <button className="btn solid sm" disabled={!cropSel || cropSel.w < 0.03 || cropSel.h < 0.03} onClick={applyCrop}>적용</button>
+        </div>
+      )}
 
       <div className="canvas" onTouchStart={onCanvasTouchStart} onTouchMove={onCanvasTouchMove} onTouchEnd={onCanvasTouchEnd}>
         <div className={'page-wrap' + (placing ? ' placing' : '')}>
           <div className="page" ref={pageRef} onMouseMove={onPageMove} onClick={onPageClick}
-            style={{ width: PAGE_W * zoom, height: PAGE_W * 1.414 * zoom, rotate: docRot + 'deg' }}>
+            onPointerDown={cropping ? startCropSel : undefined}
+            style={{ width: PAGE_W * zoom, height: PAGE_W * 1.414 * zoom, rotate: docRot + 'deg', cursor: cropping ? 'crosshair' : undefined }}>
             {docMode === 'image' && docImage
               ? <img className="doc-img" src={docImage} alt="" draggable={false} />
               : docMode === 'blank' ? null : <SampleCertificate />}
-            {placed.map(renderPlaced)}
+            {!cropping && placed.map(renderPlaced)}
+            {cropping && cropSel && (
+              <div style={{ position: 'absolute', border: '2px dashed #2B6CE6', background: 'rgba(43,108,230,0.15)', pointerEvents: 'none',
+                left: cropSel.x * 100 + '%', top: cropSel.y * 100 + '%', width: cropSel.w * 100 + '%', height: cropSel.h * 100 + '%' }} />
+            )}
             {snapGuides.x && (
               <div className="snap-guide-v" style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: '#2B6CE6', pointerEvents: 'none' }} />
             )}
@@ -966,6 +1028,7 @@ function EditorScreen({ store }) {
         <div className="selbar">
           <span className="sb-t">도장 선택됨</span>
           <button onClick={() => ctxAction('dup')}><Icon name="layers" size={17} />복제</button>
+          <button onClick={() => ctxAction('lock')}>{selInst && selInst.locked ? '🔒 해제' : '🔓 잠금'}</button>
           <button className="danger" onClick={() => ctxAction('del')}><Icon name="trash" size={17} />삭제</button>
         </div>
       )}

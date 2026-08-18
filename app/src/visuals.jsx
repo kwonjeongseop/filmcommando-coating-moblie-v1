@@ -56,10 +56,10 @@ function SealVisual({ text, color, size }) {
   const rowFs = (size * 0.9) / rows * (cols === 1 ? 0.78 : 0.92);
   const colFs = (size * 0.66 / cols) * 0.85;
   const fs = Math.min(rowFs, colFs);
-  // traditional right-to-left, top-to-bottom column fill
+  // left-to-right, top-to-bottom row fill
   const cell = (ch, i) => {
-    const col = cols - Math.floor(i / rows);
-    const row = (i % rows) + 1;
+    const row = Math.floor(i / cols) + 1;
+    const col = (i % cols) + 1;
     return (
       <span key={i} style={{
         gridColumn: col, gridRow: row,

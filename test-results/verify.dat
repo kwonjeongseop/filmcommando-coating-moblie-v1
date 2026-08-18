@@ -288,3 +288,31 @@ APK: filmcommando-coating-moblie-v0.0.9.apk
       EditorScreen 바로 진입 확인. 핀치(2손가락) 제스처 자체는 adb shell이 멀티터치를 지원하지 않아
       Playwright CDP Input.dispatchTouchEvent(실제 두 손가락 터치 이벤트 시퀀스)로 검증.
 상태: PASS
+
+====================================================================
+[Release v0.1.0]
+빌드일: 2026-08-18
+수정: 도장텍스트가로·버전연동·도장크기고정·문서자르기
+  - 검증3: visuals.jsx SealVisual cell() 60~62행 — 열 우선(세로) → 행 우선(가로) 배치로 교체.
+    "金民洙" 3자가 [金民][洙] 형태로 왼쪽→오른쪽, 위→아래 순서로 배치되도록 수정.
+  - 조사4: vite.config.ts에서 package.json version을 읽어 define으로 __APP_VERSION__ 전역 상수 주입,
+    vite-env.d.ts에 타입 선언 추가, menus.jsx:51 하드코딩 "버전 1.0.4" → `버전 ${__APP_VERSION__}`로 교체.
+  - 검증5: editor.jsx onDragMove resize 분기에 zoom 정규화(÷zoom) 추가 — 문서를 확대한 상태에서
+    리사이즈해도 실제 문서 좌표계 기준 배율이 저장되도록 수정. 좌상단(구 h-rot 자리)에 잠금(🔒/🔓)
+    버튼 신설 — placed.locked 필드 추가, 잠금 시 크기 핸들(h-res) 숨김 + 핀치 리사이즈 차단.
+    selbar에도 잠금/해제 버튼 추가. index.css .h-rot orphan 규칙을 .h-lock으로 재활용.
+  - 조사3: 더보기 메뉴 "서류 이미지 교체"(placeholder) → "서류 이미지 편집"으로 변경, 실제 인라인
+    자르기 UI 구현(.page 위 드래그 선택 → canvas로 잘라 docImage 교체). app.jsx에 store.setDocImage
+    신설(기능 구현에 필수적인 최소 추가). Undo는 placed 배열만 추적하므로 자르기 자체는 Undo 대상이
+    아님(스탬프 배치 Undo와는 별개 — 참고 사항으로 기록).
+APK: filmcommando-coating-moblie-v0.1.0.apk
+크기: 17.23MB (18065236 bytes)
+검증: 웹 Playwright 회귀 48/48 PASS(신규 phase6-1 도장방향·phase6-2 잠금+zoom정규화 4건·phase6-3 버전
+      표시·phase6-4 자르기 2건 포함, zoom정규화는 수정 전 코드로 되돌려 실패 재현 후 복구해 회귀테스트
+      유효성 확인). 실기기(에뮬레이터 Pixel_8, release APK) 확인 — 도장 3종(3·3·4자) 모두 가로 배치로
+      렌더링, 잠금 버튼 토글 시 크기핸들 숨김/노출 및 하단바 라벨 전환 확인, 실제 카메라 촬영 문서로
+      더보기>서류 이미지 편집 진입해 자르기 UI(배너·취소/적용) 정상 표시 및 취소 동작 확인, 세션 전체
+      크래시 없음(logcat 확인). 자르기 드래그 선택 자체의 최종 결과(docImage 실제 교체)는 adb shell
+      input이 멀티스텝 포인터 드래그를 안정적으로 재현하지 못해 Playwright(실제 mouse 이벤트, JPEG
+      재인코딩 후 픽셀 색상까지 검증)로 검증함 — 실기기에서는 진입·UI·취소 경로만 시각 확인.
+상태: PASS

@@ -151,10 +151,10 @@ input { font-family: inherit; }
 .placed.sel { outline: 1.6px dashed var(--primary); outline-offset: 5px; cursor: move; border-radius: 2px; }
 .placed > * { pointer-events: none; }
 .placed.sel { z-index: 5; }
-.h-del, .h-rot, .h-res { position: absolute; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; color: var(--navy); box-shadow: 0 2px 6px rgba(20,35,63,.3); cursor: pointer; z-index: 6; }
-.placed > .h-del, .placed > .h-rot, .placed > .h-res { pointer-events: auto; }
+.h-del, .h-lock, .h-res { position: absolute; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; color: var(--navy); box-shadow: 0 2px 6px rgba(20,35,63,.3); cursor: pointer; z-index: 6; }
+.placed > .h-del, .placed > .h-lock, .placed > .h-res { pointer-events: auto; }
 .h-del { top: -14px; right: -14px; color: #E2453C; }
-.h-rot { top: -14px; left: -14px; cursor: grab; }
+.h-lock { top: -14px; left: -14px; font-size: 13px; line-height: 1; }
 .h-res { bottom: -14px; right: -14px; cursor: nwse-resize; }
 .stamp-ghost { position: absolute; transform: translate(-50%,-50%); opacity: .55; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
 

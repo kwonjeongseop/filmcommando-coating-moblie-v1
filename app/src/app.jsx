@@ -614,8 +614,10 @@ function App() {
     });
   };
 
+  const setDocImage = (img) => setPages((ps) => ps.map((p, i) => i === currentPage ? { ...p, docImage: img } : p));
+
   const store = {
-    docMode, docImage, docName, setDocName,
+    docMode, docImage, docName, setDocName, setDocImage,
     pages, currentPage, setCurrentPage, addPage,
     library, addStamp: (s) => setLibrary((l) => [...l, s]),
     recent, pushRecent: (id) => setRecent((r) => [id, ...r.filter((x) => x !== id)].slice(0, 6)),

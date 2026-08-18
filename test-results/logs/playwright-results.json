@@ -121,12 +121,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7942,
+                      "duration": 7773,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:00.796Z",
+                      "startTime": "2026-08-18T00:47:14.055Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -155,12 +155,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7500,
+                      "duration": 7480,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:08.851Z",
+                      "startTime": "2026-08-18T00:47:21.937Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -189,12 +189,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3549,
+                      "duration": 3475,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:16.358Z",
+                      "startTime": "2026-08-18T00:47:29.426Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -223,12 +223,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6975,
+                      "duration": 7005,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:44.624Z",
+                      "startTime": "2026-08-18T00:48:10.855Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -257,12 +257,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7488,
+                      "duration": 7525,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:51.717Z",
+                      "startTime": "2026-08-18T00:48:17.978Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -291,12 +291,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3507,
+                      "duration": 3496,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:59.214Z",
+                      "startTime": "2026-08-18T00:48:25.510Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -342,12 +342,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2175,
+                      "duration": 2151,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:19.934Z",
+                      "startTime": "2026-08-18T00:47:32.932Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -376,12 +376,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2258,
+                      "duration": 2230,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:22.116Z",
+                      "startTime": "2026-08-18T00:47:35.091Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -410,12 +410,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2590,
+                      "duration": 2536,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:24.381Z",
+                      "startTime": "2026-08-18T00:47:37.328Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -444,12 +444,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2222,
+                      "duration": 2220,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:02.743Z",
+                      "startTime": "2026-08-18T00:48:29.027Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -478,12 +478,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2174,
+                      "duration": 2240,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:04.972Z",
+                      "startTime": "2026-08-18T00:48:31.255Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -512,12 +512,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2596,
+                      "duration": 2547,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:07.152Z",
+                      "startTime": "2026-08-18T00:48:33.502Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -563,12 +563,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1930,
+                      "duration": 1887,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:26.991Z",
+                      "startTime": "2026-08-18T00:47:39.891Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -597,12 +597,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2026,
+                      "duration": 2030,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:28.928Z",
+                      "startTime": "2026-08-18T00:47:41.786Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -631,12 +631,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1979,
+                      "duration": 2069,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:30.962Z",
+                      "startTime": "2026-08-18T00:47:43.824Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -665,12 +665,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1959,
+                      "duration": 2077,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:32.948Z",
+                      "startTime": "2026-08-18T00:47:45.899Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -699,12 +699,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2031,
+                      "duration": 2054,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:09.772Z",
+                      "startTime": "2026-08-18T00:48:36.078Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -733,12 +733,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1997,
+                      "duration": 2043,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:11.809Z",
+                      "startTime": "2026-08-18T00:48:38.139Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -767,12 +767,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2016,
+                      "duration": 1927,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:13.813Z",
+                      "startTime": "2026-08-18T00:48:40.188Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -801,12 +801,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2159,
+                      "duration": 2128,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:15.838Z",
+                      "startTime": "2026-08-18T00:48:42.124Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -852,12 +852,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1607,
+                      "duration": 1687,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:34.934Z",
+                      "startTime": "2026-08-18T00:47:47.990Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -886,12 +886,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1659,
+                      "duration": 1675,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:36.547Z",
+                      "startTime": "2026-08-18T00:47:49.684Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -920,12 +920,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1659,
+                      "duration": 1727,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:38.212Z",
+                      "startTime": "2026-08-18T00:47:51.366Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -954,12 +954,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1642,
+                      "duration": 1636,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:18.012Z",
+                      "startTime": "2026-08-18T00:48:44.277Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -988,12 +988,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1576,
+                      "duration": 1627,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:19.661Z",
+                      "startTime": "2026-08-18T00:48:45.918Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1022,12 +1022,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1628,
+                      "duration": 1688,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:21.242Z",
+                      "startTime": "2026-08-18T00:48:47.552Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1073,12 +1073,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1725,
+                      "duration": 1724,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:39.891Z",
+                      "startTime": "2026-08-18T00:47:53.110Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1107,12 +1107,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1570,
+                      "duration": 1553,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:41.622Z",
+                      "startTime": "2026-08-18T00:47:54.840Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1141,12 +1141,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 962,
+                      "duration": 942,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T23:59:43.197Z",
+                      "startTime": "2026-08-18T00:47:56.398Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1175,12 +1175,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1790,
+                      "duration": 1735,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:22.895Z",
+                      "startTime": "2026-08-18T00:48:49.267Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1209,12 +1209,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1532,
+                      "duration": 1652,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:24.691Z",
+                      "startTime": "2026-08-18T00:48:51.008Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1243,12 +1243,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1018,
+                      "duration": 1003,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-18T00:00:26.228Z",
+                      "startTime": "2026-08-18T00:48:52.666Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1264,13 +1264,625 @@
           ]
         }
       ]
+    },
+    {
+      "title": "phase6-1-seal-direction.spec.ts",
+      "file": "phase6-1-seal-direction.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 6-1: 원형 도장 텍스트 가로 배치",
+          "file": "phase6-1-seal-direction.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "3자 이름이 왼쪽→오른쪽, 위→아래 순서로 배치된다(세로 배치 아님)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1633,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:47:57.353Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f714860885dd30d65ba1-d4d93b2360195f908579",
+              "file": "phase6-1-seal-direction.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "3자 이름이 왼쪽→오른쪽, 위→아래 순서로 배치된다(세로 배치 아님)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1664,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:53.685Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f714860885dd30d65ba1-df87602f516e8dd27bc7",
+              "file": "phase6-1-seal-direction.spec.ts",
+              "line": 5,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "phase6-2-stamp-lock.spec.ts",
+      "file": "phase6-2-stamp-lock.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 6-2: 도장 크기 고정 버튼",
+          "file": "phase6-2-stamp-lock.spec.ts",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "잠금 버튼을 누르면 크기 핸들이 사라지고, 다시 누르면 돌아온다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1740,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:47:59.016Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-e14b1760d014144fdabc",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 24,
+              "column": 3
+            },
+            {
+              "title": "하단 선택바의 잠금/해제 버튼도 동일하게 동작한다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1696,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:00.761Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-dc4067e6cf4be90ad517",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "잠긴 도장은 두 손가락 핀치로 크기가 변하지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1978,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:02.462Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-b927cc3ed927376094a1",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 51,
+              "column": 3
+            },
+            {
+              "title": "문서를 확대(zoom)한 상태에서 리사이즈해도 zoom을 되돌리면 같은 상대 크기로 저장된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2162,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:04.445Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-7ebdb49c019a2e72f45e",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "잠금 버튼을 누르면 크기 핸들이 사라지고, 다시 누르면 돌아온다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1698,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:55.364Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-0b054673dcb9b659cebe",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 24,
+              "column": 3
+            },
+            {
+              "title": "하단 선택바의 잠금/해제 버튼도 동일하게 동작한다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1661,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:57.068Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-152619caf30a23ed7336",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "잠긴 도장은 두 손가락 핀치로 크기가 변하지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2026,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:58.734Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-4e30f8ffad5f070cfa59",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 51,
+              "column": 3
+            },
+            {
+              "title": "문서를 확대(zoom)한 상태에서 리사이즈해도 zoom을 되돌리면 같은 상대 크기로 저장된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2198,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:49:00.767Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "91ab5e3604e2fcc3aafa-a359ad6cb3b1bb8f2d58",
+              "file": "phase6-2-stamp-lock.spec.ts",
+              "line": 73,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "phase6-3-version.spec.ts",
+      "file": "phase6-3-version.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 6-3: 버전 정보 자동 연동",
+          "file": "phase6-3-version.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "드로어 하단에 package.json의 실제 버전이 표시된다(하드코딩 아님)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 976,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:06.621Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2d41703ae9ef743f7855-f3f06f177bfc91da7192",
+              "file": "phase6-3-version.spec.ts",
+              "line": 8,
+              "column": 3
+            },
+            {
+              "title": "드로어 하단에 package.json의 실제 버전이 표시된다(하드코딩 아님)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1008,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:49:02.978Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2d41703ae9ef743f7855-214c20a64ed67c29eeba",
+              "file": "phase6-3-version.spec.ts",
+              "line": 8,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "phase6-4-doc-crop.spec.ts",
+      "file": "phase6-4-doc-crop.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Phase 6-4: 서류 이미지 자르기",
+          "file": "phase6-4-doc-crop.spec.ts",
+          "line": 26,
+          "column": 6,
+          "specs": [
+            {
+              "title": "빨간 사분면을 피해 자르면 docImage가 더 작은 흰색 이미지로 교체된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1430,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:07.609Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab8d76e04dcc7cf25715-1d7bbc23e0bbb770752c",
+              "file": "phase6-4-doc-crop.spec.ts",
+              "line": 27,
+              "column": 3
+            },
+            {
+              "title": "취소를 누르면 docImage가 바뀌지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1281,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:48:09.044Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab8d76e04dcc7cf25715-f78c85d7346995339229",
+              "file": "phase6-4-doc-crop.spec.ts",
+              "line": 70,
+              "column": 3
+            },
+            {
+              "title": "빨간 사분면을 피해 자르면 docImage가 더 작은 흰색 이미지로 교체된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1383,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:49:04.008Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab8d76e04dcc7cf25715-aa6acaa18f19f5a4f455",
+              "file": "phase6-4-doc-crop.spec.ts",
+              "line": 27,
+              "column": 3
+            },
+            {
+              "title": "취소를 누르면 docImage가 바뀌지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Pixel 8",
+                  "projectName": "Pixel 8",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1307,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-18T00:49:05.397Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ab8d76e04dcc7cf25715-110226c931be931aa2e8",
+              "file": "phase6-4-doc-crop.spec.ts",
+              "line": 70,
+              "column": 3
+            }
+          ]
+        }
+      ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-17T23:58:58.789Z",
-    "duration": 89723.563,
-    "expected": 32,
+    "startTime": "2026-08-18T00:47:11.943Z",
+    "duration": 116166.364,
+    "expected": 48,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
